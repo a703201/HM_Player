@@ -62,7 +62,7 @@ struct Play {
     try {
       this.avPlayer = await media.createAVPlayer();
       if (this.avPlayer) {
-        this.avPlayer.on('stateChange', (state: string, reason: media.StateChangeReason) => {
+        this.avPlayer.on('stateChange', (state: string) => {
           if (state === 'completed') {
             this.handleTrackComplete();
           }
@@ -219,7 +219,7 @@ struct Play {
     }
 
     try {
-      await this.avPlayer.seek(position, media.SeekMode.SEEK_CLOSEST);
+      this.avPlayer.seek(position, media.SeekMode.SEEK_CLOSEST);
       this.currentTime = position;
     } catch (err) {
       console.error('seekTo failed');
@@ -242,14 +242,28 @@ struct Play {
     }
   }
 
+  private safeStop(player: media.AVPlayer): void {
+    try {
+      player.stop();
+    } catch (err) {
+      const error = err as BusinessError;
+      console.error(`AVPlayer stop failed: code=${error.code}, message=${error.message}`);
+    }
+  }
+
+  private safeRelease(player: media.AVPlayer): void {
+    try {
+      player.release();
+    } catch (err) {
+      const error = err as BusinessError;
+      console.error(`AVPlayer release failed: code=${error.code}, message=${error.message}`);
+    }
+  }
+
   private releaseMediaPlayer(): void {
     if (this.avPlayer) {
-      try {
-        this.avPlayer.stop();
-        this.avPlayer.release();
-      } catch (err) {
-        console.error('releaseMediaPlayer failed');
-      }
+      this.safeStop(this.avPlayer);
+      this.safeRelease(this.avPlayer);
       this.avPlayer = null;
     }
   }
@@ -404,11 +418,13 @@ struct Play {
                 }
               })
             }
+            .width('100%')
+            .height('100%')
             .layoutWeight(1)
             .scrollBar(BarState.Off)
             .alignListItem(ListItemAlign.Center)
             .offset({ x: 0, y: -this.scrollOffset })
-            .onScrollIndex((firstIndex: number, lastIndex: number) => {
+            .onScrollIndex((firstIndex: number) => {
               this.scrollOffset = firstIndex * 60;
             })
           } else {
@@ -479,7 +495,7 @@ struct Play {
                   max: this.duration || 1
                 })
                   .width('100%')
-                  .blockColor('#FFFFFF')
+                  .blockColor(Color.White)
                   .selectedColor('#FA2759')
                   .trackColor('rgba(255, 255, 255, 0.2)')
                   .trackThickness(3)

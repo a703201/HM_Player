@@ -2,8 +2,8 @@ import { MusicStore } from '../services/MusicStore';
 
 @Entry
 @Component
-export struct Settings {
-  @Prop store: MusicStore = MusicStore.getInstance();
+struct Settings {
+  store: MusicStore = MusicStore.getInstance();
   pathStack: NavPathStack = new NavPathStack();
 
   @State scanProgress: number = 0;
@@ -15,13 +15,13 @@ export struct Settings {
       Row() {
         Image(icon)
           .width(24)
-          .fillColor(Color.White)
+          .fillColor('#1C1C1E')
           .margin({ right: 14 })
 
         Column() {
           Text(title)
             .fontSize(16)
-            .fontColor(Color.White)
+            .fontColor('#1C1C1E')
             .fontWeight(FontWeight.Medium)
             .margin({ bottom: subtitle ? 4 : 0 })
 
@@ -44,7 +44,7 @@ export struct Settings {
       .onClick(onClick)
     }
     .width('100%')
-    .backgroundColor('#2C2C2E')
+    .backgroundColor('#F2F2F7')
     .borderRadius(12)
   }
 
@@ -54,7 +54,7 @@ export struct Settings {
         Text('设置')
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
+          .fontColor('#1C1C1E')
           .margin({ bottom: 24, left: 16, right: 16 })
 
         Scroll() {
@@ -146,7 +146,7 @@ export struct Settings {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#000000')
+      .backgroundColor(Color.White)
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     }
     .onReady((context: NavDestinationContext) => {

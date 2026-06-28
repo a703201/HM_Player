@@ -28,44 +28,92 @@ struct Layout{
   ]
 
   @Builder tabBuilder (item:TabClass, index:number) {
-    Column({space : 5}){
+    Column({space : 4}){
       Image(item.icon)
-        .width(24)
+        .width(22)
         .fillColor(this.currentIndex === index ? '#FA2759':'#8E8E93')
       Text(item.text)
-        .fontSize(12)
+        .fontSize(11)
         .fontColor(this.currentIndex === index ? '#FA2759':'#8E8E93')
+        .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
     }
+    .width(64)
+    .height(44)
+    .justifyContent(FlexAlign.Center)
   }
 
   build(){
-    NavDestination(){
-      Tabs({ barPosition : BarPosition.End }){
-        TabContent() {
-          Songs()
-        }
-        .tabBar(this.tabBuilder(this.tabData[0], 0))
+    NavDestination() {
+      Stack({ alignContent: Alignment.Bottom }) {
+        Tabs({ barPosition : BarPosition.End }){
+          TabContent() {
+            Songs()
+          }
+          .tabBar(this.tabBuilder(this.tabData[0], 0))
 
-        TabContent() {
-          Find()
-        }
-        .tabBar(this.tabBuilder(this.tabData[1], 1))
+          TabContent() {
+            Find()
+          }
+          .tabBar(this.tabBuilder(this.tabData[1], 1))
 
-        TabContent() {
-          Moment()
-        }
-        .tabBar(this.tabBuilder(this.tabData[2], 2))
+          TabContent() {
+            Moment()
+          }
+          .tabBar(this.tabBuilder(this.tabData[2], 2))
 
-        TabContent() {
-          Mine()
+          TabContent() {
+            Mine()
+          }
+          .tabBar(this.tabBuilder(this.tabData[3], 3))
         }
-        .tabBar(this.tabBuilder(this.tabData[3], 3))
+        .onChange((index:number) => {
+          this.currentIndex = index
+        })
+        .barMode(BarMode.Fixed)
+        .barWidth('100%')
+        .barHeight(0)
+        .scrollable(false)
+        .width('100%')
+        .height('100%')
+
+        Row() {
+          ForEach(this.tabData, (item: TabClass, index: number) => {
+            Column({space: 4}) {
+              Image(item.icon)
+                .width(22)
+                .fillColor(this.currentIndex === index ? '#FA2759' : '#8E8E93')
+              Text(item.text)
+                .fontSize(11)
+                .fontColor(this.currentIndex === index ? '#FA2759' : '#8E8E93')
+                .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
+            }
+            .width(64)
+            .height(44)
+            .justifyContent(FlexAlign.Center)
+            .onClick(() => {
+              this.currentIndex = index;
+            })
+          })
+        }
+        .width('85%')
+        .height(52)
+        .backgroundColor(Color.White)
+        .borderRadius(26)
+        .shadow({
+          radius: 12,
+          color: 'rgba(0, 0, 0, 0.08)',
+          offsetX: 0,
+          offsetY: 4
+        })
+        .justifyContent(FlexAlign.SpaceEvenly)
+        .margin({ bottom: 20 })
       }
-      .onChange((index:number) => {
-        this.currentIndex = index
-      })
-      .expandSafeArea([SafeAreaType.SYSTEM],[SafeAreaEdge.TOP,SafeAreaEdge.BOTTOM])
+      .width('100%')
+      .height('100%')
+      .backgroundColor(Color.White)
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     }
+    .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack
     })

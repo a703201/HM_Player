@@ -1,6 +1,6 @@
 @Entry
 @Component
-export struct About {
+struct About {
   pathStack: NavPathStack = new NavPathStack();
 
   build() {
@@ -11,21 +11,20 @@ export struct About {
             Circle()
               .width(100)
               .height(100)
-              .fill('#2C2C2E')
-              .stroke(Color.White)
+              .fill('#F2F2F7')
+              .stroke('#1C1C1E')
               .strokeWidth(2)
-              .opacity(0.3)
 
             Image($r('app.media.ic_logo'))
               .width(50)
-              .fillColor(Color.White)
+              .fillColor('#FA2759')
           }
           .margin({ top: 60, bottom: 24 })
 
           Text('HM_Music')
             .fontSize(28)
             .fontWeight(FontWeight.Bold)
-            .fontColor(Color.White)
+            .fontColor('#1C1C1E')
             .margin({ bottom: 8 })
 
           Text('本地音乐播放器')
@@ -54,7 +53,7 @@ export struct About {
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)
-      .backgroundColor('#000000')
+      .backgroundColor(Color.White)
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     }
     .onReady((context: NavDestinationContext) => {
@@ -74,13 +73,13 @@ export struct About {
 
       Text(value)
         .fontSize(15)
-        .fontColor(Color.White)
+        .fontColor('#1C1C1E')
         .fontWeight(FontWeight.Medium)
     }
     .width('100%')
     .height(52)
     .padding({ left: 16, right: 16 })
-    .backgroundColor('#2C2C2E')
+    .backgroundColor('#F2F2F7')
     .borderRadius(12)
     .margin({ bottom: 1 })
   }
