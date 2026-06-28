@@ -3,6 +3,34 @@
     {
       "name": "start_window_background",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "select_swiper",
+      "value": "#FA2759"
+    },
+    {
+      "name": "slider_track",
+      "value": "#33FFFFFF"
+    },
+    {
+      "name": "slider_select",
+      "value": "#FA2759"
+    },
+    {
+      "name": "play_text_color",
+      "value": "#8E8E93"
+    },
+    {
+      "name": "singer_text",
+      "value": "#8E8E93"
+    },
+    {
+      "name": "shadow_color",
+      "value": "#1A000000"
+    },
+    {
+      "name": "list_divider",
+      "value": "#E5E5EA"
     }
   ]
 }

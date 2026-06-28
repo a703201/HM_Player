@@ -3,7 +3,7 @@ import { MusicStore } from '../services/MusicStore';
 @Entry
 @Component
 export struct Mine {
-  @Prop parentPathStack: NavPathStack = new NavPathStack();
+  @StorageLink('navPathStack') pathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
 
   @Builder
@@ -85,7 +85,9 @@ export struct Mine {
           '我的收藏',
           `${this.store.getFavoriteSongs().length} 首歌曲`,
           true,
-          () => {}
+          () => {
+            this.pathStack.pushPathByName('Favorites', null, false);
+          }
         )
 
         this.buildMenuItem(
@@ -93,15 +95,19 @@ export struct Mine {
           '播放历史',
           `${this.store.recentlyPlayed.length} 首歌曲`,
           true,
-          () => {}
+          () => {
+            this.pathStack.pushPathByName('PlayHistory', null, false);
+          }
         )
 
         this.buildMenuItem(
-          $r('app.media.ic_download'),
-          '已下载',
-          '0 首歌曲',
+          $r('app.media.ic_music'),
+          '本地音乐库',
+          `${this.store.songs.length} 首歌曲`,
           true,
-          () => {}
+          () => {
+            this.pathStack.pushPathByName('LocalLibrary', null, false);
+          }
         )
       }
       .width('100%')
@@ -116,20 +122,12 @@ export struct Mine {
 
       Column() {
         this.buildMenuItem(
-          $r('app.media.ic_music'),
-          '本地音乐库',
-          `${this.store.songs.length} 首歌曲`,
-          true,
-          () => {}
-        )
-
-        this.buildMenuItem(
           $r('app.media.ic_code'),
           '设置',
           '',
           true,
           () => {
-            this.parentPathStack.pushPathByName('Settings', null, false);
+            this.pathStack.pushPathByName('Settings', null, false);
           }
         )
 
@@ -139,7 +137,7 @@ export struct Mine {
           'HM_Music v1.0.0',
           true,
           () => {
-            this.parentPathStack.pushPathByName('About', null, false);
+            this.pathStack.pushPathByName('About', null, false);
           }
         )
       }

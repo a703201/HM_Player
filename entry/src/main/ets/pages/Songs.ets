@@ -3,10 +3,15 @@ import { MusicStore } from '../services/MusicStore';
 import { scanLocalMusic } from '../services/MusicScanner';
 import { picker } from '@kit.CoreFileKit';
 
+interface MenuItem {
+  value: string;
+  action: () => void;
+}
+
 @Entry
 @Component
 export struct Songs {
-  @Prop parentPathStack: NavPathStack = new NavPathStack();
+  @StorageLink('navPathStack') pathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
   @State searchText: string = '';
   @State filteredSongs: SongItem[] = [];
@@ -80,64 +85,160 @@ export struct Songs {
     }
   }
 
+  playSong(song: SongItem): void {
+    const index = this.store.songs.findIndex(s => s.id === song.id);
+    if (index >= 0) {
+      this.store.currentIndex = index;
+      this.pathStack.pushPathByName('PlayerPage', null, false);
+    }
+  }
+
+  deleteSong(song: SongItem): void {
+    this.store.removeSong(song.id);
+    this.filteredSongs = [...this.store.songs];
+  }
+
   @Builder
   buildSongItem(song: SongItem, index: number) {
     Row() {
-      Stack() {
-        if (song.coverUri) {
-          Image(song.coverUri)
-            .width(56)
-            .height(56)
-            .borderRadius(8)
-            .clip(true)
-        } else {
-          Image($r('app.media.QQ1'))
-            .width(56)
-            .height(56)
-            .borderRadius(8)
-            .clip(true)
+      Row() {
+        Stack() {
+          if (song.coverUri) {
+            Image(song.coverUri)
+              .width(56)
+              .height(56)
+              .borderRadius(8)
+              .clip(true)
+          } else {
+            Image($r('app.media.QQ1'))
+              .width(56)
+              .height(56)
+              .borderRadius(8)
+              .clip(true)
+          }
+
+          if (this.store.currentIndex === index && this.store.isPlaying) {
+            Image($r('app.media.ic_playing'))
+              .width(20)
+              .position({ x: 18, y: 18 })
+          }
         }
 
-        if (this.store.currentIndex === index && this.store.isPlaying) {
-          Image($r('app.media.ic_playing'))
-            .width(20)
-            .position({ x: 18, y: 18 })
+        Column() {
+          Text(song.title)
+            .fontSize(16)
+            .fontColor('#1C1C1E')
+            .fontWeight(FontWeight.Medium)
+            .margin({ bottom: 4 })
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+          Text(song.artist)
+            .fontSize(13)
+            .fontColor('#8E8E93')
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
-      }
-
-      Column() {
-        Text(song.title)
-          .fontSize(16)
-          .fontColor('#1C1C1E')
-          .fontWeight(FontWeight.Medium)
-          .margin({ bottom: 4 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-        Text(song.artist)
-          .fontSize(13)
-          .fontColor('#8E8E93')
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+        .padding({ left: 12 })
       }
       .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12 })
+      .height('100%')
+      .onClick(() => {
+        this.playSong(song);
+      })
 
       Image($r('app.media.ic_more'))
         .width(20)
+        .height(20)
         .fillColor('#8E8E93')
+        .padding(8)
+        .bindMenu(this.buildSongMenu(song))
     }
     .width('100%')
     .height(72)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: 16, right: 8 })
     .backgroundColor('#F2F2F7')
     .borderRadius(12)
     .margin({ bottom: 8 })
-    .onClick(() => {
-      this.store.currentIndex = index;
-      this.parentPathStack.pushPathByName('Play', null, false);
-    })
+  }
+
+  @Builder
+  buildSongMenu(song: SongItem) {
+    Column() {
+      Row() {
+        Image($r('app.media.ic_play'))
+          .width(18)
+          .fillColor('#1C1C1E')
+          .margin({ right: 12 })
+        Text('播放')
+          .fontSize(14)
+          .fontColor('#1C1C1E')
+      }
+      .width('100%')
+      .height(44)
+      .padding({ left: 16, right: 16 })
+      .onClick(() => {
+        this.playSong(song);
+      })
+
+      Divider().color('#E5E5EA').strokeWidth(0.5)
+
+      Row() {
+        Image($r('app.media.ic_list'))
+          .width(18)
+          .fillColor('#1C1C1E')
+          .margin({ right: 12 })
+        Text('添加至播放列表')
+          .fontSize(14)
+          .fontColor('#1C1C1E')
+      }
+      .width('100%')
+      .height(44)
+      .padding({ left: 16, right: 16 })
+      .onClick(() => {
+      })
+
+      Divider().color('#E5E5EA').strokeWidth(0.5)
+
+      Row() {
+        Image($r('app.media.ic_more'))
+          .width(18)
+          .fillColor('#1C1C1E')
+          .margin({ right: 12 })
+        Text('编辑')
+          .fontSize(14)
+          .fontColor('#1C1C1E')
+      }
+      .width('100%')
+      .height(44)
+      .padding({ left: 16, right: 16 })
+      .onClick(() => {
+      })
+
+      Divider().color('#E5E5EA').strokeWidth(0.5)
+
+      Row() {
+        Image($r('app.media.ic_close'))
+          .width(18)
+          .fillColor('#FA2759')
+          .margin({ right: 12 })
+        Text('删除')
+          .fontSize(14)
+          .fontColor('#FA2759')
+      }
+      .width('100%')
+      .height(44)
+      .padding({ left: 16, right: 16 })
+      .onClick(() => {
+        this.deleteSong(song);
+      })
+    }
+    .width(180)
+    .backgroundColor(Color.White)
+    .borderRadius(12)
+    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
   }
 
   build() {

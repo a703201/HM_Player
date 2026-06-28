@@ -4,7 +4,7 @@ import { MusicStore } from '../services/MusicStore';
 @Entry
 @Component
 export struct Find {
-  @Prop parentPathStack: NavPathStack = new NavPathStack();
+  @StorageLink('navPathStack') pathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
 
   @Builder
@@ -55,7 +55,7 @@ export struct Find {
       const index: number = this.store.songs.findIndex(s => s.id === song.id);
       if (index >= 0) {
         this.store.currentIndex = index;
-        this.parentPathStack.pushPathByName('Play', null, false);
+        this.pathStack.pushPathByName('PlayerPage', null, false);
       }
     })
   }

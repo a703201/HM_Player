@@ -5,18 +5,17 @@ interface FolderItem {
   name: string;
   count: number;
   icon: ResourceStr;
+  targetPage: string;
   songs: SongItem[];
 }
 
 @Entry
 @Component
 export struct Moment {
-  @Prop parentPathStack: NavPathStack = new NavPathStack();
+  @StorageLink('navPathStack') pathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
 
   @State folders: FolderItem[] = [];
-  @State currentFolderSongs: SongItem[] | null = null;
-  @State currentFolderName: string = '';
 
   aboutToAppear(): void {
     this.updateFolders();
@@ -24,163 +23,114 @@ export struct Moment {
 
   updateFolders(): void {
     this.folders = [
-      { name: '我的收藏', count: this.store.getFavoriteSongs().length, icon: $r('app.media.ic_favorite'), songs: this.store.getFavoriteSongs() },
-      { name: '本地音乐', count: this.store.songs.length, icon: $r('app.media.ic_music'), songs: [...this.store.songs] },
-      { name: '最近播放', count: this.store.recentlyPlayed.length, icon: $r('app.media.ic_list'), songs: [...this.store.recentlyPlayed] },
-      { name: '已下载', count: 0, icon: $r('app.media.ic_download'), songs: [] }
+      { name: '我的收藏', count: this.store.getFavoriteSongs().length, icon: $r('app.media.ic_favorite'), targetPage: 'Favorites', songs: this.store.getFavoriteSongs() },
+      { name: '本地音乐', count: this.store.songs.length, icon: $r('app.media.ic_music'), targetPage: 'LocalLibrary', songs: [...this.store.songs] },
+      { name: '最近播放', count: this.store.recentlyPlayed.length, icon: $r('app.media.ic_list'), targetPage: 'PlayHistory', songs: [...this.store.recentlyPlayed] }
     ];
   }
 
   @Builder
   buildFolderItem(folder: FolderItem) {
     Row() {
-      Image(folder.icon)
-        .width(24)
-        .height(24)
-        .fillColor('#FA2759')
-        .margin({ right: 14 })
+      Row() {
+        Image(folder.icon)
+          .width(24)
+          .height(24)
+          .fillColor('#FA2759')
+          .margin({ right: 14 })
 
-      Text(folder.name)
-        .fontSize(16)
-        .fontColor('#1C1C1E')
-        .fontWeight(FontWeight.Medium)
-        .layoutWeight(1)
-        .textAlign(TextAlign.Start)
+        Text(folder.name)
+          .fontSize(16)
+          .fontColor('#1C1C1E')
+          .fontWeight(FontWeight.Medium)
+          .layoutWeight(1)
+          .textAlign(TextAlign.Start)
 
-      Text(`${folder.count}`)
-        .fontSize(15)
-        .fontColor('#8E8E93')
-        .margin({ right: 8 })
+        Text(`${folder.count}`)
+          .fontSize(15)
+          .fontColor('#8E8E93')
+      }
+      .layoutWeight(1)
+      .height('100%')
+      .onClick(() => {
+        this.pathStack.pushPathByName(folder.targetPage, null, false);
+      })
 
       Image($r('app.media.ic_more'))
         .width(16)
         .height(16)
         .fillColor('#636366')
+        .padding(8)
+        .bindMenu(this.buildFolderMenu(folder))
     }
     .width('100%')
     .height(56)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: 16, right: 8 })
     .backgroundColor('#F2F2F7')
     .borderRadius(12)
     .margin({ bottom: 8 })
-    .onClick(() => {
-      if (folder.songs.length > 0) {
-        this.currentFolderName = folder.name;
-        this.currentFolderSongs = [...folder.songs];
-      }
-    })
   }
 
   @Builder
-  buildSongItem(song: SongItem, index: number) {
-    Row() {
-      Stack() {
-        if (song.coverUri) {
-          Image(song.coverUri)
-            .width(48)
-            .height(48)
-            .borderRadius(8)
-            .clip(true)
-        } else {
-          Image($r('app.media.QQ1'))
-            .width(48)
-            .height(48)
-            .borderRadius(8)
-            .clip(true)
-        }
-      }
-
-      Column() {
-        Text(song.title)
-          .fontSize(15)
+  buildFolderMenu(folder: FolderItem) {
+    Column() {
+      Row() {
+        Image($r('app.media.ic_more'))
+          .width(18)
+          .fillColor('#1C1C1E')
+          .margin({ right: 12 })
+        Text('编辑')
+          .fontSize(14)
           .fontColor('#1C1C1E')
-          .fontWeight(FontWeight.Medium)
-          .margin({ bottom: 4 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .width('100%')
+      .height(44)
+      .padding({ left: 16, right: 16 })
+      .onClick(() => {
+      })
 
-        Text(song.artist)
-          .fontSize(13)
-          .fontColor('#8E8E93')
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      Divider().color('#E5E5EA').strokeWidth(0.5)
+
+      Row() {
+        Image($r('app.media.ic_close'))
+          .width(18)
+          .fillColor('#FA2759')
+          .margin({ right: 12 })
+        Text('删除')
+          .fontSize(14)
+          .fontColor('#FA2759')
       }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12 })
+      .width('100%')
+      .height(44)
+      .padding({ left: 16, right: 16 })
+      .onClick(() => {
+      })
     }
-    .width('100%')
-    .height(64)
-    .padding({ left: 16, right: 16 })
-    .backgroundColor('#F2F2F7')
+    .width(140)
+    .backgroundColor(Color.White)
     .borderRadius(12)
-    .margin({ bottom: 8 })
-    .onClick(() => {
-      const globalIndex = this.store.songs.findIndex(s => s.id === song.id);
-      if (globalIndex >= 0) {
-        this.store.currentIndex = globalIndex;
-      }
-      this.parentPathStack.pushPathByName('Play', null, false);
-    })
+    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
   }
 
   build() {
     Column() {
-      if (this.currentFolderSongs !== null) {
-        Row() {
-          Image($r('app.media.ic_back'))
-            .width(24)
-            .height(24)
-            .fillColor('#1C1C1E')
-            .onClick(() => {
-              this.currentFolderSongs = null;
-              this.updateFolders();
-            })
+      Text('音乐库')
+        .fontSize(20)
+        .fontWeight(FontWeight.Bold)
+        .fontColor('#1C1C1E')
+        .margin({ bottom: 20, left: 16, right: 16 })
 
-          Text(this.currentFolderName)
-            .fontSize(18)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#1C1C1E')
-            .margin({ left: 12 })
-            .layoutWeight(1)
-
-          Text(`${this.currentFolderSongs.length} 首`)
-            .fontSize(13)
-            .fontColor('#8E8E93')
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 16 })
-
-        List() {
-          ForEach(this.currentFolderSongs, (song: SongItem, index: number) => {
-            ListItem() {
-              this.buildSongItem(song, index)
-            }
-          })
-        }
-        .width('100%')
-        .height('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
-      } else {
-        Text('音乐库')
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .fontColor('#1C1C1E')
-          .margin({ bottom: 20, left: 16, right: 16 })
-
-        List() {
-          ForEach(this.folders, (folder: FolderItem) => {
-            ListItem() {
-              this.buildFolderItem(folder)
-            }
-          })
-        }
-        .width('100%')
-        .height('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
+      List() {
+        ForEach(this.folders, (folder: FolderItem) => {
+          ListItem() {
+            this.buildFolderItem(folder)
+          }
+        })
       }
+      .width('100%')
+      .height('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')

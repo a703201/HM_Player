@@ -15,9 +15,9 @@ export function LayoutBuilder() {
 }
 
 @Component
-struct Layout {
+struct Layout{
   @State currentIndex: number = 0
-  pathStack: NavPathStack = new NavPathStack()
+  @State pathStack: NavPathStack = new NavPathStack()
   store: MusicStore = MusicStore.getInstance()
   private tabsController: TabsController = new TabsController()
 
@@ -48,22 +48,22 @@ struct Layout {
       Stack({ alignContent: Alignment.Bottom }) {
         Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
           TabContent() {
-            Songs({ parentPathStack: this.pathStack })
+            Songs()
           }
           .tabBar(this.tabBuilder(this.tabData[0], 0))
 
           TabContent() {
-            Find({ parentPathStack: this.pathStack })
+            Find()
           }
           .tabBar(this.tabBuilder(this.tabData[1], 1))
 
           TabContent() {
-            Moment({ parentPathStack: this.pathStack })
+            Moment()
           }
           .tabBar(this.tabBuilder(this.tabData[2], 2))
 
           TabContent() {
-            Mine({ parentPathStack: this.pathStack })
+            Mine()
           }
           .tabBar(this.tabBuilder(this.tabData[3], 3))
         }
@@ -115,11 +115,10 @@ struct Layout {
       .width('100%')
       .height('100%')
       .backgroundColor(Color.White)
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     }
     .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack
+      AppStorage.setOrCreate('navPathStack', context.pathStack)
     })
   }
 }

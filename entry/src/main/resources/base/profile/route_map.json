@@ -17,11 +17,11 @@
       }
     },
     {
-      "name": "Play",
-      "pageSourceFile": "src/main/ets/pages/Play.ets",
-      "buildFunction": "PlayBuilder",
+      "name": "PlayerPage",
+      "pageSourceFile": "src/main/ets/pages/PlayerPage.ets",
+      "buildFunction": "PlayerPageBuilder",
       "data": {
-        "description": "this is Play"
+        "description": "this is PlayerPage"
       }
     },
     {
@@ -38,6 +38,30 @@
       "buildFunction": "AboutBuilder",
       "data": {
         "description": "this is About"
+      }
+    },
+    {
+      "name": "LocalLibrary",
+      "pageSourceFile": "src/main/ets/pages/LocalLibrary.ets",
+      "buildFunction": "LocalLibraryBuilder",
+      "data": {
+        "description": "this is LocalLibrary"
+      }
+    },
+    {
+      "name": "PlayHistory",
+      "pageSourceFile": "src/main/ets/pages/PlayHistory.ets",
+      "buildFunction": "PlayHistoryBuilder",
+      "data": {
+        "description": "this is PlayHistory"
+      }
+    },
+    {
+      "name": "Favorites",
+      "pageSourceFile": "src/main/ets/pages/Favorites.ets",
+      "buildFunction": "FavoritesBuilder",
+      "data": {
+        "description": "this is Favorites"
       }
     }
   ]

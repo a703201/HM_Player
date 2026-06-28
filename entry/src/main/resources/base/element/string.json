@@ -19,6 +19,26 @@
     {
       "name": "write_media_reason",
       "value": "用于保存播放历史和收藏数据"
+    },
+    {
+      "name": "sequential_playback",
+      "value": "顺序播放"
+    },
+    {
+      "name": "random_playback",
+      "value": "随机播放"
+    },
+    {
+      "name": "single_playback",
+      "value": "单曲循环"
+    },
+    {
+      "name": "play_list",
+      "value": "播放列表(%d首)"
+    },
+    {
+      "name": "page_show",
+      "value": "HM_Music"
     }
   ]
 }

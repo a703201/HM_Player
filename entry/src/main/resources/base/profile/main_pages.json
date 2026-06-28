@@ -3,12 +3,15 @@
     "pages/Index",
     "pages/Start",
     "pages/Layout",
-    "pages/Play",
+    "pages/PlayerPage",
     "pages/Songs",
     "pages/Find",
     "pages/Moment",
     "pages/Mine",
     "pages/Settings",
-    "pages/About"
+    "pages/About",
+    "pages/LocalLibrary",
+    "pages/PlayHistory",
+    "pages/Favorites"
   ]
 }
