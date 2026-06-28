@@ -23,6 +23,22 @@
       "data": {
         "description": "this is Play"
       }
+    },
+    {
+      "name": "Settings",
+      "pageSourceFile": "src/main/ets/pages/Settings.ets",
+      "buildFunction": "SettingsBuilder",
+      "data": {
+        "description": "this is Settings"
+      }
+    },
+    {
+      "name": "About",
+      "pageSourceFile": "src/main/ets/pages/About.ets",
+      "buildFunction": "AboutBuilder",
+      "data": {
+        "description": "this is About"
+      }
     }
   ]
 }

@@ -4,12 +4,8 @@ import { MusicStore } from '../services/MusicStore';
 @Entry
 @Component
 export struct Find {
-  @Prop store: MusicStore = MusicStore.getInstance();
-  pathStack: NavPathStack = new NavPathStack();
-
-  aboutToAppear(): void {
-    this.store.setSongs(this.store.songs);
-  }
+  @Prop parentPathStack: NavPathStack = new NavPathStack();
+  store: MusicStore = MusicStore.getInstance();
 
   @Builder
   buildSongCard(song: SongItem) {
@@ -33,7 +29,7 @@ export struct Find {
       Column() {
         Text(song.title)
           .fontSize(15)
-          .fontColor(Color.White)
+          .fontColor('#1C1C1E')
           .fontWeight(FontWeight.Medium)
           .margin({ bottom: 4 })
           .maxLines(1)
@@ -47,69 +43,100 @@ export struct Find {
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
+      .padding({ left: 12 })
     }
     .width('100%')
     .height(72)
     .padding({ left: 16, right: 16 })
-    .backgroundColor('#2C2C2E')
+    .backgroundColor('#F2F2F7')
     .borderRadius(12)
+    .margin({ bottom: 8 })
     .onClick(() => {
       const index: number = this.store.songs.findIndex(s => s.id === song.id);
       if (index >= 0) {
         this.store.currentIndex = index;
-        this.pathStack.pushPathByName('Play', null, false);
+        this.parentPathStack.pushPathByName('Play', null, false);
       }
     })
   }
 
   build() {
-    NavDestination() {
-      Column() {
-        Text('最近播放')
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-          .margin({ bottom: 16 })
-          .margin({ left: 16, right: 16 })
+    Column() {
+      Text('发现')
+        .fontSize(20)
+        .fontWeight(FontWeight.Bold)
+        .fontColor('#1C1C1E')
+        .margin({ bottom: 20, left: 16, right: 16 })
 
-        if (this.store.recentlyPlayed.length === 0) {
-          Column() {
-            Image($r('app.media.ic_music'))
-              .width(64)
-              .fillColor('#8E8E93')
-              .margin({ bottom: 16 })
+      Scroll() {
+        Column() {
+          if (this.store.recentlyPlayed.length > 0) {
+            Text('最近播放')
+              .fontSize(16)
+              .fontWeight(FontWeight.Medium)
+              .fontColor('#1C1C1E')
+              .margin({ bottom: 12, left: 16, right: 16 })
 
-            Text('暂无最近播放记录')
-              .fontSize(15)
-              .fontColor('#8E8E93')
-
-            Text('播放歌曲后将在这里显示')
-              .fontSize(13)
-              .fontColor('#636366')
-              .margin({ top: 8 })
+            List() {
+              ForEach(this.store.recentlyPlayed, (song: SongItem) => {
+                ListItem() {
+                  this.buildSongCard(song)
+                }
+              })
+            }
+            .width('100%')
+            .height('auto')
+            .scrollBar(BarState.Off)
           }
-          .layoutWeight(1)
-          .justifyContent(FlexAlign.Center)
-        } else {
-          List() {
-            ForEach(this.store.recentlyPlayed, (song: SongItem, index: number) => {
-              ListItem() {
-                this.buildSongCard(song)
-              }
-            })
+
+          if (this.store.songs.length > 0) {
+            Text('全部歌曲')
+              .fontSize(16)
+              .fontWeight(FontWeight.Medium)
+              .fontColor('#1C1C1E')
+              .margin({ top: 20, bottom: 12, left: 16, right: 16 })
+
+            List() {
+              ForEach(this.store.songs, (song: SongItem) => {
+                ListItem() {
+                  this.buildSongCard(song)
+                }
+              })
+            }
+            .width('100%')
+            .height('auto')
+            .scrollBar(BarState.Off)
           }
-          .layoutWeight(1)
-          .scrollBar(BarState.Off)
+
+          if (this.store.recentlyPlayed.length === 0 && this.store.songs.length === 0) {
+            Column() {
+              Image($r('app.media.ic_music'))
+                .width(64)
+                .fillColor('#8E8E93')
+                .margin({ bottom: 16 })
+
+              Text('暂无内容')
+                .fontSize(15)
+                .fontColor('#8E8E93')
+
+              Text('前往歌曲页面导入音乐')
+                .fontSize(13)
+                .fontColor('#636366')
+                .margin({ top: 8 })
+            }
+            .width('100%')
+            .height(300)
+            .justifyContent(FlexAlign.Center)
+          }
         }
+        .width('100%')
+        .padding({ bottom: 80 })
       }
-      .width('100%')
-      .height('100%')
-      .backgroundColor('#000000')
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
-    .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack;
-    })
-    .hideTitleBar(true)
+    .width('100%')
+    .height('100%')
+    .backgroundColor(Color.White)
   }
 }
