@@ -14,6 +14,7 @@ export function LayoutBuilder(){
   Layout()
 }
 
+@Entry
 @Component
 struct Layout{
   @State currentIndex: number = 0
@@ -45,7 +46,7 @@ struct Layout{
   build(){
     NavDestination() {
       Stack({ alignContent: Alignment.Bottom }) {
-        Tabs({ barPosition : BarPosition.End }){
+        Tabs({ barPosition : BarPosition.End, index: this.currentIndex }){
           TabContent() {
             Songs()
           }
