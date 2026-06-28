@@ -2,15 +2,23 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "本地音乐播放器"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "HarmonyOS 本地音乐播放器"
     },
     {
       "name": "EntryAbility_label",
       "value": "HM_Music"
+    },
+    {
+      "name": "read_media_reason",
+      "value": "用于扫描和播放本地音频文件"
+    },
+    {
+      "name": "write_media_reason",
+      "value": "用于保存播放历史和收藏数据"
     }
   ]
 }

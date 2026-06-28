@@ -1,6 +1,9 @@
 import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { scanLocalMusic } from '../services/MusicScanner';
+import { MusicStore } from '../services/MusicStore';
+import { SongItem } from '../models/music';
 
 const DOMAIN = 0x0000;
 
@@ -13,9 +16,10 @@ export default class EntryAbility extends UIAbility {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
   }
 
-  onWindowStageCreate(windowStage: window.WindowStage): void {
-    // Main window is created, set main page for this ability
+  async onWindowStageCreate(windowStage: window.WindowStage): Promise<void> {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+
+    await this.scanMusic();
 
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
@@ -26,18 +30,26 @@ export default class EntryAbility extends UIAbility {
     });
   }
 
+  private async scanMusic(): Promise<void> {
+    try {
+      const store: MusicStore = MusicStore.getInstance();
+      const songs: SongItem[] = await scanLocalMusic(this.context);
+      store.setSongs(songs);
+      hilog.info(DOMAIN, 'testTag', `Scanned ${songs.length} songs`);
+    } catch (err) {
+      hilog.error(DOMAIN, 'testTag', 'Failed to scan music');
+    }
+  }
+
   onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
   }
 
   onForeground(): void {
-    // Ability has brought to foreground
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
   }
 
   onBackground(): void {
-    // Ability has back to background
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
   }
 }

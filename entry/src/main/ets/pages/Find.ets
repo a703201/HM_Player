@@ -1,192 +1,115 @@
-import { SongItemType } from "../models/music"
-import { AppStorageV2 } from "@kit.ArkUI"
+import { SongItem } from '../models/music';
+import { MusicStore } from '../services/MusicStore';
 
-@ComponentV2
+@Entry
+@Component
 export struct Find {
-  songs: SongItemType[] = [
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/0.jpg',
-      name: '直到世界的尽头',
-      author: 'WANDS',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/0.m4a',
-      id: '0000'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/1.jpg',
-      name: '画',
-      author: '赵磊',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/1.mp3',
-      id: '0001'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/2.jpg',
-      name: 'Sweet Dreams',
-      author: 'TPaul Sax / Eurythmics',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/2.mp3',
-      id: '0002'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/3.jpg',
-      name: '奢香夫人',
-      author: '凤凰传奇',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/3.m4a',
-      id: '0003'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/4.jpg',
-      name: '空心',
-      author: '光泽',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/4.mp3',
-      id: '0004'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/5.jpg',
-      name: '反转地球',
-      author: '潘玮柏',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/5.mp3',
-      id: '0005'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/6.jpg',
-      name: 'No.9',
-      author: 'T-ara',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/6.m4a',
-      id: '0006'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/7.jpg',
-      name: '孤独',
-      author: 'G.E.M.邓紫棋',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/7.m4a',
-      id: '0007'
-    },
+  @Prop store: MusicStore = MusicStore.getInstance();
+  pathStack: NavPathStack = new NavPathStack();
 
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/8.jpg',
-      name: 'Lose Control',
-      author: 'Hedley',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/8.m4a',
-      id: '0008'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/9.jpg',
-      name: '倩女幽魂',
-      author: '张国荣',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/9.m4a',
-      id: '0009'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/10.jpg',
-      name: '北京北京',
-      author: '汪峰',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/10.m4a',
-      id: '0010'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/11.jpg',
-      name: '苦笑',
-      author: '汪苏泷',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/11.mp3',
-      id: '0011'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/12.jpg',
-      name: '一生所爱',
-      author: '卢冠廷 / 莫文蔚',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/12.m4a',
-      id: '0012'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/13.jpg',
-      name: '月半小夜曲',
-      author: '李克勤',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/13.mp3',
-      id: '0013'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/14.jpg',
-      name: 'Rolling in the Deep',
-      author: 'Adele',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/14.m4a',
-      id: '0014'
-    },
-    {
-      img: 'https://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/15.jpg',
-      name: '海阔天空',
-      author: 'Beyond',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/15.m4a',
-      id: '0015'
-    }
-  ]
-  pathStack : NavPathStack = AppStorageV2.connect(NavPathStack, 'navStack', () => new NavPathStack())!
+  aboutToAppear(): void {
+    this.store.setSongs(this.store.songs);
+  }
 
-  build() {
-    Column() {
-      Text('猜你喜欢')
-        .fontColor('#fff')
-        .width('100%')
-        .margin({ bottom: 10 })
-      List() {
-        ForEach(this.songs, (item: SongItemType, index: number) => {
-          ListItem() {
-            Row() {
-              // 图
-              Stack() {
-                Image(item.img)
-                  .width(80)
-                  .border({ radius: 8 })
-                  .margin({ right: 10 })
-                Image($r('app.media.wave'))
-                  .width(24)
-              }
-
-              // 字
-              Column() {
-                Text(item.name)
-                  .fontColor('#F3F3F3')
-                  .width('100%')
-                  .fontWeight(700)
-                  .margin({ bottom: 15 })
-                Row() {
-                  Text('VIP')
-                    .fontColor('#9A8E28')
-                    .border({ width: 1, color: '#9A8E28', radius: 12 })
-                    .padding({
-                      left: 5,
-                      right: 5,
-                      top: 3,
-                      bottom: 3
-                    })
-                    .margin({ right: 10 })
-                  Text(item.author)
-                    .fontColor('#696969')
-                }
-                .width('100%')
-              }
-              .layoutWeight(1)
-
-              // 更多
-              Image($r('app.media.ic_more'))
-                .width(24)
-                .fillColor('#FEFEFE')
-            }
-            .width('100%')
-            .height(80)
-            // .backgroundColor(Color.Pink)
-            .margin({ bottom: 10 })
-            .onClick(() => {
-              this.pathStack.pushPathByName('Play', null, false)
-            })
-          }
-        })
+  @Builder
+  buildSongCard(song: SongItem) {
+    Row() {
+      Stack() {
+        if (song.coverUri) {
+          Image(song.coverUri)
+            .width(56)
+            .height(56)
+            .borderRadius(8)
+            .clip(true)
+        } else {
+          Image($r('app.media.QQ1'))
+            .width(56)
+            .height(56)
+            .borderRadius(8)
+            .clip(true)
+        }
       }
-      .scrollBar(BarState.Off)
+
+      Column() {
+        Text(song.title)
+          .fontSize(15)
+          .fontColor(Color.White)
+          .fontWeight(FontWeight.Medium)
+          .margin({ bottom: 4 })
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(song.artist)
+          .fontSize(13)
+          .fontColor('#8E8E93')
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
-    .height('100%')
-    .backgroundColor('#131313')
-    .padding({ left: 10, right: 10 })
-    // 扩充组件安全区域
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    .height(72)
+    .padding({ left: 16, right: 16 })
+    .backgroundColor('#2C2C2E')
+    .borderRadius(12)
+    .onClick(() => {
+      const index: number = this.store.songs.findIndex(s => s.id === song.id);
+      if (index >= 0) {
+        this.store.currentIndex = index;
+        this.pathStack.pushPathByName('Play', null, false);
+      }
+    })
+  }
+
+  build() {
+    NavDestination() {
+      Column() {
+        Text('最近播放')
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(Color.White)
+          .margin({ bottom: 16 })
+          .margin({ left: 16, right: 16 })
+
+        if (this.store.recentlyPlayed.length === 0) {
+          Column() {
+            Image($r('app.media.ic_music'))
+              .width(64)
+              .fillColor('#8E8E93')
+              .margin({ bottom: 16 })
+
+            Text('暂无最近播放记录')
+              .fontSize(15)
+              .fontColor('#8E8E93')
+
+            Text('播放歌曲后将在这里显示')
+              .fontSize(13)
+              .fontColor('#636366')
+              .margin({ top: 8 })
+          }
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+        } else {
+          List() {
+            ForEach(this.store.recentlyPlayed, (song: SongItem, index: number) => {
+              ListItem() {
+                this.buildSongCard(song)
+              }
+            })
+          }
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .backgroundColor('#000000')
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    }
+    .onReady((context: NavDestinationContext) => {
+      this.pathStack = context.pathStack;
+    })
+    .hideTitleBar(true)
   }
 }
