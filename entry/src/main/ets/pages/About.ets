@@ -59,7 +59,7 @@ struct About {
       .layoutWeight(1)
       .scrollBar(BarState.Off)
       .backgroundColor(Color.White)
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .padding({ top: 16 })
     }
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;

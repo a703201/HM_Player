@@ -4,6 +4,7 @@ export function StartBuilder(){
   Start()
 }
 
+@Entry
 @Component
 struct Start{
   //控制跳转的对象
@@ -24,7 +25,7 @@ struct Start{
         Image($r('app.media.Start'))
           .width('100%')
           .height('100%')
-          .expandSafeArea([SafeAreaType.SYSTEM],[SafeAreaEdge.TOP,SafeAreaEdge.BOTTOM])
+          .expandSafeArea([SafeAreaType.SYSTEM],[SafeAreaEdge.BOTTOM])
         Button('跳过')
           .backgroundColor(Color.Grey)
           .margin(15)

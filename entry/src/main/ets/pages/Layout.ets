@@ -17,7 +17,7 @@ export function LayoutBuilder(){
 @Component
 struct Layout{
   @State currentIndex: number = 0
-  pathStack: NavPathStack = new NavPathStack()
+  @State pathStack: NavPathStack = new NavPathStack()
   store: MusicStore = MusicStore.getInstance()
 
   tabData:TabClass[] = [
@@ -111,11 +111,10 @@ struct Layout{
       .width('100%')
       .height('100%')
       .backgroundColor(Color.White)
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     }
     .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack
+      AppStorage.setOrCreate('navPathStack', context.pathStack)
     })
   }
 }
