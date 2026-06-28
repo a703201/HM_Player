@@ -1,20 +1,21 @@
 import { SongItem } from '../models/music';
 import { MusicStore } from '../services/MusicStore';
 import { scanLocalMusic } from '../services/MusicScanner';
-import { picker } from '@kit.CoreFileKit';
 
 @Entry
 @Component
 export struct Songs {
-  @Prop parentPathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
   @State searchText: string = '';
   @State filteredSongs: SongItem[] = [];
   @State isLoading: boolean = false;
   @State isScanning: boolean = false;
 
+  pathStack: NavPathStack = new NavPathStack();
+
   aboutToAppear(): void {
     this.filteredSongs = [...this.store.songs];
+    this.isLoading = this.store.songs.length === 0;
   }
 
   onSearchChange(text: string): void {
@@ -41,41 +42,6 @@ export struct Songs {
       console.error('Scan failed');
     } finally {
       this.isScanning = false;
-      this.isLoading = false;
-    }
-  }
-
-  async onPickMusic(): Promise<void> {
-    try {
-      const audioPicker = new picker.AudioViewPicker();
-      const result = await audioPicker.select();
-      if (result && result.length > 0) {
-        this.isLoading = true;
-        const newSongs: SongItem[] = [];
-        for (const uri of result) {
-          const existingIndex = this.store.songs.findIndex(s => s.uri === uri);
-          if (existingIndex < 0) {
-            const fileName = uri.substring(uri.lastIndexOf('/') + 1);
-            const title = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-            newSongs.push({
-              id: Math.abs(hashCode(uri)).toString(),
-              title: title,
-              artist: '未知艺术家',
-              album: '未知专辑',
-              duration: 0,
-              uri: uri,
-              dateAdded: Date.now()
-            });
-          }
-        }
-        if (newSongs.length > 0) {
-          this.store.setSongs([...this.store.songs, ...newSongs]);
-          this.filteredSongs = [...this.store.songs];
-        }
-        this.isLoading = false;
-      }
-    } catch (err) {
-      console.error('Pick music failed');
       this.isLoading = false;
     }
   }
@@ -122,7 +88,6 @@ export struct Songs {
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12 })
 
       Image($r('app.media.ic_more'))
         .width(20)
@@ -136,7 +101,7 @@ export struct Songs {
     .margin({ bottom: 8 })
     .onClick(() => {
       this.store.currentIndex = index;
-      this.parentPathStack.pushPathByName('Play', null, false);
+      this.pathStack.pushPathByName('Play', null, false);
     })
   }
 
@@ -145,26 +110,25 @@ export struct Songs {
       Row() {
         Image($r('app.media.ic_search'))
           .width(18)
-          .height(18)
           .fillColor('#8E8E93')
+          .margin({ right: 8 })
 
         TextInput({ placeholder: '搜索歌曲、艺术家' })
           .placeholderColor('#8E8E93')
-          .backgroundColor(Color.Transparent)
+          .backgroundColor('#E5E5EA')
           .fontColor('#1C1C1E')
           .fontSize(15)
           .layoutWeight(1)
-          .margin({ left: 8 })
           .onChange((value: string) => {
             this.onSearchChange(value);
           })
       }
       .width('100%')
-      .height(40)
-      .padding({ left: 14, right: 14 })
+      .height(44)
+      .padding({ left: 12, right: 12 })
       .backgroundColor('#E5E5EA')
-      .borderRadius(20)
-      .margin({ left: 16, right: 16, top: 8, bottom: 12 })
+      .borderRadius(10)
+      .margin({ left: 16, right: 16, bottom: 12 })
 
       Row() {
         Text(`共 ${this.filteredSongs.length} 首歌曲`)
@@ -172,24 +136,14 @@ export struct Songs {
           .fontColor('#8E8E93')
           .layoutWeight(1)
 
-        Row({ space: 4 }) {
-          Image($r('app.media.ic_music'))
-            .width(14)
-            .height(14)
-            .fillColor('#FA2759')
-
-          Text('导入音乐')
-            .fontSize(13)
-            .fontColor('#FA2759')
-            .fontWeight(FontWeight.Medium)
-        }
-        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-        .backgroundColor('rgba(250, 39, 89, 0.08)')
-        .borderRadius(16)
-        .enabled(!this.isScanning)
-        .onClick(() => {
-          this.onPickMusic();
-        })
+        Button('扫描本地音乐')
+          .fontSize(13)
+          .fontColor('#FA2759')
+          .backgroundColor(Color.Transparent)
+          .enabled(!this.isScanning)
+          .onClick(() => {
+            this.onScanMusic();
+          })
       }
       .width('100%')
       .padding({ left: 16, right: 16, bottom: 12 })
@@ -220,7 +174,7 @@ export struct Songs {
             .fontSize(15)
             .fontColor('#8E8E93')
 
-          Text('点击"导入音乐"按钮添加音频文件')
+          Text('点击"扫描本地音乐"按钮查找设备中的音频文件')
             .fontSize(13)
             .fontColor('#636366')
             .margin({ top: 8 })
@@ -245,14 +199,4 @@ export struct Songs {
     .height('100%')
     .backgroundColor(Color.White)
   }
-}
-
-function hashCode(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return hash;
 }

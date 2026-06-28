@@ -4,38 +4,37 @@ import { Songs } from "./Songs"
 import { Find } from "./Find"
 import { MusicStore } from "../services/MusicStore"
 
-interface TabClass {
-  text: string
-  icon: ResourceStr
+interface TabClass{
+  text:string
+  icon:ResourceStr
 }
 
 @Builder
-export function LayoutBuilder() {
+export function LayoutBuilder(){
   Layout()
 }
 
 @Component
-struct Layout {
+struct Layout{
   @State currentIndex: number = 0
   pathStack: NavPathStack = new NavPathStack()
   store: MusicStore = MusicStore.getInstance()
-  private tabsController: TabsController = new TabsController()
 
-  tabData: TabClass[] = [
-    { text: '歌曲', icon: $r('app.media.ic_recommend') },
-    { text: '发现', icon: $r('app.media.ic_find') },
-    { text: '音乐库', icon: $r('app.media.ic_moment') },
-    { text: '我的', icon: $r('app.media.ic_mine') }
+  tabData:TabClass[] = [
+    {text:'歌曲',icon:$r('app.media.ic_recommend')},
+    {text:'发现',icon:$r('app.media.ic_find')},
+    {text:'音乐库',icon:$r('app.media.ic_moment')},
+    {text:'我的',icon:$r('app.media.ic_mine')}
   ]
 
-  @Builder tabBuilder(item: TabClass, index: number) {
-    Column({ space: 4 }) {
+  @Builder tabBuilder (item:TabClass, index:number) {
+    Column({space : 4}){
       Image(item.icon)
         .width(22)
-        .fillColor(this.currentIndex === index ? '#FA2759' : '#8E8E93')
+        .fillColor(this.currentIndex === index ? '#FA2759':'#8E8E93')
       Text(item.text)
         .fontSize(11)
-        .fontColor(this.currentIndex === index ? '#FA2759' : '#8E8E93')
+        .fontColor(this.currentIndex === index ? '#FA2759':'#8E8E93')
         .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
     }
     .width(64)
@@ -43,31 +42,31 @@ struct Layout {
     .justifyContent(FlexAlign.Center)
   }
 
-  build() {
+  build(){
     NavDestination() {
       Stack({ alignContent: Alignment.Bottom }) {
-        Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
+        Tabs({ barPosition : BarPosition.End }){
           TabContent() {
-            Songs({ parentPathStack: this.pathStack })
+            Songs()
           }
           .tabBar(this.tabBuilder(this.tabData[0], 0))
 
           TabContent() {
-            Find({ parentPathStack: this.pathStack })
+            Find()
           }
           .tabBar(this.tabBuilder(this.tabData[1], 1))
 
           TabContent() {
-            Moment({ parentPathStack: this.pathStack })
+            Moment()
           }
           .tabBar(this.tabBuilder(this.tabData[2], 2))
 
           TabContent() {
-            Mine({ parentPathStack: this.pathStack })
+            Mine()
           }
           .tabBar(this.tabBuilder(this.tabData[3], 3))
         }
-        .onChange((index: number) => {
+        .onChange((index:number) => {
           this.currentIndex = index
         })
         .barMode(BarMode.Fixed)
@@ -79,7 +78,7 @@ struct Layout {
 
         Row() {
           ForEach(this.tabData, (item: TabClass, index: number) => {
-            Column({ space: 4 }) {
+            Column({space: 4}) {
               Image(item.icon)
                 .width(22)
                 .fillColor(this.currentIndex === index ? '#FA2759' : '#8E8E93')
@@ -92,10 +91,7 @@ struct Layout {
             .height(44)
             .justifyContent(FlexAlign.Center)
             .onClick(() => {
-              if (this.currentIndex !== index) {
-                this.currentIndex = index
-                this.tabsController.changeIndex(index)
-              }
+              this.currentIndex = index;
             })
           })
         }
