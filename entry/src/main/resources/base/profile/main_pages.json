@@ -1,0 +1,17 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/Start",
+    "pages/Layout",
+    "pages/PlayerPage",
+    "pages/Songs",
+    "pages/Find",
+    "pages/Moment",
+    "pages/Mine",
+    "pages/Settings",
+    "pages/About",
+    "pages/LocalLibrary",
+    "pages/PlayHistory",
+    "pages/Favorites"
+  ]
+}

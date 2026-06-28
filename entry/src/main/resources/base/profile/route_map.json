@@ -1,0 +1,68 @@
+{
+  "routerMap": [
+    {
+      "name": "Start",
+      "pageSourceFile": "src/main/ets/pages/Start.ets",
+      "buildFunction": "StartBuilder",
+      "data": {
+        "description": "this is Start"
+      }
+    },
+    {
+      "name": "Layout",
+      "pageSourceFile": "src/main/ets/pages/Layout.ets",
+      "buildFunction": "LayoutBuilder",
+      "data": {
+        "description": "this is Layout"
+      }
+    },
+    {
+      "name": "PlayerPage",
+      "pageSourceFile": "src/main/ets/pages/PlayerPage.ets",
+      "buildFunction": "PlayerPageBuilder",
+      "data": {
+        "description": "this is PlayerPage"
+      }
+    },
+    {
+      "name": "Settings",
+      "pageSourceFile": "src/main/ets/pages/Settings.ets",
+      "buildFunction": "SettingsBuilder",
+      "data": {
+        "description": "this is Settings"
+      }
+    },
+    {
+      "name": "About",
+      "pageSourceFile": "src/main/ets/pages/About.ets",
+      "buildFunction": "AboutBuilder",
+      "data": {
+        "description": "this is About"
+      }
+    },
+    {
+      "name": "LocalLibrary",
+      "pageSourceFile": "src/main/ets/pages/LocalLibrary.ets",
+      "buildFunction": "LocalLibraryBuilder",
+      "data": {
+        "description": "this is LocalLibrary"
+      }
+    },
+    {
+      "name": "PlayHistory",
+      "pageSourceFile": "src/main/ets/pages/PlayHistory.ets",
+      "buildFunction": "PlayHistoryBuilder",
+      "data": {
+        "description": "this is PlayHistory"
+      }
+    },
+    {
+      "name": "Favorites",
+      "pageSourceFile": "src/main/ets/pages/Favorites.ets",
+      "buildFunction": "FavoritesBuilder",
+      "data": {
+        "description": "this is Favorites"
+      }
+    }
+  ]
+}
