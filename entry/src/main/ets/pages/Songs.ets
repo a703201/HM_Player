@@ -60,7 +60,7 @@ export struct Songs {
         for (const uri of result) {
           const existingIndex = this.store.songs.findIndex(s => s.uri === uri);
           if (existingIndex < 0) {
-            const fileName = uri.substring(uri.lastIndexOf('/') + 1);
+            const fileName = decodeURIComponent(uri.substring(uri.lastIndexOf('/') + 1));
             const title = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
             newSongs.push({
               id: Math.abs(hashCode(uri)).toString(),

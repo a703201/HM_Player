@@ -3,7 +3,7 @@ import { SongItem as PlaySongItem } from '../songdatacontroller/SongData';
 import { MusicStore } from '../services/MusicStore';
 import { media } from '@kit.MediaKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import fs from '@ohos.file.fs';
+import { fileIo } from '@kit.CoreFileKit';
 import { BreakpointConstants } from '../common/constants/BreakpointConstants';
 import { BreakpointSystem } from '../common/utils/BreakpointSystem';
 import { PlayerInfoComponent } from '../components/PlayerInfoComponent';
@@ -103,7 +103,7 @@ struct PlayerPage {
     try {
       await this.avPlayer.stop();
       await this.avPlayer.reset();
-      this.avPlayer.fdSrc = { fd: await this.openFd(song.uri) };
+      this.avPlayer.fdSrc = { fd: fileIo.openSync(song.uri, 0).fd as number };
       await this.avPlayer.prepare();
       await this.avPlayer.play();
       this.isPlaying = true;
@@ -116,15 +116,6 @@ struct PlayerPage {
     } catch (err) {
       const e = err as BusinessError;
       console.error(`playCurrentTrack failed: ${e.message}`);
-    }
-  }
-
-  private async openFd(uri: string): Promise<number> {
-    try {
-      const file: fs.File = fs.openSync(uri, fs.OpenMode.READ_ONLY);
-      return file.fd;
-    } catch {
-      return -1;
     }
   }
 
