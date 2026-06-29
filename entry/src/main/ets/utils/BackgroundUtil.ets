@@ -43,18 +43,22 @@ export class BackgroundUtil {
       wantAgentFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
     };
 
-    wantAgent.getWantAgent(wantAgentInfo).then((wantAgentObj: Object) => {
-      try {
-        backgroundTaskManager.startBackgroundRunning(context,
-          backgroundTaskManager.BackgroundMode.AUDIO_PLAYBACK, wantAgentObj).then(() => {
-          Logger.info('this audioRenderer: ', 'startBackgroundRunning succeeded');
-        }).catch((error: BusinessError) => {
-          Logger.error('this audioRenderer: ', `startBackgroundRunning failed Cause: code ${error.code}`);
-        });
-      } catch (error) {
-        Logger.error(TAG, `startBackgroundRunning failed.message ${(error as BusinessError).message}`);
-      }
-    });
+    try {
+      wantAgent.getWantAgent(wantAgentInfo).then((wantAgentObj: Object) => {
+        try {
+          backgroundTaskManager.startBackgroundRunning(context,
+            backgroundTaskManager.BackgroundMode.AUDIO_PLAYBACK, wantAgentObj).then(() => {
+            Logger.info('this audioRenderer: ', 'startBackgroundRunning succeeded');
+          }).catch((error: BusinessError) => {
+            Logger.error('this audioRenderer: ', `startBackgroundRunning failed Cause: code ${error.code}`);
+          });
+        } catch (error) {
+          Logger.error(TAG, `startBackgroundRunning failed.message ${(error as BusinessError).message}`);
+        }
+      });
+    } catch (e) {
+      Logger.error(TAG, 'getWantAgent failed');
+    }
   }
 
   /**

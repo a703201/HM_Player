@@ -33,7 +33,7 @@ export class PreferencesUtil {
 
   getPreferences(context: Context): Promise<preferences.Preferences> {
     return new Promise((resolve, reject) => {
-      preferences.getPreferences(context, MY_STORE, (err, pref: preferences.Preferences) => {
+      preferences.getPreferences(context, MY_STORE, (err, pref) => {
         if (err) {
           Logger.error(TAG, `Failed to get preferences. Code:${err.code},message:${err.message}`);
           reject(err);
@@ -44,18 +44,18 @@ export class PreferencesUtil {
     })
   }
 
-  preferencesFlush(preferences: preferences.Preferences) {
-    preferences.flush((err) => {
+  preferencesFlush(preference: preferences.Preferences) {
+    preference.flush((err) => {
       if (err) {
         Logger.error(TAG, `Failed to flush. Code:${err.code}, message:${err.message}`);
       }
     })
   }
 
-  preferencesPut(preferences: preferences.Preferences, formIds: Array<string>): Promise<boolean> {
+  preferencesPut(preference: preferences.Preferences, formIds: Array<string>): Promise<boolean> {
     return new Promise((resolve, reject) => {
       try {
-        preferences.put(FORM_ID, formIds, (err) => {
+        preference.put(FORM_ID, formIds, (err) => {
           if (err) {
             reject(err);
             Logger.error(TAG, `Failed to put data. Code:${err.code}, message:${err.message}`);
@@ -65,14 +65,15 @@ export class PreferencesUtil {
           resolve(true);
         })
       } catch (error) {
-        Logger.error(TAG, `Failed to put data. message:${(error as BusinessError).message}`);
+        let err = error as BusinessError;
+        Logger.error(TAG, `Failed to put data. message:${err.message}`);
       }
     });
   }
 
-  async preferencesHas(preferences: preferences.Preferences): Promise<boolean> {
+  async preferencesHas(preference: preferences.Preferences): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      preferences.has(FORM_ID, (err, value) => {
+      preference.has(FORM_ID, (err, value) => {
         if (err) {
           reject(err);
           Logger.error(TAG, `WANG to check the key 'formIds'. Code:${err.code}, message:${err.message}`);
@@ -84,18 +85,22 @@ export class PreferencesUtil {
   }
 
   removePreferencesFromCache(context: Context): void {
-    preferences.removePreferencesFromCache(context, MY_STORE);
+    try {
+      preferences.removePreferencesFromCache(context, MY_STORE);
+    } catch (e) {
+      Logger.error(TAG, 'removePreferencesFromCache failed');
+    }
   }
 
   async getFormIds(context: Context): Promise<Array<string>> {
     try {
-      let preferences = await this.getPreferences(context);
+      let preference = await this.getPreferences(context);
       return new Promise((resolve, reject) => {
-        if (preferences === null) {
+        if (preference === null) {
           Logger.error(TAG, `preferences is null`);
           return;
         }
-        preferences.get(FORM_ID, [''], (err: BusinessError, value: preferences.ValueType) => {
+        preference.get(FORM_ID, [''], (err, value) => {
           if (err) {
             reject(err);
             Logger.error(TAG, `Failed to get value of 'formIds'. Code:${err.code}, message:${err.message}`);
@@ -106,7 +111,8 @@ export class PreferencesUtil {
         })
       });
     } catch (error) {
-      Logger.error(TAG, `WANG Failed to get value of 'formIds'.message:${(error as BusinessError).message}`);
+      let err = error as BusinessError;
+      Logger.error(TAG, `WANG Failed to get value of 'formIds'.message:${err.message}`);
     }
     return new Promise((resolve, reject) => {
       Logger.info(TAG, JSON.stringify(resolve) + JSON.stringify(reject))
@@ -115,53 +121,55 @@ export class PreferencesUtil {
 
   async addFormId(context: Context, formId: string) {
     try {
-      let preferences = await this.getPreferences(context);
-      if (preferences === null) {
+      let preference = await this.getPreferences(context);
+      if (preference === null) {
         Logger.error(TAG, `preferences is null`);
         return;
       }
 
-      if (await this.preferencesHas(preferences)) {
+      if (await this.preferencesHas(preference)) {
         let formIds = await this.getFormIds(context);
         if (formIds.indexOf(formId) === -1) {
           formIds.push(formId);
-          if (!await this.preferencesPut(preferences, formIds)) {
+          if (!await this.preferencesPut(preference, formIds)) {
             return;
           }
-          this.preferencesFlush(preferences);
+          this.preferencesFlush(preference);
         }
       } else {
-        if (!await this.preferencesPut(preferences, [formId])) {
+        if (!await this.preferencesPut(preference, [formId])) {
           return;
         }
-        this.preferencesFlush(preferences);
+        this.preferencesFlush(preference);
       }
     } catch (error) {
-      Logger.error(TAG, `Failed to check the key 'formIds'. message:${(error as BusinessError).message}`);
+      let err = error as BusinessError;
+      Logger.error(TAG, `Failed to check the key 'formIds'. message:${err.message}`);
     }
   }
 
   async removeFormId(context: Context, formId: string) {
     try {
-      let preferences = await this.getPreferences(context);
-      if (preferences === null) {
+      let preference = await this.getPreferences(context);
+      if (preference === null) {
         Logger.error(TAG, `preferences is null`);
         return;
       }
-      if (await this.preferencesHas(preferences)) {
+      if (await this.preferencesHas(preference)) {
         let formIds = await this.getFormIds(context);
         let index = formIds.indexOf(formId);
         if (index !== -1) {
           formIds.splice(index, 1);
         }
-        if (!await this.preferencesPut(preferences, formIds)) {
+        if (!await this.preferencesPut(preference, formIds)) {
           return;
         }
-        this.preferencesFlush(preferences);
+        this.preferencesFlush(preference);
       }
     } catch (error) {
-      Logger.error(TAG, `WANG Failed to get preferences. Code:${(error as BusinessError).code},
-      message:${(error as BusinessError).message}`);
+      let err = error as BusinessError;
+      Logger.error(TAG, `WANG Failed to get preferences. Code:${err.code},
+      message:${err.message}`);
     }
   }
 }

@@ -69,16 +69,20 @@ export default class EntryAbility extends UIAbility {
   }
 
   private updateBreakpoint(windowWidth: number): void {
-    let windowWidthVp = windowWidth / display.getDefaultDisplaySync().densityPixels;
-    let curBp: string = '';
-    if (windowWidthVp < BreakpointConstants.BREAKPOINT_VALUE_NUMBER[1]) {
-      curBp = BreakpointConstants.BREAKPOINT_SM;
-    } else if (windowWidthVp < BreakpointConstants.BREAKPOINT_VALUE_NUMBER[2]) {
-      curBp = BreakpointConstants.BREAKPOINT_MD;
-    } else {
-      curBp = BreakpointConstants.BREAKPOINT_LG;
+    try {
+      let windowWidthVp = windowWidth / display.getDefaultDisplaySync().densityPixels;
+      let curBp: string = '';
+      if (windowWidthVp < BreakpointConstants.BREAKPOINT_VALUE_NUMBER[1]) {
+        curBp = BreakpointConstants.BREAKPOINT_SM;
+      } else if (windowWidthVp < BreakpointConstants.BREAKPOINT_VALUE_NUMBER[2]) {
+        curBp = BreakpointConstants.BREAKPOINT_MD;
+      } else {
+        curBp = BreakpointConstants.BREAKPOINT_LG;
+      }
+      AppStorage.setOrCreate('currentBreakpoint', curBp);
+    } catch (e) {
+      AppStorage.setOrCreate('currentBreakpoint', BreakpointConstants.BREAKPOINT_SM);
     }
-    AppStorage.setOrCreate('currentBreakpoint', curBp);
   }
 
   private async initStore(): Promise<void> {

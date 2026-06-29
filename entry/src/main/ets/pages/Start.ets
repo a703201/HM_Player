@@ -22,10 +22,18 @@ struct Start{
       //     this.pathStack.pushPathByName("Layout", null, false);
       //   })
       Stack({alignContent:Alignment.TopEnd}) {
-        Image($r('app.media.Start'))
-          .width('100%')
-          .height('100%')
-          .expandSafeArea([SafeAreaType.SYSTEM],[SafeAreaEdge.BOTTOM])
+        Column() {
+          Image($r('app.media.Start'))
+            .width(120)
+            .height(120)
+            .borderRadius(24)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .expandSafeArea([SafeAreaType.SYSTEM],[SafeAreaEdge.BOTTOM])
+
         Button('跳过')
           .backgroundColor(Color.Grey)
           .margin(15)

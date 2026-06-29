@@ -33,10 +33,15 @@ const krcWordRegex2 = new RegExp('<(\\d+),(\\d+),(\\d+)>(.*)');
 
 
 export async function getRawStringData(context: Context, rawFilePath: string): Promise<string> {
-  let value = await context.resourceManager.getRawFileContent(rawFilePath);
-  let textDecoder = util.TextDecoder.create('utf-8', { ignoreBOM: true });
-  let stringData = textDecoder.decodeToString(value, { stream: false });
-  return stringData;
+  try {
+    let value = await context.resourceManager.getRawFileContent(rawFilePath);
+    let textDecoder = util.TextDecoder.create('utf-8', { ignoreBOM: true });
+    let stringData = textDecoder.decodeToString(value, { stream: false });
+    return stringData;
+  } catch (e) {
+    Logger.error('LrcUtils', 'getRawStringData failed');
+    throw new Error('getRawStringData failed');
+  }
 }
 
 /**

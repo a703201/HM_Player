@@ -21,6 +21,10 @@
       "value": "用于保存播放历史和收藏数据"
     },
     {
+      "name": "keep_background_reason",
+      "value": "用于后台播放音乐"
+    },
+    {
       "name": "sequential_playback",
       "value": "顺序播放"
     },

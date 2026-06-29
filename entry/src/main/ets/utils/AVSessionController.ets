@@ -64,8 +64,13 @@ export class AVSessionController {
       Logger.info(TAG, `session create failed : audioRendererController is undefined`);
       return;
     }
-    this.AVSession = await avSession.createAVSession(this.context, "PLAY_AUDIO", 'audio');
-    await this.AVSession.activate();
+    try {
+      this.AVSession = await avSession.createAVSession(this.context, "PLAY_AUDIO", 'audio');
+      await this.AVSession.activate();
+    } catch (e) {
+      Logger.error(TAG, 'AVSession create/activate failed');
+      return;
+    }
     // [StartExclude avsession_controller]
     Logger.info(TAG, `session create successed : sessionId : ${this.AVSession.sessionId}`);
     await this.setAVMetadata();
@@ -93,11 +98,15 @@ export class AVSessionController {
       requestCode: 0,
       wantAgentFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
     };
-    wantAgent.getWantAgent(wantAgentInfo).then((agent) => {
-      if (this.AVSession) {
-        this.AVSession.setLaunchAbility(agent);
-      }
-    });
+    try {
+      wantAgent.getWantAgent(wantAgentInfo).then((agent) => {
+        if (this.AVSession) {
+          this.AVSession.setLaunchAbility(agent);
+        }
+      });
+    } catch (e) {
+      Logger.error(TAG, 'getWantAgent failed');
+    }
   }
   // [End set_launch_ability]
   private getDuration() {
@@ -158,13 +167,17 @@ export class AVSessionController {
     if (!this.AVSession) {
       return;
     }
-    this.AVSession.on('play', this.onPlay);
-    this.AVSession.on('pause', this.onPause);
-    this.AVSession.on('playNext', this.onPlayNext);
-    this.AVSession.on('playPrevious', this.onPlayPrevious);
-    this.AVSession.on('seek', this.onSeek);
-    this.AVSession.on('setLoopMode', this.onSetLoopMode);
-    this.AVSession.on('toggleFavorite', this.onToggleFavorite);
+    try {
+      this.AVSession.on('play', this.onPlay);
+      this.AVSession.on('pause', this.onPause);
+      this.AVSession.on('playNext', this.onPlayNext);
+      this.AVSession.on('playPrevious', this.onPlayPrevious);
+      this.AVSession.on('seek', this.onSeek);
+      this.AVSession.on('setLoopMode', this.onSetLoopMode);
+      this.AVSession.on('toggleFavorite', this.onToggleFavorite);
+    } catch (e) {
+      Logger.error(TAG, 'setListenerForMesFromController failed');
+    }
   }
   // [End set_listener_for_mes_from_controller]
   private onPlay: () => void = () => {
@@ -371,13 +384,17 @@ export class AVSessionController {
     if (!this.AVSession) {
       return;
     }
-    this.AVSession.off('play');
-    this.AVSession.off('pause');
-    this.AVSession.off('playNext');
-    this.AVSession.off('playPrevious');
-    this.AVSession.off('setLoopMode');
-    this.AVSession.off('seek');
-    this.AVSession.off('toggleFavorite');
+    try {
+      this.AVSession.off('play');
+      this.AVSession.off('pause');
+      this.AVSession.off('playNext');
+      this.AVSession.off('playPrevious');
+      this.AVSession.off('setLoopMode');
+      this.AVSession.off('seek');
+      this.AVSession.off('toggleFavorite');
+    } catch (e) {
+      Logger.error(TAG, 'unregisterSessionListener failed');
+    }
   }
   // [EndExclude avsession_controller]
 }

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Prompt } from '@kit.ArkUI';
+import { Prompt, router } from '@kit.ArkUI';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { AVSessionController } from '../utils/AVSessionController';
 import { Logger } from '../utils/Logger';
@@ -126,6 +126,7 @@ export struct ControlAreaComponent {
           }).getValue(this.currentBreakpoint))
           .onClick(() => {
             AVSessionController.getInstance().updateFavoriteState(this.selectIndex.toString(), this.isFavorite)
+            router.pushUrl({ url: 'pages/Favorites' });
           })
       }
       .width(StyleConstants.FULL_WIDTH)

@@ -26,6 +26,10 @@ export class ResourceConversion {
     if (!this.context) {
       return;
     }
-    return this.context.resourceManager.getStringSync(res.id);
+    try {
+      return this.context.resourceManager.getStringSync(res.id);
+    } catch (e) {
+      return;
+    }
   }
 }
