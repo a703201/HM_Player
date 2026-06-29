@@ -51,7 +51,7 @@ export class BackgroundUtil {
         }).catch((error: BusinessError) => {
           Logger.error('this audioRenderer: ', `startBackgroundRunning failed Cause: code ${error.code}`);
         });
-      } catch (error) {
+      } catch (error: BusinessError) {
         Logger.error(TAG, `startBackgroundRunning failed.message ${(error as BusinessError).message}`);
       }
     });
@@ -69,7 +69,7 @@ export class BackgroundUtil {
       }).catch((error: BusinessError) => {
         Logger.error('this audioRenderer: ', `stopBackgroundRunning failed Cause: code ${error.code}`);
       });
-    } catch (error) {
+    } catch (error: BusinessError) {
       Logger.error(TAG, `stopBackgroundRunning failed. message ${(error as BusinessError).message}`);
     }
   }

@@ -1,6 +1,7 @@
 import { SongItem } from '../models/music';
 import { RepeatMode, Playlist } from '../models/music';
 import dataPreferences from '@ohos.data.preferences';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const PREF_NAME = 'music_store';
 const KEY_SONGS = 'songs';

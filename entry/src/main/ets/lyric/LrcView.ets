@@ -76,7 +76,7 @@ export default struct shiLrcView {
   /**
    * Location of the lyrics.
    */
-  private readonly lyricTopPosition: LyricTopPosition = LyricTopPosition.Top;
+  readonly lyricTopPosition: LyricTopPosition = LyricTopPosition.Top;
   /**
    * Initial position of the first line of the lyrics.
    */

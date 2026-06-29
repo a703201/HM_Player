@@ -134,7 +134,7 @@ export struct Mine {
         this.buildMenuItem(
           $r('app.media.ic_logo'),
           '关于',
-          'HM_Music v1.0.0',
+          'HM_Music v1.1.0',
           true,
           () => {
             this.pathStack.pushPathByName('About', null, false);

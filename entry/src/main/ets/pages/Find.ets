@@ -1,6 +1,5 @@
 import { SongItem } from '../models/music';
 import { MusicStore } from '../services/MusicStore';
-
 @Entry
 @Component
 export struct Find {
@@ -18,7 +17,7 @@ export struct Find {
             .borderRadius(8)
             .clip(true)
         } else {
-          Image($r('app.media.QQ1'))
+          Image($r('app.media.ic_cd'))
             .width(56)
             .height(56)
             .borderRadius(8)

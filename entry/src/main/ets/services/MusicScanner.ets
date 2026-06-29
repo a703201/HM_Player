@@ -50,8 +50,7 @@ export async function scanLocalMusic(context: Context): Promise<SongItem[]> {
       }
     }
   } catch (err) {
-    const be = err as BusinessError;
-    console.error(`scanLocalMusic failed: code=${be.code}, message=${be.message}`);
+    console.error(`scanLocalMusic failed: code=${err.code}, message=${err.message}`);
   }
 
   return songList;

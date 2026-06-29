@@ -8,7 +8,6 @@ interface FolderItem {
   targetPage: string;
   songs: SongItem[];
 }
-
 @Entry
 @Component
 export struct Moment {
@@ -55,61 +54,13 @@ export struct Moment {
       .onClick(() => {
         this.pathStack.pushPathByName(folder.targetPage, null, false);
       })
-
-      Image($r('app.media.ic_more'))
-        .width(16)
-        .height(16)
-        .fillColor('#636366')
-        .padding(8)
-        .bindMenu(this.buildFolderMenu(folder))
     }
     .width('100%')
     .height(56)
-    .padding({ left: 16, right: 8 })
+    .padding({ left: 16, right: 16 })
     .backgroundColor('#F2F2F7')
     .borderRadius(12)
     .margin({ bottom: 8 })
-  }
-
-  @Builder
-  buildFolderMenu(folder: FolderItem) {
-    Column() {
-      Row() {
-        Image($r('app.media.ic_more'))
-          .width(18)
-          .fillColor('#1C1C1E')
-          .margin({ right: 12 })
-        Text('编辑')
-          .fontSize(14)
-          .fontColor('#1C1C1E')
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-      })
-
-      Divider().color('#E5E5EA').strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_close'))
-          .width(18)
-          .fillColor('#FA2759')
-          .margin({ right: 12 })
-        Text('删除')
-          .fontSize(14)
-          .fontColor('#FA2759')
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-      })
-    }
-    .width(140)
-    .backgroundColor(Color.White)
-    .borderRadius(12)
-    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
   }
 
   build() {

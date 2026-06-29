@@ -54,16 +54,20 @@ export struct LyricsComponent {
     if (!this.context) {
       return;
     }
-    this.context.resourceManager.getRawFileContent(this.songList[this.selectIndex].lyric)
-      .then((value: Uint8Array) => {
-        let textDecoder = util.TextDecoder.create(PlayerConstants.ENCODING, { ignoreBOM: true });
-        let stringData = textDecoder.decodeToString(value, { stream: false });
-        if (this.songList[this.selectIndex].lyric.endsWith(LyricFile.KRC)) {
-          this.mLrcEntryList = parseKrcLyric(stringData);
-        } else if (this.songList[this.selectIndex].lyric.endsWith(LyricFile.LRC)) {
-          this.mLrcEntryList = parseLrcLyric(stringData);
-        }
-      })
+    try {
+      this.context.resourceManager.getRawFileContent(this.songList[this.selectIndex].lyric)
+        .then((value: Uint8Array) => {
+          let textDecoder = util.TextDecoder.create(PlayerConstants.ENCODING, { ignoreBOM: true });
+          let stringData = textDecoder.decodeToString(value, { stream: false });
+          if (this.songList[this.selectIndex].lyric.endsWith(LyricFile.KRC)) {
+            this.mLrcEntryList = parseKrcLyric(stringData);
+          } else if (this.songList[this.selectIndex].lyric.endsWith(LyricFile.LRC)) {
+            this.mLrcEntryList = parseLrcLyric(stringData);
+          }
+        })
+    } catch (e) {
+      // ignore
+    }
   }
 
   build() {

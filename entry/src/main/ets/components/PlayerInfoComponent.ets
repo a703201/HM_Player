@@ -73,8 +73,12 @@ export struct PlayerInfoComponent {
   }
 
   aboutToDisappear(): void {
-    if (canIUse('SystemCapability.Window.SessionManager')) {
-      display.off('foldDisplayModeChange', this.callback);
+    try {
+      if (canIUse('SystemCapability.Window.SessionManager')) {
+        display.off('foldDisplayModeChange', this.callback);
+      }
+    } catch (e) {
+      Logger.error('Failed to unregister callback');
     }
   }
 
@@ -245,11 +249,16 @@ export struct PlayerInfoComponent {
    * Get largest proportion color of an image.
    */
   getImageColor() {
-    if (!this.context) {
+    if (!this.context || !this.songList || this.songList.length === 0 || !this.songList[this.selectIndex]) {
       return;
     }
-    ColorConversion.setSysBarLightBackground(this.songList[this.selectIndex].isDarkBackground);
-    this.context.resourceManager.getMediaContent(this.songList[this.selectIndex].label.id)
+    const currentSong = this.songList[this.selectIndex];
+    ColorConversion.setSysBarLightBackground(currentSong.isDarkBackground);
+    const songLabel = currentSong.label;
+    if (!songLabel) {
+      return;
+    }
+    this.context.resourceManager.getMediaContent(songLabel.id)
       .then((value: Uint8Array) => {
         let buffer = value.buffer as ArrayBuffer;
         image.createImageSource(buffer).createPixelMap().then((pixelMap) => {

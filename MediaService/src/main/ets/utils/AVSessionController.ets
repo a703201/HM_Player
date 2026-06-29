@@ -147,7 +147,7 @@ export class AVSessionController {
           });
         }
       }
-    } catch (error) {
+    } catch (error: BusinessError) {
       Logger.error(TAG, `SetAVMetadata try: code: ${(error as BusinessError).code}`);
     }
   }

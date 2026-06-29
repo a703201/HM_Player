@@ -64,7 +64,7 @@ export class PreferencesUtil {
           Logger.info(TAG, `preferencesPut succeed,formIds: ${JSON.stringify(formIds)}`);
           resolve(true);
         })
-      } catch (error) {
+      } catch (error: BusinessError) {
         Logger.error(TAG, `Failed to put data. message:${(error as BusinessError).message}`);
       }
     });
@@ -105,7 +105,7 @@ export class PreferencesUtil {
           Logger.info(TAG, `Succeeded in getting value of 'formIds'. val: ${value}.`);
         })
       });
-    } catch (error) {
+    } catch (error: BusinessError) {
       Logger.error(TAG, `WANG Failed to get value of 'formIds'.message:${(error as BusinessError).message}`);
     }
     return new Promise((resolve, reject) => {
@@ -136,7 +136,7 @@ export class PreferencesUtil {
         }
         this.preferencesFlush(preferences);
       }
-    } catch (error) {
+    } catch (error: BusinessError) {
       Logger.error(TAG, `Failed to check the key 'formIds'. message:${(error as BusinessError).message}`);
     }
   }
@@ -159,7 +159,7 @@ export class PreferencesUtil {
         }
         this.preferencesFlush(preferences);
       }
-    } catch (error) {
+    } catch (error: BusinessError) {
       Logger.error(TAG, `WANG Failed to get preferences. Code:${(error as BusinessError).code},
       message:${(error as BusinessError).message}`);
     }

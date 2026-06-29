@@ -1,3 +1,4 @@
+import { common, wantConstant, Want } from '@kit.AbilityKit';
 import { MusicStore } from '../services/MusicStore';
 
 @Builder
@@ -128,7 +129,21 @@ struct Settings {
                 $r('app.media.ic_code'),
                 '开发者',
                 'Lumio',
-                () => {}
+                () => {
+                  try {
+                    const want: Want = {
+                      action: 'ohos.want.action.viewData',
+                      uri: 'https://www.a703201sworld.top/resume/',
+                      flags: wantConstant.Flags.FLAG_AUTH_READ_URI_PERMISSION
+                    };
+                    let context = getContext(this) as common.UIAbilityContext;
+                    context.startAbility(want).catch((err: Error) => {
+                      console.error('Failed to start ability:', err);
+                    });
+                  } catch (err) {
+                    console.error('Failed to start ability:', err);
+                  }
+                }
               )
             }
             .margin({ bottom: 12 })

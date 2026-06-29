@@ -1,5 +1,6 @@
 import { SongItem } from '../models/music';
 import { MusicStore } from '../services/MusicStore';
+import { router } from '@kit.ArkUI';
 
 @Builder
 export function FavoritesBuilder() {
@@ -23,7 +24,7 @@ struct Favorites {
             .borderRadius(8)
             .clip(true)
         } else {
-          Image($r('app.media.QQ1'))
+          Image($r('app.media.ic_cd'))
             .width(48)
             .height(48)
             .borderRadius(8)
@@ -66,7 +67,7 @@ struct Favorites {
       if (globalIndex >= 0) {
         this.store.currentIndex = globalIndex;
       }
-      this.pathStack.pushPathByName('PlayerPage', null, false);
+      router.pushUrl({ url: 'pages/PlayerPage' });
     })
   }
 
@@ -133,9 +134,9 @@ struct Favorites {
       .backgroundColor(Color.White)
       .padding({ top: 16 })
     }
-    .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
     })
+    .hideTitleBar(true)
   }
 }

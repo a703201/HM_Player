@@ -12,19 +12,11 @@ struct About {
     NavDestination() {
       Scroll() {
         Column() {
-          Stack({ alignContent: Alignment.Center }) {
-            Circle()
-              .width(100)
-              .height(100)
-              .fill('#F2F2F7')
-              .stroke('#1C1C1E')
-              .strokeWidth(2)
-
-            Image($r('app.media.ic_logo'))
-              .width(50)
-              .fillColor('#FA2759')
-          }
-          .margin({ top: 60, bottom: 24 })
+          Image($r('app.media.logo'))
+            .width(100)
+            .height(100)
+            .borderRadius(20)
+            .margin({ top: 60, bottom: 24 })
 
           Text('HM_Music')
             .fontSize(28)
@@ -38,7 +30,7 @@ struct About {
             .margin({ bottom: 40 })
 
           Column() {
-            this.buildAboutItem('应用版本', '1.0.0')
+            this.buildAboutItem('应用版本', '1.1.0')
             this.buildAboutItem('开发者', 'Lumio')
             this.buildAboutItem('技术支持', 'HarmonyOS SDK')
             this.buildAboutItem('架构', 'ArkTS + ArkUI')

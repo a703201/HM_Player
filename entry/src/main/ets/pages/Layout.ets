@@ -1,7 +1,6 @@
 import { Mine } from "./Mine"
 import { Moment } from "./Moment"
 import { Songs } from "./Songs"
-import { Find } from "./Find"
 import { MusicStore } from "../services/MusicStore"
 
 interface TabClass{
@@ -23,7 +22,6 @@ struct Layout{
 
   tabData:TabClass[] = [
     {text:'歌曲',icon:$r('app.media.ic_recommend')},
-    {text:'发现',icon:$r('app.media.ic_find')},
     {text:'音乐库',icon:$r('app.media.ic_moment')},
     {text:'我的',icon:$r('app.media.ic_mine')}
   ]
@@ -53,19 +51,14 @@ struct Layout{
           .tabBar(this.tabBuilder(this.tabData[0], 0))
 
           TabContent() {
-            Find()
+            Moment()
           }
           .tabBar(this.tabBuilder(this.tabData[1], 1))
 
           TabContent() {
-            Moment()
-          }
-          .tabBar(this.tabBuilder(this.tabData[2], 2))
-
-          TabContent() {
             Mine()
           }
-          .tabBar(this.tabBuilder(this.tabData[3], 3))
+          .tabBar(this.tabBuilder(this.tabData[2], 2))
         }
         .onChange((index:number) => {
           this.currentIndex = index

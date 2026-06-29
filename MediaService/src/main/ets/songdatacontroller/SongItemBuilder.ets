@@ -16,6 +16,7 @@
 import { common } from '@kit.AbilityKit';
 import { resourceManager } from '@kit.LocalizationKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { fileIo } from '@kit.CoreFileKit';
 import { SongItem } from './SongData';
 import { Logger } from '../utils/Logger';
 
@@ -23,21 +24,43 @@ export default class SongItemBuilder {
   private context: common.UIAbilityContext | undefined = AppStorage.get('context');
   private rawFileDescriptor?: resourceManager.RawFileDescriptor;
   private songItem: SongItem | null = null;
+  private fileFd: number = -1;
 
   public async build(songItem: SongItem): Promise<SongItem> {
     this.songItem = songItem;
     if (!this.context) {
       return this.songItem;
     }
-    let rawFileDescriptor = await this.context.resourceManager.getRawFd(songItem.src)
-      .catch((error: BusinessError) => {
-        Logger.error(`resourceManager error code ${error.code} message ${error.message}`);
-      })
-    if (rawFileDescriptor) {
-      this.rawFileDescriptor = rawFileDescriptor;
+    this.releaseFileFd();
+    if (this.isFilePath(songItem.src)) {
+      try {
+        const file = fileIo.openSync(songItem.src, fileIo.OpenMode.READ_ONLY);
+        this.fileFd = file.fd;
+        const stat = fileIo.statSync(songItem.src);
+        this.rawFileDescriptor = {
+          fd: file.fd,
+          offset: 0,
+          length: stat.size
+        };
+        Logger.info('SongItemBuilder', 'Opened file path: ' + songItem.src + ', size: ' + stat.size);
+      } catch (e: BusinessError) {
+        Logger.error('SongItemBuilder', 'Failed to open file: ' + songItem.src);
+      }
+    } else {
+      let rawFileDescriptor = await this.context.resourceManager.getRawFd(songItem.src)
+        .catch((error: BusinessError) => {
+          Logger.error(`resourceManager error code ${error.code} message ${error.message}`);
+        })
+      if (rawFileDescriptor) {
+        this.rawFileDescriptor = rawFileDescriptor;
+      }
+      Logger.info('MediaAssetBuilder build rawFileDescriptor:' + this.rawFileDescriptor);
     }
-    Logger.info('MediaAssetBuilder build rawFileDescriptor:' + this.rawFileDescriptor);
     return this.songItem;
+  }
+
+  private isFilePath(src: string): boolean {
+    return src.startsWith('/') || src.startsWith('file://') || src.startsWith('internal://');
   }
 
   public getRawFileDescriptor(): resourceManager.RawFileDescriptor | undefined {
@@ -45,8 +68,20 @@ export default class SongItemBuilder {
     return this.rawFileDescriptor;
   }
 
+  private releaseFileFd(): void {
+    if (this.fileFd >= 0) {
+      try {
+        fileIo.closeSync(this.fileFd);
+      } catch (e: BusinessError) {
+      }
+      this.fileFd = -1;
+    }
+    this.rawFileDescriptor = undefined;
+  }
+
   public async release(): Promise<void> {
-    if (this.context && this.context !== null && this.songItem !== null) {
+    this.releaseFileFd();
+    if (this.context && this.context !== null && this.songItem !== null && !this.isFilePath(this.songItem.src)) {
       this.context.resourceManager.closeRawFd(this.songItem.src);
     }
     this.songItem = null;

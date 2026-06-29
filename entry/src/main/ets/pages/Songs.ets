@@ -2,16 +2,17 @@ import { SongItem } from '../models/music';
 import { MusicStore } from '../services/MusicStore';
 import { scanLocalMusic } from '../services/MusicScanner';
 import { picker } from '@kit.CoreFileKit';
+import { router } from '@kit.ArkUI';
+import fs from '@ohos.file.fs';
+import { common } from '@kit.AbilityKit';
 
 interface MenuItem {
   value: string;
   action: () => void;
 }
-
 @Entry
 @Component
 export struct Songs {
-  @StorageLink('navPathStack') pathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
   @State searchText: string = '';
   @State filteredSongs: SongItem[] = [];
@@ -39,7 +40,8 @@ export struct Songs {
     this.isScanning = true;
     this.isLoading = true;
     try {
-      const songs: SongItem[] = await scanLocalMusic(getContext());
+      const context = AppStorage.get<common.UIAbilityContext>('context') as common.UIAbilityContext;
+      const songs: SongItem[] = await scanLocalMusic(context);
       this.store.setSongs(songs);
       this.filteredSongs = [...this.store.songs];
     } catch (err) {
@@ -52,25 +54,54 @@ export struct Songs {
 
   async onPickMusic(): Promise<void> {
     try {
-      const audioPicker = new picker.AudioViewPicker();
-      const result = await audioPicker.select();
+      const audioPicker = new picker.DocumentViewPicker();
+      const result: string[] = await audioPicker.select();
       if (result && result.length > 0) {
         this.isLoading = true;
+        const context = AppStorage.get<common.UIAbilityContext>('context') as common.UIAbilityContext;
+        const downloadDir = context.filesDir + '/download';
+        try {
+          if (!fs.accessSync(downloadDir)) {
+            fs.mkdirSync(downloadDir);
+          }
+        } catch (e) {
+          try { fs.mkdirSync(downloadDir); } catch (err) {}
+        }
         const newSongs: SongItem[] = [];
         for (const uri of result) {
           const existingIndex = this.store.songs.findIndex(s => s.uri === uri);
           if (existingIndex < 0) {
             const fileName = decodeURIComponent(uri.substring(uri.lastIndexOf('/') + 1));
             const title = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-            newSongs.push({
-              id: Math.abs(hashCode(uri)).toString(),
-              title: title,
-              artist: '未知艺术家',
-              album: '未知专辑',
-              duration: 0,
-              uri: uri,
-              dateAdded: Date.now()
-            });
+            const destPath = downloadDir + '/' + fileName;
+            try {
+              const srcFile = fs.openSync(uri, fs.OpenMode.READ_ONLY);
+              const destFile = fs.openSync(destPath, fs.OpenMode.CREATE | fs.OpenMode.WRITE_ONLY);
+              const stat = fs.statSync(srcFile.fd);
+              fs.copyFileSync(srcFile.fd, destFile.fd);
+              fs.closeSync(srcFile.fd);
+              fs.closeSync(destFile.fd);
+              newSongs.push({
+                id: Math.abs(hashCode(destPath)).toString(),
+                title: title,
+                artist: '未知艺术家',
+                album: '未知专辑',
+                duration: 0,
+                uri: destPath,
+                dateAdded: Date.now()
+              });
+            } catch (copyErr) {
+              console.error('Copy file failed: ' + copyErr);
+              newSongs.push({
+                id: Math.abs(hashCode(uri)).toString(),
+                title: title,
+                artist: '未知艺术家',
+                album: '未知专辑',
+                duration: 0,
+                uri: uri,
+                dateAdded: Date.now()
+              });
+            }
           }
         }
         if (newSongs.length > 0) {
@@ -89,7 +120,8 @@ export struct Songs {
     const index = this.store.songs.findIndex(s => s.id === song.id);
     if (index >= 0) {
       this.store.currentIndex = index;
-      this.pathStack.pushPathByName('PlayerPage', null, false);
+      AppStorage.setOrCreate('selectIndex', index);
+      router.pushUrl({ url: 'pages/PlayerPage' });
     }
   }
 
@@ -110,7 +142,7 @@ export struct Songs {
               .borderRadius(8)
               .clip(true)
           } else {
-            Image($r('app.media.QQ1'))
+            Image($r('app.media.ic_cd'))
               .width(56)
               .height(56)
               .borderRadius(8)
