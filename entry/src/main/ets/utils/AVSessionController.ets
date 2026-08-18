@@ -42,7 +42,7 @@ import { Logger } from './Logger';
 import { MediaTools } from './MediaTools';
 import { EmbeddedLyricReader } from './EmbeddedLyricReader';
 import { AudioRendererController } from './AudioRendererController';
-import { MusicPlayMode } from '../songdatacontroller/PlayerData';
+import { MusicPlayMode, SILENT_ID } from '../songdatacontroller/PlayerData';
 import { PreferencesUtil } from './PreferencesUtil';
 // [StartExclude favorites_unified]
 import { MusicStore } from '../services/MusicStore';
@@ -479,7 +479,7 @@ export class AVSessionController {
     try {
       file = fileIo.openSync(song.src, fileIo.OpenMode.READ_ONLY);
     } catch (err) {
-      Logger.error(TAG, `cast open file failed: ${song.src}`);
+      Logger.errorPrivate(TAG, `cast open file failed: ${song.src}`);
       return;
     }
     this.castFile = file;
@@ -502,7 +502,7 @@ export class AVSessionController {
     try {
       await this.castController.prepare(playItem);
       await this.castController.start(playItem);
-      Logger.info(TAG, `cast started: ${song.title}`);
+      Logger.infoPrivate(TAG, `cast started: ${song.title}`);
     } catch (err) {
       Logger.error(TAG, `cast prepare/start failed: ${(err as BusinessError).message}`);
     }
@@ -600,7 +600,7 @@ export class AVSessionController {
 
   // [StartExclude form_card]
   /**
-   * 向所有已添加的桌面卡片推送当前播放状态（标题/艺术家/是否播放中）。
+   * 向所有已添加的桌面卡片推送当前播放状态（标题/艺术家/专辑/时长/是否播放中）。
    * 由 setAVMetadata / setPlayState 触发；卡片进程与主应用独立，经 formProvider 跨进程更新。
    */
   public pushFormUpdate(): void {
@@ -610,16 +610,21 @@ export class AVSessionController {
     let song: SongItem | undefined = this.songList[this.musicIndex ?? -1];
     let title: string = song?.title ?? '';
     let artist: string = song?.singer ?? '';
+    let album: string = song?.album ?? '';
     let isPlaying: boolean = (AppStorage.get('isPlay') as boolean) ?? false;
+    let duration: number = this.getDuration() ?? 0;
     PreferencesUtil.getInstance().getFormIds(this.context)
       .then((formIds: Array<string>) => {
         formIds.forEach((formId: string) => {
-          if (!formId) {
+          // 仅处理真实桌面卡片 ID；跳过空串与误混入的静音标记等非法项，避免误调 updateForm
+          if (!formId || formId === SILENT_ID) {
             return;
           }
           formProvider.updateForm(formId, formBindingData.createFormBindingData({
             title: title,
             artist: artist,
+            album: album,
+            duration: duration,
             isPlaying: isPlaying
           }))
             .catch((err: BusinessError) => {

@@ -30,6 +30,7 @@ interface SongData {
   index: number;
   album?: string;
   author?: string;
+  year?: string;
   lyric?: string;
 }
 
@@ -297,6 +298,11 @@ export class MusicStore {
           song.author = meta.author;
           changed = true;
         }
+        // 发行年份：一次性补扫路径也回填，保证历史入库歌曲升级后可直读 SongItem.year
+        if (meta.year && meta.year.trim().length > 0) {
+          song.year = meta.year;
+          changed = true;
+        }
       }
     }
     if (changed) {
@@ -325,6 +331,7 @@ export class MusicStore {
         song.index = data.index;
         song.album = data.album ?? '';
         song.author = data.author ?? '';
+        song.year = data.year ?? '';
         song.lyric = data.lyric ?? '';
         return song;
       });
@@ -345,6 +352,7 @@ export class MusicStore {
         song.index = data.index;
         song.album = data.album ?? '';
         song.author = data.author ?? '';
+        song.year = data.year ?? '';
         song.lyric = data.lyric ?? '';
         return song;
       });

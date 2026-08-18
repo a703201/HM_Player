@@ -10,7 +10,7 @@
     },
     {
       "name": "EntryAbility_label",
-      "value": "Lumio Music"
+      "value": "灯屿音乐"
     },
     {
       "name": "keep_background_reason",
@@ -19,10 +19,6 @@
     {
       "name": "internet_reason",
       "value": "用于局域网投播（Cast+/DLNA）设备发现与媒体流传输"
-    },
-    {
-      "name": "get_network_info_reason",
-      "value": "用于局域网投播时获取网络信息以发现可投播设备"
     },
     {
       "name": "sequential_playback",
@@ -99,6 +95,10 @@
     {
       "name": "sort_random",
       "value": "随机"
+    },
+    {
+      "name": "sort_album",
+      "value": "专辑"
     },
     {
       "name": "perm_guide_title",

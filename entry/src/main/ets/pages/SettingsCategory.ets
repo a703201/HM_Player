@@ -20,7 +20,7 @@ import { getAppVersionDisplay } from '../utils/AppInfoUtil';
 import { MusicStore } from '../services/MusicStore';
 import { SettingsStore, ThemeMode, RepeatModeSetting } from '../utils/SettingsStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
-import fs from '@ohos.file.fs';
+import { fileIo as fs } from '@kit.CoreFileKit';
 
 interface SettingsCategoryParam {
   category: string;

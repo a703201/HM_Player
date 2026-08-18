@@ -123,7 +123,7 @@ export class EmbeddedLyricReader {
       // 未知扩展名：按魔数嗅探，兼容无扩展名 / 扩展名不准的文件
       return EmbeddedLyricReader.readBySniff(fd, size);
     } catch (e) {
-      Logger.debug(TAG, `readEmbedded failed for ${src}: ${(e as Error).message}`);
+      Logger.debugPrivate(TAG, `readEmbedded failed for ${src}: ${(e as Error).message}`);
       return undefined;
     } finally {
       if (file) {
@@ -180,7 +180,7 @@ export class EmbeddedLyricReader {
         const bytes: Uint8Array = EmbeddedLyricReader.readRange(file.fd, 0, size);
         const text: string = EmbeddedLyricReader.detectAndDecode(bytes);
         if (EmbeddedLyricReader.isUsable(text)) {
-          Logger.debug(TAG, `sidecar lyric hit: ${path}`);
+          Logger.debugPrivate(TAG, `sidecar lyric hit: ${path}`);
           return text;
         }
       } catch (e) {

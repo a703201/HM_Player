@@ -22,6 +22,7 @@ import { SongItem } from '../models/music';
 import { common } from '@kit.AbilityKit';
 import { image } from '@kit.ImageKit';
 import { PreferencesUtil } from '../utils/PreferencesUtil';
+import { SettingsStore } from '../utils/SettingsStore';
 
 const ACCENT: string = '#FA2759';
 const PLAYER_COVER_ID: string = 'player_cover';
@@ -67,11 +68,14 @@ struct Layout {
 
   aboutToAppear(): void {
     AppStorage.setOrCreate('songList', this.store.songs);
-    this.rotateTimer = setInterval(() => {
-      if (this.isPlaying) {
-        this.coverRotation = (this.coverRotation + 1.6) % 360;
-      }
-    }, 40);
+    // R-18/F-13：降低动态效果开启时禁用封面旋转定时器
+    if (!SettingsStore.getInstance().getReduceMotion()) {
+      this.rotateTimer = setInterval(() => {
+        if (this.isPlaying) {
+          this.coverRotation = (this.coverRotation + 1.6) % 360;
+        }
+      }, 40);
+    }
     this.maybeShowPermissionGuide();
     this.refreshPlayerCover();
   }

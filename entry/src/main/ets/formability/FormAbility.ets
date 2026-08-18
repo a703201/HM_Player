@@ -52,6 +52,8 @@ export default class FormAbility extends FormExtensionAbility {
     return formBindingData.createFormBindingData({
       title: '',
       artist: '',
+      album: '',
+      duration: 0,
       isPlaying: false
     });
   }

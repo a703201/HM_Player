@@ -58,9 +58,9 @@ export default class SongItemBuilder {
           offset: 0,
           length: stat.size
         };
-        Logger.info('SongItemBuilder', 'Opened file path: ' + songItem.src + ', size: ' + stat.size);
+        Logger.infoPrivate('SongItemBuilder', 'Opened file path: ' + songItem.src + ', size: ' + stat.size);
       } catch (e) {
-        Logger.error('SongItemBuilder', 'Failed to open file: ' + songItem.src);
+        Logger.errorPrivate('SongItemBuilder', 'Failed to open file: ' + songItem.src);
       }
     } else {
       let rawFileDescriptor = await this.context.resourceManager.getRawFd(songItem.src)

@@ -23,8 +23,7 @@
 import { SongItem } from '../models/music';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { MusicStore } from '../services/MusicStore';
-import { AudioMetaReader, AudioMeta } from '../utils/AudioMeta';
-import fs from '@ohos.file.fs';
+import { fileIo as fs } from '@kit.CoreFileKit';
 
 function getFileName(src: string): string {
   try {
@@ -67,7 +66,6 @@ export struct SongDetailSheet {
   @StorageProp('isDark') isDark: boolean = false;
   @Prop songId: number = 0;
   store: MusicStore = MusicStore.getInstance();
-  @State yearText: string = '未知';
 
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
@@ -78,21 +76,6 @@ export struct SongDetailSheet {
       return undefined;
     }
     return this.store.songs.find((s: SongItem) => s.id === this.songId);
-  }
-
-  aboutToAppear(): void {
-    const song = this.getSong();
-    if (song && song.src) {
-      AudioMetaReader.read(song.src)
-        .then((meta: AudioMeta | null) => {
-          if (meta && meta.year && meta.year.length > 0) {
-            this.yearText = meta.year;
-          }
-        })
-        .catch(() => {
-          // 解析失败保持「未知」
-        });
-    }
   }
 
   @Builder
@@ -142,7 +125,7 @@ export struct SongDetailSheet {
     this.infoRow('歌手', song.singer.length > 0 ? song.singer : '未知')
     this.infoRow('作曲家', song.author.length > 0 ? song.author : '未知')
     this.infoRow('合集', song.album.length > 0 ? song.album : '未知')
-    this.infoRow('年代', this.yearText)
+    this.infoRow('年代', song.year.length > 0 ? song.year : '未知')
     this.infoRow('添加时间', getFileModifiedTime(song.src))
   }
 }

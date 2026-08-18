@@ -34,6 +34,7 @@ import { Logger } from '../utils/Logger';
 import { LrcEntry } from './LrcEntry';
 import { angleToRadian } from './LrcUtils';
 import { Rectangle, LyricTopPosition, LyricScrollEffect } from './LyricConst';
+import { SettingsStore } from '../utils/SettingsStore';
 
 const TAG: string = 'LrcView';
 
@@ -234,6 +235,11 @@ export default struct shiLrcView {
   private starsColor: string = '#18BBFC';
 
   startAnimator(desOffsetY: number) {
+    // R-18/F-13：降低动态效果开启时跳过滚动动画，直接绘制目标行（无流光/滚动过渡）
+    if (SettingsStore.getInstance().getReduceMotion()) {
+      this.drawContent(-desOffsetY);
+      return;
+    }
     if (this.animator) {
       this.animator.finish();
     }

@@ -37,6 +37,7 @@ const TAG = 'PreferencesUtil';
 const MY_STORE = 'myStore';
 const FORM_ID = 'formIds';
 const PERM_GUIDE_SHOWN = 'permGuideShown';
+const SILENT_MODE = 'silentMode';
 
 export class PreferencesUtil {
   private static preferencesUtil: PreferencesUtil;
@@ -115,6 +116,7 @@ export class PreferencesUtil {
       return new Promise((resolve, reject) => {
         if (preference === null) {
           Logger.error(TAG, `preferences is null`);
+          resolve([]);
           return;
         }
         preference.get(FORM_ID, [''], (err, value) => {
@@ -131,9 +133,8 @@ export class PreferencesUtil {
       let err = error as BusinessError;
       Logger.error(TAG, `WANG Failed to get value of 'formIds'.message:${err.message}`);
     }
-    return new Promise((resolve, reject) => {
-      Logger.info(TAG, JSON.stringify(resolve) + JSON.stringify(reject))
-    });
+    // 兜底：异常分支必须应答，避免所有 await getFormIds(...) 调用方静默挂起
+    return [];
   }
 
   async addFormId(context: Context, formId: string) {
@@ -218,6 +219,43 @@ export class PreferencesUtil {
       let err = error as BusinessError;
       Logger.error(TAG, `WANG Failed to get preferences. Code:${err.code},
       message:${err.message}`);
+    }
+  }
+
+  /**
+   * 读取静音（混合播放）标记。独立键，不复用 formIds，避免污染桌面卡片 ID 数组。
+   */
+  async getSilentMode(context: Context): Promise<boolean> {
+    try {
+      let preference = await this.getPreferences(context);
+      if (preference === null) {
+        return false;
+      }
+      return preference.getSync(SILENT_MODE, false) as boolean;
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(TAG, `getSilentMode failed. message:${err.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * 写入静音（混合播放）标记。独立键，不复用 formIds。
+   */
+  async setSilentMode(context: Context, value: boolean): Promise<void> {
+    try {
+      let preference = await this.getPreferences(context);
+      if (preference === null) {
+        return;
+      }
+      preference.put(SILENT_MODE, value, (err: BusinessError) => {
+        if (!err) {
+          preference.flush();
+        }
+      });
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(TAG, `setSilentMode failed. message:${err.message}`);
     }
   }
 }

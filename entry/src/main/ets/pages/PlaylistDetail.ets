@@ -22,6 +22,7 @@ import { Logger } from '../utils/Logger';
 import { CoverImageView } from '../components/CoverImageView';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
+import { SettingsStore } from '../utils/SettingsStore';
 
 const TAG: string = 'PlaylistDetail';
 
@@ -99,6 +100,11 @@ struct PlaylistDetail {
 
   private getCoverSrc(song: SongItem): string {
     return song.src;
+  }
+
+  /** 列表入场错峰延迟：降低动态效果开启时取消错峰（R-18/F-13）。 */
+  private entryDelay(index: number): number {
+    return SettingsStore.getInstance().getReduceMotion() ? 0 : index * 40;
   }
 
   private playAll(): void {
@@ -441,7 +447,7 @@ struct PlaylistDetail {
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: 300, curve: Curve.EaseOut, delay: index * 40 })
+    .animation({ duration: 300, curve: Curve.EaseOut, delay: this.entryDelay(index) })
     .onClick(() => {
       this.playAt(index);
     })

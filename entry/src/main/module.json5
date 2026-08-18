@@ -27,14 +27,6 @@
           "abilities": ["EntryAbility"],
           "when": "always"
         }
-      },
-      {
-        "name": "ohos.permission.GET_NETWORK_INFO",
-        "reason": "$string:get_network_info_reason",
-        "usedScene": {
-          "abilities": ["EntryAbility"],
-          "when": "always"
-        }
       }
     ],
     "abilities": [
@@ -47,6 +39,7 @@
         "startWindowIcon": "$media:logo",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
+        "backgroundModes": ["audioPlayback"],
         "skills": [
           {
             "entities": [

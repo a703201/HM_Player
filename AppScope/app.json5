@@ -1,7 +1,7 @@
 {
   "app": {
     "bundleName": "com.Lumio.music",
-    "vendor": "example",
+    "vendor": "何宇翔",
     "versionCode": 2030000,
     "versionName": "2.3.0",
     "icon": "$media:layered_image",

@@ -41,6 +41,8 @@ import { BreakpointType } from '../common/utils/BreakpointSystem'
 import { ContentConstants } from '../common/constants/ContentConstants';
 import { ResourceConversion } from '../common/utils/ResourceConversion';
 import { MusicStore } from '../services/MusicStore';
+import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { sortSongs } from '../common/utils/SortUtil';
 
 const TAG = 'ControlAreaComponent'
 
@@ -66,6 +68,7 @@ export struct ControlAreaComponent {
   @StorageLink('selectIndex') selectIndex: number = 0;
   @StorageLink('isFavorite') isFavorite: boolean = false;
   @StorageLink('isSilentMode') isSilentMode: boolean = false;
+  @StorageProp('isDark') isDark: boolean = false;
   private scroller: Scroller = new Scroller();
   private resourceConversion: ResourceConversion = new ResourceConversion();
 
@@ -287,6 +290,10 @@ export struct ControlAreaComponent {
     }
   }
 
+  private getThemeColors(): ColorTokens {
+    return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
+  }
+
   @Builder
   musicListBuilder() {
     Column() {
@@ -296,7 +303,7 @@ export struct ControlAreaComponent {
         Text($r('app.string.queue_empty'))
           .width(StyleConstants.FULL_WIDTH)
           .textAlign(TextAlign.Center)
-          .fontColor(Color.Gray)
+          .fontColor(this.getThemeColors().secondaryText)
           .fontSize(15)
           .layoutWeight(1)
       } else {
@@ -314,7 +321,7 @@ export struct ControlAreaComponent {
         }
         .height(StyleConstants.FULL_HEIGHT)
         .width(StyleConstants.FULL_WIDTH)
-        .backgroundColor(Color.White)
+        .backgroundColor(this.getThemeColors().cardBg)
         .margin({ top: $r('app.float.list_area_margin_top') })
         .lanes(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
         ContentConstants.COL_TWO : ContentConstants.COL_ONE)
@@ -331,7 +338,7 @@ export struct ControlAreaComponent {
       top: this.currentBreakpoint === BreakpointConstants.BREAKPOINT_SM ? 0 : $r('app.float.list_area_padding_top'),
       bottom: $r('app.float.list_area_padding_bottom')
     })
-    .backgroundColor(Color.White)
+    .backgroundColor(this.getThemeColors().cardBg)
   }
 
   private refreshQueue(): void {
@@ -343,38 +350,10 @@ export struct ControlAreaComponent {
     this.sortMode = mode;
     const ctrl = AudioRendererController.getInstance();
     const store = MusicStore.getInstance();
-    let sorted: SongItem[] = [];
-    switch (mode) {
-      case 1:
-        sorted = [...this.songList].sort((a: SongItem, b: SongItem) => a.title.localeCompare(b.title, 'zh'));
-        break;
-      case 2:
-        sorted = [...this.songList].sort((a: SongItem, b: SongItem) => a.singer.localeCompare(b.singer, 'zh'));
-        break;
-      case 3: {
-        const order: Map<number, number> = new Map();
-        store.recentlyPlayed.forEach((s: SongItem, i: number) => {
-          order.set(s.id, i);
-        });
-        sorted = [...this.songList].sort((a: SongItem, b: SongItem) => {
-          const ia: number = order.has(a.id) ? order.get(a.id)! : Number.MAX_SAFE_INTEGER;
-          const ib: number = order.has(b.id) ? order.get(b.id)! : Number.MAX_SAFE_INTEGER;
-          return ia - ib;
-        });
-        break;
-      }
-      case 4:
-        sorted = [...this.songList];
-        for (let i: number = sorted.length - 1; i > 0; i--) {
-          const j: number = Math.floor(Math.random() * (i + 1));
-          const tmp: SongItem = sorted[i];
-          sorted[i] = sorted[j];
-          sorted[j] = tmp;
-        }
-        break;
-      default:
-        sorted = [...store.songs];
-    }
+    // 排序逻辑抽到 common/utils/SortUtil.ets，与曲库页共用。
+    // mode 0（默认）保持原语义：队列重置为曲库默认顺序。
+    const base: SongItem[] = mode === 0 ? store.songs : this.songList;
+    const sorted: SongItem[] = sortSongs(base, mode, store.recentlyPlayed);
     const cur: SongItem | undefined = ctrl.getCurrentSong();
     let newIndex: number = 0;
     if (cur) {
@@ -393,8 +372,8 @@ export struct ControlAreaComponent {
       ForEach([0, 1, 2, 3, 4], (mode: number) => {
         Text(this.sortLabel(mode))
           .fontSize(13)
-          .fontColor(this.sortMode === mode ? Color.White : Color.Gray)
-          .backgroundColor(this.sortMode === mode ? '#FA2759' : 'rgba(0, 0, 0, 0.05)')
+          .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
+          .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
           .borderRadius(14)
           .margin({ right: 8 })
@@ -410,7 +389,7 @@ export struct ControlAreaComponent {
       top: 8,
       bottom: 8
     })
-    .backgroundColor(Color.White)
+    .backgroundColor(this.getThemeColors().cardBg)
   }
 
   private sortLabel(mode: number): Resource {
@@ -437,7 +416,7 @@ export struct ControlAreaComponent {
       Text($r('app.string.play_list', this.songList.length))
         .maxLines(ContentConstants.PLAY_ALL_MAX_LINES)
         .padding({ left: $r('app.float.play_all_text_padding') })
-        .fontColor(Color.Black)
+        .fontColor(this.getThemeColors().primaryText)
         .fontSize(new BreakpointType({
           sm: $r('app.float.play_font_sm'),
           md: $r('app.float.play_font_md'),
@@ -446,7 +425,7 @@ export struct ControlAreaComponent {
     }
     .height($r('app.float.play_all_area_height'))
     .width(StyleConstants.FULL_WIDTH)
-    .backgroundColor(Color.White)
+    .backgroundColor(this.getThemeColors().cardBg)
     .padding({
       left: $r('app.float.play_all_area_padding'),
       right: $r('app.float.play_all_area_padding')
@@ -476,16 +455,21 @@ struct MusicListContainer {
   @StorageProp('currentBreakpoint') currentBreakpoint: string = BreakpointConstants.BREAKPOINT_SM;
   @StorageLink('selectIndex') selectIndex: number = 0;
   @Prop isCurrent: boolean = false;
+  @StorageProp('isDark') isDark: boolean = false;
   item: SongItem | undefined = undefined;
   index: number | undefined = undefined;
   onQueueChanged: () => void = () => {};
+
+  private getThemeColors(): ColorTokens {
+    return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
+  }
 
   build() {
     Column() {
       Row() {
         Column() {
           Text(this.item!.title)
-            .fontColor(this.isCurrent && this.isPlay ? Color.Red : Color.Black)
+            .fontColor(this.isCurrent && this.isPlay ? this.getThemeColors().accent : this.getThemeColors().primaryText)
             .fontSize(new BreakpointType({
               sm: $r('app.float.item_font_sm'),
               md: $r('app.float.item_font_md'),
@@ -499,7 +483,7 @@ struct MusicListContainer {
             .margin({ right: $r('app.float.list_item_image_margin') })
             Text(this.item!.singer)
               .opacity($r('app.float.singer_opacity'))
-              .fontColor(this.isCurrent && this.isPlay ? Color.Red : Color.Black)
+              .fontColor(this.isCurrent && this.isPlay ? this.getThemeColors().accent : this.getThemeColors().primaryText)
               .fontSize(new BreakpointType({
                 sm: $r('app.float.singer_title_sm'),
                 md: $r('app.float.singer_title_md'),

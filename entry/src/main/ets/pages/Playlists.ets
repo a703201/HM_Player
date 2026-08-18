@@ -20,6 +20,7 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { MusicStore } from '../services/MusicStore';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { Logger } from '../utils/Logger';
+import { SettingsStore } from '../utils/SettingsStore';
 
 const TAG: string = 'Playlists';
 
@@ -84,7 +85,9 @@ struct Playlists {
    * 被显式动画与属性动画同时接管，表现为跳变或时长错乱。
    */
   private startBreathing(): void {
-    if (this.isDisposed || !this.pageVisible || this.playlists.length !== 0) {
+    // R-18/F-13：降低动态效果开启时不做空态呼吸动画
+    if (SettingsStore.getInstance().getReduceMotion() ||
+      this.isDisposed || !this.pageVisible || this.playlists.length !== 0) {
       this.isBreathing = false;
       return;
     }
@@ -117,6 +120,11 @@ struct Playlists {
     if (this.playlists.length === 0) {
       this.startBreathing();
     }
+  }
+
+  /** 列表入场错峰延迟：降低动态效果开启时取消错峰（R-18/F-13）。 */
+  private entryDelay(index: number): number {
+    return SettingsStore.getInstance().getReduceMotion() ? 0 : index * 50;
   }
 
   private toast(message: string): void {
@@ -328,7 +336,7 @@ struct Playlists {
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: 300, curve: Curve.EaseOut, delay: index * 50 })
+    .animation({ duration: 300, curve: Curve.EaseOut, delay: this.entryDelay(index) })
     .onClick(() => {
       this.pathStack.pushPathByName('PlaylistDetail', playlist.id);
     })

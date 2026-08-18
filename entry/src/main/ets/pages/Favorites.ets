@@ -21,6 +21,7 @@ import { AudioRendererController } from '../utils/AudioRendererController';
 import { CoverImageView } from '../components/CoverImageView';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
+import { SettingsStore } from '../utils/SettingsStore';
 
 @Builder
 export function FavoritesBuilder() {
@@ -54,7 +55,8 @@ struct Favorites {
     this.itemScales = this.favoriteSongs.map(() => 1.0);
     this.favScales = this.favoriteSongs.map(() => 1.0);
     setInterval(() => {
-      if (this.store.getFavoriteSongs().length === 0) {
+      // R-18/F-13：降低动态效果开启时不做空态图标呼吸
+      if (this.store.getFavoriteSongs().length === 0 && !SettingsStore.getInstance().getReduceMotion()) {
         this.emptyIconScale = this.emptyIconScale === 1.0 ? 1.08 : 1.0;
       }
       this.playingIndex = this.store.isPlaying ? this.store.currentIndex : -1;
@@ -65,6 +67,11 @@ struct Favorites {
     this.favoriteSongs = [...this.store.getFavoriteSongs()];
     this.itemScales = this.favoriteSongs.map(() => 1.0);
     this.favScales = this.favoriteSongs.map(() => 1.0);
+  }
+
+  /** 列表入场错峰延迟：降低动态效果开启时取消错峰（R-18/F-13）。 */
+  private entryDelay(index: number): number {
+    return SettingsStore.getInstance().getReduceMotion() ? 0 : index * 50;
   }
 
   playSong(song: SongItem): void {
@@ -222,7 +229,7 @@ struct Favorites {
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: 300, curve: Curve.EaseOut, delay: index * 50 })
+    .animation({ duration: 300, curve: Curve.EaseOut, delay: this.entryDelay(index) })
     .onClick(() => {
       const globalIndex = this.store.songs.findIndex(s => s.id === song.id);
       if (globalIndex >= 0) {

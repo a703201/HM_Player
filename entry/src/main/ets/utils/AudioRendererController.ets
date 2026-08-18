@@ -35,13 +35,14 @@ import { media } from '@kit.MediaKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { AVSessionController } from './AVSessionController';
 import SongItemBuilder from '../songdatacontroller/SongItemBuilder';
-import { MusicPlayMode, SILENT_ID } from '../songdatacontroller/PlayerData';
+import { MusicPlayMode } from '../songdatacontroller/PlayerData';
 import { SongItem } from '../songdatacontroller/SongData';
 import { BackgroundUtil } from './BackgroundUtil';
 import { MediaTools } from './MediaTools';
 import { Logger } from './Logger';
 import { PreferencesUtil } from './PreferencesUtil';
 import { MusicStore } from '../services/MusicStore';
+import { SettingsStore } from './SettingsStore';
 
 const TAG = 'AudioRendererController';
 
@@ -113,7 +114,7 @@ export class AudioRendererController {
       } else if (state === 'paused') {
         this.updateIsPlay(false);
       } else if (state === 'completed') {
-        this.playNext();
+        this.onPlaybackCompleted();
       } else if (state === 'stopped') {
         this.updateIsPlay(false);
       }
@@ -149,15 +150,11 @@ export class AudioRendererController {
     if (!this.context) {
       return;
     }
-    let formIds: string[] = await PreferencesUtil.getInstance().getFormIds(this.context);
-    if (isSupportSilent) {
-      if (!formIds.includes(SILENT_ID)) {
-        await PreferencesUtil.getInstance().addFormId(this.context, SILENT_ID);
-      }
-    } else {
-      if (formIds.includes(SILENT_ID)) {
-        await PreferencesUtil.getInstance().removeFormId(this.context, SILENT_ID);
-      }
+    // 静音（混合播放）标记走独立 Preferences 键，不再写入 formIds 桌面卡片数组，避免污染
+    try {
+      await PreferencesUtil.getInstance().setSilentMode(this.context, isSupportSilent);
+    } catch (e) {
+      Logger.error(TAG, 'setSilentMode failed');
     }
     AppStorage.setOrCreate('isSilentMode', isSupportSilent);
   }
@@ -219,9 +216,9 @@ export class AudioRendererController {
       const file: fileIo.File = fileIo.openSync(song.src, fileIo.OpenMode.READ_ONLY);
       this.curFile = file;
       this.avPlayer.fdSrc = { fd: file.fd };
-      Logger.info(TAG, 'Playing: ' + song.title + ' from ' + song.src);
+      Logger.infoPrivate(TAG, 'Playing: ' + song.title + ' from ' + song.src);
     } catch (e) {
-      Logger.error(TAG, 'Failed to open file: ' + song.src);
+      Logger.errorPrivate(TAG, 'Failed to open file: ' + song.src);
     }
   }
 
@@ -460,6 +457,19 @@ export class AudioRendererController {
       if (this.avSessionController) {
         this.avSessionController.setProgressState(ms);
       }
+    }
+  }
+
+  /**
+   * 播放完成回调：尊重「自动下一首」设置（FR-B8）。
+   * 开启 → 按当前播放模式切到下一首；关闭 → 停止并停在当前曲。
+   * 空队列守卫由 playNext() 内部保证（stop() 不依赖队列）。
+   */
+  private onPlaybackCompleted(): void {
+    if (SettingsStore.getInstance().getAutoNext()) {
+      this.playNext();
+    } else {
+      this.stop();
     }
   }
 

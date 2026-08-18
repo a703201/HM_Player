@@ -94,7 +94,7 @@ export class CoverCache {
       .catch((err: Error) => {
         this.pending.delete(src);
         this.missing.add(src);
-        Logger.debug(TAG, `load failed for ${src}: ${err.message}`);
+        Logger.debugPrivate(TAG, `load failed for ${src}: ${err.message}`);
         return undefined;
       });
     this.pending.set(src, task);
@@ -138,7 +138,7 @@ export class CoverCache {
       await extractor.fetchMetadata();
       return await extractor.fetchAlbumCover();
     } catch (err) {
-      Logger.debug(TAG, `extractCover failed for ${src}: ${(err as Error).message}`);
+      Logger.debugPrivate(TAG, `extractCover failed for ${src}: ${(err as Error).message}`);
       return undefined;
     } finally {
       if (extractor) {

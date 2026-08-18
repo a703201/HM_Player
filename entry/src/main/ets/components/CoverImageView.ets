@@ -85,7 +85,7 @@ export struct CoverImageView {
       .clip(true)
       .animation({ duration: 300, curve: Curve.EaseOut })
       .onError(() => {
-        Logger.debug(TAG, `cover render error for ${this.src}`);
+        Logger.debugPrivate(TAG, `cover render error for ${this.src}`);
       })
   }
 }

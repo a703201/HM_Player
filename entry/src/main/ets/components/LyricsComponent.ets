@@ -88,11 +88,11 @@ export struct LyricsComponent {
           return; // 期间已切歌，丢弃过期结果
         }
         if (!lyricText || lyricText.trim().length === 0) {
-          Logger.debug(TAG, 'no lyric found for ' + song.src);
+          Logger.debugPrivate(TAG, 'no lyric found for ' + song.src);
           return;
         }
         this.mLrcEntryList = parseLrcLyric(lyricText);
-        Logger.debug(TAG, 'src=' + song.src + ' lyricLen=' + lyricText.length +
+        Logger.debugPrivate(TAG, 'src=' + song.src + ' lyricLen=' + lyricText.length +
           ' entries=' + this.mLrcEntryList.length);
       })
       .catch((err: Error) => {

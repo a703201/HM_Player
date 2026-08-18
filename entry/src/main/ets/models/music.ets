@@ -27,6 +27,8 @@ export class SongItem {
   singer: string = '';
   album: string = '';
   author: string = '';
+  /** 发行年份（4 位字符串，如 "2019"；未解析到时为空串）。与 AudioMeta.year 类型一致。 */
+  year: string = '';
   mark: Resource | undefined = undefined;
   label: Resource | undefined = undefined;
   src: string = '';

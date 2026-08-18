@@ -56,13 +56,16 @@ export struct Mine {
       this.avatarScale = 1.0;
       this.avatarOpacity = 1.0;
     }, 100);
-    this.breatheInterval = setInterval(() => {
-      if (this.avatarStrokeWidth === 2) {
-        this.avatarStrokeWidth = 4;
-      } else {
-        this.avatarStrokeWidth = 2;
-      }
-    }, 2000);
+    // R-18/F-13：降低动态效果开启时不做头像呼吸动画
+    if (!SettingsStore.getInstance().getReduceMotion()) {
+      this.breatheInterval = setInterval(() => {
+        if (this.avatarStrokeWidth === 2) {
+          this.avatarStrokeWidth = 4;
+        } else {
+          this.avatarStrokeWidth = 2;
+        }
+      }, 2000);
+    }
     // 实时计数：轮询 store 写入 @State，收藏/历史/歌单变化后即时刷新（无需退出重进）
     this.refreshCounts();
     this.countIntervalId = setInterval(() => { this.refreshCounts(); }, 600);

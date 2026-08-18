@@ -26,8 +26,10 @@ import { CoverImageView } from '../components/CoverImageView';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { picker } from '@kit.CoreFileKit';
-import fs from '@ohos.file.fs';
+import { fileIo as fs } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
+import { SettingsStore } from '../utils/SettingsStore';
+import { sortSongs } from '../common/utils/SortUtil';
 
 const ACCENT: string = '#FA2759';
 const PLAYER_COVER_ID: string = 'player_cover';
@@ -52,6 +54,7 @@ export struct LocalLibrary {
 
   @State searchText: string = '';
   @State filteredSongs: SongItem[] = [];
+  @State sortMode: number = 0;
   @State isLoading: boolean = false;
   @State itemScales: number[] = [];
   @State importScale: number = 1.0;
@@ -65,7 +68,7 @@ export struct LocalLibrary {
   private playingPulse: number = -1;
 
   aboutToAppear(): void {
-    this.filteredSongs = [...this.store.songs];
+    this.filteredSongs = sortSongs([...this.store.songs], this.sortMode, this.store.recentlyPlayed);
     this.itemScales = this.filteredSongs.map(() => 1.0);
     if (this.store.loadError) {
       this.errorMessage = '数据加载失败，请重试';
@@ -88,7 +91,7 @@ export struct LocalLibrary {
       const context: common.UIAbilityContext = AppStorage.get<common.UIAbilityContext>('context') as common.UIAbilityContext;
       await this.store.init(context);
       this.store.loadError = false;
-      this.filteredSongs = [...this.store.songs];
+      this.filteredSongs = sortSongs([...this.store.songs], this.sortMode, this.store.recentlyPlayed);
       this.itemScales = this.filteredSongs.map(() => 1.0);
       AudioRendererController.getInstance().reconcileWithLibrary(this.store.songs);
     } catch (e) {
@@ -99,6 +102,10 @@ export struct LocalLibrary {
   }
 
   startEmptyPulse(): void {
+    // R-18/F-13：降低动态效果开启时不做空态呼吸动画
+    if (SettingsStore.getInstance().getReduceMotion()) {
+      return;
+    }
     setInterval(() => {
       if (this.filteredSongs.length === 0 && !this.isLoading) {
         this.emptyIconScale = this.emptyIconScale === 1.0 ? 1.08 : 1.0;
@@ -122,7 +129,7 @@ export struct LocalLibrary {
         song.singer.includes(text)
       );
     }
-    this.itemScales = this.filteredSongs.map(() => 1.0);
+    this.applyLibrarySort(this.sortMode);
   }
 
   // 原歌曲页的导入功能，已迁移至音乐库页
@@ -170,6 +177,7 @@ export struct LocalLibrary {
               song.singer = (meta.artist && meta.artist.trim().length > 0) ? meta.artist : '未知艺术家';
               song.album = meta.album ?? '';
               song.author = meta.author ?? '';
+              song.year = meta.year ?? '';
             } else {
               song.title = fallbackTitle;
               song.singer = '未知艺术家';
@@ -180,7 +188,7 @@ export struct LocalLibrary {
         if (newSongs.length > 0) {
           this.store.setSongs([...this.store.songs, ...newSongs]);
           AudioRendererController.getInstance().reconcileWithLibrary(this.store.songs);
-          this.filteredSongs = [...this.store.songs];
+          this.filteredSongs = sortSongs([...this.store.songs], this.sortMode, this.store.recentlyPlayed);
           this.itemScales = this.filteredSongs.map(() => 1.0);
           // 后台抽取新导入歌曲的内嵌封面，完成后刷新列表与全局 songList
           CoverCache.getInstance().preload(newSongs).then(() => {
@@ -221,7 +229,7 @@ export struct LocalLibrary {
   deleteSong(song: SongItem): void {
     this.store.removeSong(song.id);
     AudioRendererController.getInstance().reconcileWithLibrary(this.store.songs);
-    this.filteredSongs = [...this.store.songs];
+    this.filteredSongs = sortSongs([...this.store.songs], this.sortMode, this.store.recentlyPlayed);
     this.itemScales = this.filteredSongs.map(() => 1.0);
   }
 
@@ -253,7 +261,63 @@ export struct LocalLibrary {
       this.filteredSongs = this.store.songs.filter(song =>
         song.title.includes(kw) || song.singer.includes(kw));
     }
+    this.applyLibrarySort(this.sortMode);
+  }
+
+  /**
+   * 曲库排序入口（B3）：与播放队列面板共用 common/utils/SortUtil.ets。
+   * 排序作用于当前过滤结果（搜索后的列表），模式：0默认/1标题/2歌手/3最近/4随机/5专辑。
+   */
+  applyLibrarySort(mode: number): void {
+    this.sortMode = mode;
+    this.filteredSongs = sortSongs(this.filteredSongs, mode, this.store.recentlyPlayed);
     this.itemScales = this.filteredSongs.map(() => 1.0);
+  }
+
+  private librarySortLabel(mode: number): Resource {
+    switch (mode) {
+      case 1:
+        return $r('app.string.sort_title');
+      case 2:
+        return $r('app.string.sort_artist');
+      case 3:
+        return $r('app.string.sort_recent');
+      case 4:
+        return $r('app.string.sort_random');
+      case 5:
+        return $r('app.string.sort_album');
+      default:
+        return $r('app.string.sort_default');
+    }
+  }
+
+  /** 列表入场错峰延迟：降低动态效果开启时取消错峰（R-18/F-13）。 */
+  private entryDelay(index: number): number {
+    return SettingsStore.getInstance().getReduceMotion() ? 0 : index * 50;
+  }
+
+  @Builder
+  librarySortBar() {
+    Scroll() {
+      Row({ space: 8 }) {
+        ForEach([0, 1, 2, 5, 3, 4], (mode: number) => {
+          Text(this.librarySortLabel(mode))
+            .fontSize(13)
+            .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
+            .backgroundColor(this.sortMode === mode ? ACCENT : this.getThemeColors().secondaryBg)
+            .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+            .borderRadius(14)
+            .onClick(() => {
+              this.applyLibrarySort(mode);
+            })
+        }, (mode: number) => 'lib_sort_' + mode.toString())
+      }
+      .padding({ left: 16, right: 16 })
+    }
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
+    .width('100%')
+    .margin({ bottom: 10 })
   }
 
   @Builder
@@ -321,7 +385,7 @@ export struct LocalLibrary {
     .margin({ bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: 300, curve: Curve.EaseOut, delay: index * 50 })
+    .animation({ duration: 300, curve: Curve.EaseOut, delay: this.entryDelay(index) })
     .bindContextMenu(this.buildSongMenu(song), ResponseType.LongPress)
     .onTouch((event: TouchEvent) => {
       if (event.type === TouchType.Down) {
@@ -521,6 +585,11 @@ export struct LocalLibrary {
       }
       .width('100%')
       .padding({ left: 16, right: 16, bottom: 12 })
+
+      // 曲库排序入口（B3）：仅在有歌曲时展示
+      if (this.filteredSongs.length > 0 && this.errorMessage === '' && !this.isLoading) {
+        this.librarySortBar()
+      }
 
       if (this.isLoading) {
         Column() {

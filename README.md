@@ -1,5 +1,7 @@
 # Lumio Music · 鸿蒙音乐播放器
 
+> **Lumio 系列** · 本地优先的 HarmonyOS NEXT 原生应用（同系列：碰卡 / NearCard）
+
 <img width="200" height="200" alt="logo" src="https://github.com/user-attachments/assets/bec472ea-0320-4c85-85a5-1c898d9d9aee" />
 
 一款运行在 **HarmonyOS** 平台的本地音乐播放器，基于 **ArkTS + ArkUI + C++ Native** 开发。

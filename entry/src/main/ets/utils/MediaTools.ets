@@ -55,7 +55,7 @@ export class MediaTools {
   }
 
   static async getPixelMapFromFile(id: string, path: string): Promise<image.PixelMap> {
-    Logger.info(TAG, 'getPixelMapFromFile id:' + id + ', path:' + path);
+    Logger.infoPrivate(TAG, 'getPixelMapFromFile id:' + id + ', path:' + path);
     return await image.createImageSource(path).createPixelMap();
   }
 
