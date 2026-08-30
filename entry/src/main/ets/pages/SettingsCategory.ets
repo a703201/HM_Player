@@ -446,6 +446,10 @@ export struct SettingsCategoryDetail {
         $r('app.media.ic_hm_folder'), '本地歌曲管理', '', 2, '#FA2759',
         () => { this.onNavigate('ManageSongs'); }
       )
+      this.buildNavItem(
+        $r('app.media.ic_music_list'), '重复歌曲清理', '', 3, '#FA2759',
+        () => { this.onNavigate('DuplicateSongs'); }
+      )
     }
     .margin({ bottom: 8 })
   }
@@ -471,7 +475,11 @@ export struct SettingsCategoryDetail {
         (v: boolean) => { this.privacyStats = v; this.settings.setPrivacyStats(v); }
       )
       this.buildNavItem(
-        $r('app.media.ic_hm_trash'), '清除统计数据', '', 1, '#FF9500',
+        $r('app.media.ic_music'), '我的听歌报告', '', 1, '#FA2759',
+        () => { this.onNavigate('Wrapped'); }
+      )
+      this.buildNavItem(
+        $r('app.media.ic_hm_trash'), '清除统计数据', '', 2, '#FF9500',
         () => { this.showClearStatsDialog(); }
       )
     }

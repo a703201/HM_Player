@@ -38,6 +38,7 @@ const KEY_THEME_MODE: string = 'theme_mode';
 const KEY_NOTIFICATION_LOCK: string = 'notification_lock_screen';
 const KEY_PRIVACY_STATS: string = 'privacy_stats';
 const KEY_REDUCE_MOTION: string = 'reduce_motion';
+const KEY_SLEEP_TIMER: string = 'sleep_timer';
 
 export class SettingsStore {
   private static instance: SettingsStore | null = null;
@@ -51,6 +52,7 @@ export class SettingsStore {
   private notificationLockScreen: boolean = true;
   private privacyStats: boolean = true;
   private reduceMotion: boolean = false;
+  private sleepTimerMinutes: number = 0;
 
   private constructor() {
   }
@@ -87,6 +89,7 @@ export class SettingsStore {
       this.notificationLockScreen = await this.pref.get(KEY_NOTIFICATION_LOCK, true) as boolean;
       this.privacyStats = await this.pref.get(KEY_PRIVACY_STATS, true) as boolean;
       this.reduceMotion = await this.pref.get(KEY_REDUCE_MOTION, false) as boolean;
+      this.sleepTimerMinutes = await this.pref.get(KEY_SLEEP_TIMER, 0) as number;
       this.initialized = true;
     } catch (err) {
       Logger.error('SettingsStore init failed');
@@ -159,6 +162,28 @@ export class SettingsStore {
   async setReduceMotion(value: boolean): Promise<void> {
     this.reduceMotion = value;
     await this.putBoolean(KEY_REDUCE_MOTION, value);
+  }
+
+  // ===== 睡眠定时（分钟，0 = 关闭）=====
+  getSleepTimer(): number {
+    return this.sleepTimerMinutes;
+  }
+
+  async setSleepTimer(minutes: number): Promise<void> {
+    this.sleepTimerMinutes = minutes;
+    await this.putNumber(KEY_SLEEP_TIMER, minutes);
+  }
+
+  private async putNumber(key: string, value: number): Promise<void> {
+    if (!this.pref) {
+      return;
+    }
+    try {
+      await this.pref.put(key, value);
+      await this.pref.flush();
+    } catch (err) {
+      Logger.error('SettingsStore put failed: ' + key);
+    }
   }
 
   private async putBoolean(key: string, value: boolean): Promise<void> {

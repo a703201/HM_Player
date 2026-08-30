@@ -31,7 +31,8 @@
 
 /**
  * 桌面音乐播控卡片（ArkTS 动态卡片）。
- * 数据由主应用经 formProvider.updateForm 推送（title / artist / isPlaying / isDark）；
+ * 数据由主应用经 formProvider.updateForm 推送（title / artist / album / duration / position / lyric / isPlaying / isDark）；
+ * position 与 lyric 由主应用在播放中每秒刷新，实现进度条走动与当前歌词行实时同步；
  * 按钮通过 postCardAction 的 message 事件回传 'play' / 'pause' / 'next' / 'prev'，
  * 由 FormAbility.onFormEvent 转发给主 EntryAbility 实现回控。
  *
@@ -59,6 +60,8 @@ struct WidgetCard {
   @LocalStorageProp('artist') artist: string = '';
   @LocalStorageProp('album') album: string = '';
   @LocalStorageProp('duration') duration: number = 0;
+  @LocalStorageProp('position') curPosition: number = 0;
+  @LocalStorageProp('lyric') lyric: string = '';
   @LocalStorageProp('isPlaying') isPlaying: boolean = false;
   @LocalStorageProp('isDark') isDark: boolean = false;
 
@@ -143,6 +146,44 @@ struct WidgetCard {
       .width('100%')
       .margin({ top: 16, left: 16, right: 16 })
 
+      // 进度条 + 时间（D4 实时化）：position 由主应用每秒经 formProvider 推送
+      Column() {
+        Progress({
+          value: this.curPosition > this.duration ? this.duration : this.curPosition,
+          total: this.duration > 0 ? this.duration : 1,
+          type: ProgressType.Linear
+        })
+          .width('100%')
+          .height(4)
+          .color(this.getCardColors().playBtnBg)
+          .backgroundColor(this.getCardColors().secondaryBtnBg)
+          .borderRadius(2)
+        Row() {
+          Text(this.formatDuration(this.curPosition > this.duration ? this.duration : this.curPosition))
+            .fontSize(11)
+            .fontColor(this.getCardColors().artistText)
+          Text(this.formatDuration(this.duration))
+            .fontSize(11)
+            .fontColor(this.getCardColors().artistText)
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ top: 6 })
+      }
+      .width('100%')
+      .margin({ top: 12, left: 16, right: 16 })
+
+      // 当前歌词行（D4 实时化）：由主应用推送当前播放行，无歌词时隐藏
+      if (this.lyric.length > 0) {
+        Text(this.lyric)
+          .fontSize(12)
+          .fontColor(this.getCardColors().titleText)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .width('100%')
+          .margin({ top: 4, left: 16, right: 16 })
+      }
+
       Row() {
         Button({ type: ButtonType.Circle }) {
           Image($r('app.media.ic_prev'))
@@ -190,12 +231,6 @@ struct WidgetCard {
       .width('100%')
       .justifyContent(FlexAlign.Center)
       .margin({ top: 12 })
-
-      // 时长信息（D4 第一步）：毫秒由主应用推送，卡片内格式化为 mm:ss
-      Text(this.formatDuration(this.duration))
-        .fontSize(11)
-        .fontColor(this.getCardColors().artistText)
-        .margin({ top: 8, bottom: 12 })
     }
     .width('100%')
     .height('100%')

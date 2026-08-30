@@ -20,6 +20,7 @@ import { MusicStore } from '../services/MusicStore';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { CoverImageView } from '../components/CoverImageView';
+import { QualityBadge } from '../components/QualityBadge';
 
 @Builder
 export function ManageSongsBuilder() {
@@ -102,13 +103,20 @@ struct ManageSongs {
       }
 
       Column() {
-        Text(song.title)
-          .fontSize(15)
-          .fontColor(this.getThemeColors().primaryText)
-          .fontWeight(FontWeight.Medium)
-          .margin({ bottom: 4 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Row() {
+          Text(song.title)
+            .fontSize(15)
+            .fontColor(this.getThemeColors().primaryText)
+            .fontWeight(FontWeight.Medium)
+            .layoutWeight(1)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+          QualityBadge({ quality: song.getQuality() })
+            .margin({ left: 6 })
+        }
+        .alignItems(VerticalAlign.Center)
+        .margin({ bottom: 4 })
 
         Text(song.singer)
           .fontSize(13)

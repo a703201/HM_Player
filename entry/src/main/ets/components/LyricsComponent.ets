@@ -48,7 +48,7 @@ const TAG: string = 'LyricsComponent';
 @Component
 export struct LyricsComponent {
   @StorageProp('currentBreakpoint') currentBreakpoint: string = BreakpointConstants.BREAKPOINT_SM;
-  @StorageLink('progress') time: number = 0;
+  @StorageLink('progress') @Watch('onProgressTick') time: number = 0;
   @StorageLink('isFoldFull') isFoldFull: boolean = false;
   @State progress: number = 0.01;
   @State progressText: string = '';
@@ -63,9 +63,45 @@ export struct LyricsComponent {
   @Link isTablet: boolean;
   @State intervalID: number = 0;
   @State pageShowTime: number = 0;
+  private lastLyricLine: string = ''; // 已推送至桌面卡片的当前歌词行，避免重复写 AppStorage
 
   aboutToAppear() {
     this.getLrcEntryList();
+  }
+
+  /**
+   * progress（当前播放位置 ms）变化时，重新定位并发布当前歌词行到桌面卡片。
+   * 由 @Watch('onProgressTick') 在 timeUpdate 周期（约 4Hz）触发，仅当行文本变化时写 AppStorage。
+   */
+  private onProgressTick(): void {
+    this.publishCurrentLyric();
+  }
+
+  /**
+   * 依据当前播放位置在 mLrcEntryList 中定位活动歌词行（lineStartTime <= 位置 的最大者），
+   * 经 AppStorage 'cardLyric' 暴露给 AVSessionController，供桌面卡片实时展示。
+   * 无歌词或越界时发布空串（卡片据此隐藏歌词行）。
+   */
+  private publishCurrentLyric(): void {
+    let line: string = '';
+    const list: Array<LrcEntry> = this.mLrcEntryList;
+    if (list.length > 0) {
+      let idx: number = -1;
+      for (let i: number = 0; i < list.length; i++) {
+        if (list[i].lineStartTime <= this.time) {
+          idx = i;
+        } else {
+          break;
+        }
+      }
+      if (idx >= 0) {
+        line = list[idx].lineWords;
+      }
+    }
+    if (this.lastLyricLine !== line) {
+      this.lastLyricLine = line;
+      AppStorage.setOrCreate('cardLyric', line);
+    }
   }
 
   /**
@@ -94,6 +130,8 @@ export struct LyricsComponent {
         this.mLrcEntryList = parseLrcLyric(lyricText);
         Logger.debugPrivate(TAG, 'src=' + song.src + ' lyricLen=' + lyricText.length +
           ' entries=' + this.mLrcEntryList.length);
+        // 歌词刷新后立即同步当前行到桌面卡片（按当前播放位置定位）
+        this.publishCurrentLyric();
       })
       .catch((err: Error) => {
         Logger.debug(TAG, 'read lyric failed: ' + err.message);
@@ -103,8 +141,7 @@ export struct LyricsComponent {
   /**
    * 点击歌词行跳转：命中行 → 取 lineStartTime → seek。
    */
-  private onLyricLineClick(index: number): void {
-    if (index < 0 || index >= this.mLrcEntryList.length) {
+  private onLyricLineClick(index: number): void {    if (index < 0 || index >= this.mLrcEntryList.length) {
       return;
     }
     const entry = this.mLrcEntryList[index];

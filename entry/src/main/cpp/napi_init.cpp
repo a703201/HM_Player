@@ -94,6 +94,12 @@ static napi_value NativeParseAudioMetadata(napi_env env, napi_callback_info info
     napi_create_int32(env, metadata.channels, &channels);
     napi_set_named_property(env, result, "channels", channels);
 
+    napi_value bitDepth;
+    napi_create_int32(env, metadata.bitDepth, &bitDepth);
+    napi_set_named_property(env, result, "bitDepth", bitDepth);
+
+    napi_set_named_property(env, result, "codec", MakeString(env, metadata.codec));
+
     return result;
 }
 

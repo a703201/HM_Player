@@ -17,6 +17,9 @@
 import { image } from '@kit.ImageKit';
 import { CoverCache } from '../utils/CoverCache';
 
+/** 音质分级：用于列表/播放页徽标展示。 */
+export type AudioQuality = 'unknown' | 'lossy' | 'lossless' | 'hires';
+
 /**
  * Music information entity class.
  * Single source of truth for SongItem across the project.
@@ -35,6 +38,28 @@ export class SongItem {
   index: number = 0;
   lyric: string = '';
   isDarkBackground: boolean = false;
+  /** 采样率（Hz），如 44100 / 48000 / 96000；无数据时 0。 */
+  sampleRate: number = 0;
+  /** 位深（bit），如 16 / 24；损耗编码（MP3/AAC）为 0 表示不适用。 */
+  bitDepth: number = 0;
+  /** 容器/编码：flac / mp3 / m4a / alac / wav 等；无数据时空串。 */
+  codec: string = '';
+
+  /** 音质分级：无损(flac/wav/alac) / Hi-Res(位深≥24 或 采样率≥96k) / 损耗(mp3/aac) / 未知。 */
+  getQuality(): AudioQuality {
+    const lossless: boolean = this.codec === 'flac' || this.codec === 'wav' || this.codec === 'alac';
+    const lossy: boolean = this.codec === 'mp3' || this.codec === 'm4a' || this.codec === 'aac';
+    if (this.bitDepth >= 24 || this.sampleRate >= 96000) {
+      return 'hires';
+    }
+    if (lossless) {
+      return 'lossless';
+    }
+    if (lossy) {
+      return 'lossy';
+    }
+    return 'unknown';
+  }
 
   getMark(): Resource | image.PixelMap {
     return CoverCache.getInstance().get(this.src) ?? this.mark ?? $r('app.media.ic_default_cover');

@@ -29,10 +29,11 @@ const TAG = 'AudioMetaReader';
  * AVSession 的元数据中，用于锁屏展示）。因此歌词仍走应用原有的 rawfile
  * LRC 资源流程，本工具只负责标题 / 艺术家 / 专辑 / 作者。
  *
- * 解析策略（双路）：
- * 1) 优先 MediaKit AVMetadataExtractor（覆盖最广、最稳定）；
- * 2) MediaKit 失败或关键字段（标题）缺失时，回退到 C++ NAPI 原生解析
- *    （parseAudioMetadata，支持 FLAC/MP3/MP4 的标题/艺术家/专辑/时长/采样率/声道）。
+ * 解析策略（双路合并）：
+ * 1) 文本字段（标题/艺术家/专辑/作者/年份）优先用 MediaKit AVMetadataExtractor（覆盖最广、最稳定）；
+ * 2) 技术字段（采样率/位深/编码）MediaKit 的 AVMetadata 不暴露，必须由 C++ NAPI 原生解析
+ *    （parseAudioMetadata，支持 FLAC/MP3/MP4/WAV 的采样率/位深/编码）补全；
+ * 故无论 MediaKit 是否成功，均调用 NAPI 合并技术字段；NAPI 不可用则回退 MediaKit 文本结果。
  */
 export interface AudioMeta {
   title?: string;
@@ -40,6 +41,9 @@ export interface AudioMeta {
   album?: string;
   author?: string;
   year?: string;
+  sampleRate?: number;
+  bitDepth?: number;
+  codec?: string;
 }
 
 /**
@@ -70,11 +74,17 @@ function parseMetaOnWorker(src: string): AudioMeta | undefined {
       year = m[0];
     }
   }
+  const sampleRate: number = raw.sampleRate as number;
+  const bitDepth: number = raw.bitDepth as number;
+  const codec: string = raw.codec as string;
   const result: AudioMeta = {
     title: title,
     artist: artist,
     album: album,
-    year: year
+    year: year,
+    sampleRate: sampleRate,
+    bitDepth: bitDepth,
+    codec: codec
   };
   return result;
 }
@@ -85,23 +95,23 @@ export class AudioMetaReader {
       return null;
     }
     const fromKit: AudioMeta | null = await AudioMetaReader.readViaMediaKit(src);
-    if (fromKit && fromKit.title) {
-      return fromKit;
-    }
-    // MediaKit 失败或标题缺失：回退 C++ NAPI 原生解析。
-    // 该调用是同步 NAPI，会阻塞调用线程；放到 taskpool 工作线程执行，避免主线程卡顿 / ANR。
-    // 任意异常（含 worker 线程 NAPI 不可用）均回退到 MediaKit 结果，保证不降级为失败。
+    // 双路合并：文本字段（标题/艺术家/专辑/作者/年份）优先用 MediaKit（覆盖广、稳定）；
+    // 技术字段（采样率/位深/编码）MediaKit 的 AVMetadata 不暴露，必须由 C++ NAPI 原生解析提供。
+    // 故无论 MediaKit 是否成功，均调用 NAPI 补全技术字段，再合并返回；
+    // 任意异常（含 worker 线程 NAPI 不可用）均回退到 MediaKit 文本结果，保证不降级为失败。
     try {
       const native: AudioMeta | undefined = await taskpool.execute(parseMetaOnWorker, src) as AudioMeta | undefined;
-      if (native && native.title) {
-        const merged: AudioMeta = {
-          title: native.title,
-          artist: native.artist ? native.artist : undefined,
-          album: native.album ? native.album : undefined,
-          year: native.year ? native.year : (fromKit ? fromKit.year : undefined)
-        };
-        return merged;
-      }
+      const merged: AudioMeta = {
+        title: (fromKit && fromKit.title) ? fromKit.title : (native?.title ?? undefined),
+        artist: (fromKit && fromKit.artist) ? fromKit.artist : (native?.artist ?? undefined),
+        album: (fromKit && fromKit.album) ? fromKit.album : (native?.album ?? undefined),
+        author: (fromKit && fromKit.author) ? fromKit.author : (native?.author ?? undefined),
+        year: (fromKit && fromKit.year) ? fromKit.year : (native?.year ?? undefined),
+        sampleRate: native?.sampleRate ? native.sampleRate : undefined,
+        bitDepth: native?.bitDepth ? native.bitDepth : undefined,
+        codec: native?.codec ? native.codec : undefined
+      };
+      return merged;
     } catch (err) {
       // P2-13：日志脱敏，只打印文件名，避免完整沙箱路径（含用户歌曲名）进 hilog
       Logger.debug(TAG, `native parse failed for ${AudioMetaReader.sanitize(src)}: ${(err as Error).message}`);

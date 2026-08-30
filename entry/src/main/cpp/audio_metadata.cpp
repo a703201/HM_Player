@@ -165,6 +165,8 @@ AudioMetadata parseFlac(const std::vector<unsigned char>& buf) {
     m.durationMs = 0;
     m.sampleRate = 44100;
     m.channels = 2;
+    m.bitDepth = 0;
+    m.codec = "flac";
     if (buf.size() < 4 || !(buf[0] == 'f' && buf[1] == 'L' && buf[2] == 'a' && buf[3] == 'C')) {
         return m;
     }
@@ -186,6 +188,9 @@ AudioMetadata parseFlac(const std::vector<unsigned char>& buf) {
                               (static_cast<unsigned int>(buf[pos + 11]) << 4) |
                               ((static_cast<unsigned int>(buf[pos + 12]) >> 4) & 0x0F);
             unsigned int ch = ((static_cast<unsigned int>(buf[pos + 12]) >> 1) & 0x07) + 1;
+            // 位深：byte12 最低 1 位 + byte13 高 4 位（共 5 位），+1 得真实位深
+            unsigned int bps = ((static_cast<unsigned int>(buf[pos + 12]) & 0x01) << 4) |
+                               ((static_cast<unsigned int>(buf[pos + 13]) >> 4) & 0x0F);
             uint64_t total = ((static_cast<uint64_t>(buf[pos + 13]) & 0x0F) << 32) |
                              (static_cast<uint64_t>(buf[pos + 14]) << 24) |
                              (static_cast<uint64_t>(buf[pos + 15]) << 16) |
@@ -194,6 +199,7 @@ AudioMetadata parseFlac(const std::vector<unsigned char>& buf) {
             if (sr > 0) {
                 m.sampleRate = static_cast<int>(sr);
                 m.channels = static_cast<int>(ch);
+                m.bitDepth = static_cast<int>(bps) + 1;
                 m.durationMs = static_cast<int>(total * 1000 / sr);
             }
         } else if (type == 4 && len >= 8) { // VORBIS_COMMENT
@@ -267,6 +273,8 @@ AudioMetadata parseMp3(const std::vector<unsigned char>& buf) {
     m.durationMs = 0;
     m.sampleRate = 44100;
     m.channels = 2;
+    m.bitDepth = 0;
+    m.codec = "mp3";
 
     size_t pos = 0;
     if (buf.size() >= 10 && buf[0] == 'I' && buf[1] == 'D' && buf[2] == '3') {
@@ -451,7 +459,7 @@ AudioMetadata parseMp3(const std::vector<unsigned char>& buf) {
 // P1-5：增加 depth 上限，防止畸形文件（数千层嵌套 moov）栈溢出
 // P2-9：支持 64-bit largesize（size 字段 == 1 时，后续 8 字节为真实长度）
 void walkAtoms(const std::vector<unsigned char>& buf, size_t start, size_t end,
-               uint32_t& mvhdDur, uint32_t& mvhdTs, AudioMetadata& m, int depth = 0) {
+               uint32_t& mvhdDur, uint32_t& mvhdTs, AudioMetadata& m, bool& outAlac, int depth = 0) {
     if (depth > 16) {
         return;
     }
@@ -493,6 +501,9 @@ void walkAtoms(const std::vector<unsigned char>& buf, size_t start, size_t end,
             break;
         }
         const unsigned char* t = &buf[pos + 4];
+        if (tagEq(t, "alac")) {
+            outAlac = true;
+        }
         if (tagEq(t, "mvhd")) {
             // P0-4：mvhd 补全边界检查，按 version 计算所需字节数
             size_t p = pos + headerLen;
@@ -583,10 +594,10 @@ void walkAtoms(const std::vector<unsigned char>& buf, size_t start, size_t end,
             }
         } else if (tagEq(t, "meta")) {
             // meta 是 FullBox：atom 头(headerLen) + 4 字节 version/flags，子 box 从其后开始
-            walkAtoms(buf, pos + headerLen + 4, static_cast<size_t>(pos + size64), mvhdDur, mvhdTs, m, depth + 1);
+            walkAtoms(buf, pos + headerLen + 4, static_cast<size_t>(pos + size64), mvhdDur, mvhdTs, m, outAlac, depth + 1);
         } else if (tagEq(t, "moov") || tagEq(t, "trak") || tagEq(t, "mdia") ||
                    tagEq(t, "minf") || tagEq(t, "stbl") || tagEq(t, "udta")) {
-            walkAtoms(buf, pos + headerLen, static_cast<size_t>(pos + size64), mvhdDur, mvhdTs, m, depth + 1);
+            walkAtoms(buf, pos + headerLen, static_cast<size_t>(pos + size64), mvhdDur, mvhdTs, m, outAlac, depth + 1);
         }
         pos += static_cast<size_t>(size64);
     }
@@ -601,11 +612,76 @@ AudioMetadata parseMp4(const std::vector<unsigned char>& buf) {
     m.durationMs = 0;
     m.sampleRate = 44100;
     m.channels = 2;
+    m.bitDepth = 0;
+    m.codec = "m4a";
     uint32_t dur = 0;
     uint32_t ts = 0;
-    walkAtoms(buf, 0, buf.size(), dur, ts, m);
+    bool foundAlac = false;
+    walkAtoms(buf, 0, buf.size(), dur, ts, m, foundAlac);
     if (ts > 0 && dur > 0) {
         m.durationMs = static_cast<int>(static_cast<uint64_t>(dur) * 1000 / ts);
+    }
+    // ALAC 为无损编码；其余 M4A 多为 AAC 损耗编码（bitDepth 置 0 表示不适用）
+    if (foundAlac) {
+        m.codec = "alac";
+    }
+    return m;
+}
+
+AudioMetadata parseWav(const std::vector<unsigned char>& buf) {
+    AudioMetadata m;
+    m.title = "";
+    m.artist = "未知艺术家";
+    m.album = "未知专辑";
+    m.year = "";
+    m.durationMs = 0;
+    m.sampleRate = 44100;
+    m.channels = 2;
+    m.bitDepth = 0;
+    m.codec = "wav";
+    // 校验 RIFF....WAVE
+    if (buf.size() < 12 ||
+        !(buf[0] == 'R' && buf[1] == 'I' && buf[2] == 'F' && buf[3] == 'F') ||
+        !(buf[8] == 'W' && buf[9] == 'A' && buf[10] == 'V' && buf[11] == 'E')) {
+        return m;
+    }
+    size_t pos = 12;
+    while (pos + 8 <= buf.size()) {
+        // chunk: 4 字节 ID + 4 字节小端 size + data（按字对齐，奇数 size 后补 1 字节）
+        uint32_t cs = (static_cast<uint32_t>(buf[pos])) |
+                      (static_cast<uint32_t>(buf[pos + 1]) << 8) |
+                      (static_cast<uint32_t>(buf[pos + 2]) << 16) |
+                      (static_cast<uint32_t>(buf[pos + 3]) << 24);
+        uint32_t sz = (static_cast<uint32_t>(buf[pos + 4])) |
+                      (static_cast<uint32_t>(buf[pos + 5]) << 8) |
+                      (static_cast<uint32_t>(buf[pos + 6]) << 16) |
+                      (static_cast<uint32_t>(buf[pos + 7]) << 24);
+        // 防回绕：size 与偏移相加可能溢出，用减法比较代替 pos+8+sz > buf.size()
+        if (cs < 4 || sz == 0 || static_cast<uint64_t>(pos) + 8 + sz > buf.size()) {
+            break;
+        }
+        const unsigned char* t = &buf[pos];
+        if (t[0] == 'f' && t[1] == 'm' && t[2] == 't' && t[3] == ' ') {
+            size_t p = pos + 8;
+            if (p + 16 <= buf.size()) {
+                uint16_t ch = static_cast<uint16_t>(buf[p + 2] | (buf[p + 3] << 8));
+                uint32_t sr = (static_cast<uint32_t>(buf[p + 4])) |
+                              (static_cast<uint32_t>(buf[p + 5]) << 8) |
+                              (static_cast<uint32_t>(buf[p + 6]) << 16) |
+                              (static_cast<uint32_t>(buf[p + 7]) << 24);
+                uint16_t bits = static_cast<uint16_t>(buf[p + 14] | (buf[p + 15] << 8));
+                if (sr > 0 && ch > 0) {
+                    m.sampleRate = static_cast<int>(sr);
+                    m.channels = static_cast<int>(ch);
+                    m.bitDepth = static_cast<int>(bits);
+                }
+            }
+            break; // fmt 通常仅一个，取首个即可
+        }
+        pos += 8 + static_cast<size_t>(sz);
+        if (sz & 1) {
+            pos += 1; // WAV chunk 按字对齐，奇数 size 后补 1 字节
+        }
     }
     return m;
 }
@@ -621,6 +697,8 @@ AudioMetadata parseAudioMetadata(const std::string& filePath) {
     metadata.durationMs = 0;
     metadata.sampleRate = 44100;
     metadata.channels = 2;
+    metadata.bitDepth = 0;
+    metadata.codec = "";
 
     // 默认标题取文件名（无扩展名）
     size_t lastSlash = filePath.find_last_of('/');
@@ -641,8 +719,9 @@ AudioMetadata parseAudioMetadata(const std::string& filePath) {
         c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     }
     size_t maxRead = 0;
-    if (endsWith(lower, ".flac") || endsWith(lower, ".mp3")) {
-        maxRead = 2u * 1024u * 1024u; // 2MB — title/artist/album/year metadata 永远在头部
+    if (endsWith(lower, ".flac") || endsWith(lower, ".mp3") || endsWith(lower, ".wav") ||
+        endsWith(lower, ".wave")) {
+        maxRead = 2u * 1024u * 1024u; // 2MB — 头部元数据/RIFF fmt 块足够覆盖
     }
 
     std::vector<unsigned char> buf;
@@ -658,6 +737,8 @@ AudioMetadata parseAudioMetadata(const std::string& filePath) {
     } else if (endsWith(lower, ".m4a") || endsWith(lower, ".mp4") ||
                endsWith(lower, ".aac") || endsWith(lower, ".m4b")) {
         parsed = parseMp4(buf);
+    } else if (endsWith(lower, ".wav") || endsWith(lower, ".wave")) {
+        parsed = parseWav(buf);
     } else {
         return metadata; // 未知格式：保留文件名标题
     }
@@ -683,6 +764,12 @@ AudioMetadata parseAudioMetadata(const std::string& filePath) {
     }
     if (parsed.channels > 0) {
         metadata.channels = parsed.channels;
+    }
+    if (parsed.bitDepth > 0) {
+        metadata.bitDepth = parsed.bitDepth;
+    }
+    if (!parsed.codec.empty()) {
+        metadata.codec = parsed.codec;
     }
     return metadata;
 }

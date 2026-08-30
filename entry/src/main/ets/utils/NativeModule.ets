@@ -24,6 +24,8 @@ interface AudioMetadata {
   duration: number;
   sampleRate: number;
   channels: number;
+  bitDepth: number;
+  codec: string;
 }
 
 export class NativeUtils {

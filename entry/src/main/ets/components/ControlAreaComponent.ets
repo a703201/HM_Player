@@ -44,6 +44,8 @@ import { MusicStore } from '../services/MusicStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { sortSongs } from '../common/utils/SortUtil';
 import { Motion, springSnappy } from '../common/utils/DesignSystem';
+import { SleepTimer } from '../utils/SleepTimer';
+import { SettingsStore } from '../utils/SettingsStore';
 
 const TAG = 'ControlAreaComponent'
 
@@ -66,6 +68,9 @@ export struct ControlAreaComponent {
   @State prevScale: number = 1.0;
   @State playBtnScale: number = 1.0;
   @State nextScale: number = 1.0;
+  @StorageLink('playSpeed') currentSpeed: number = 1.0;
+  @State isShowSpeed: boolean = false;
+  @State isShowSleep: boolean = false;
   @StorageLink('selectIndex') selectIndex: number = 0;
   @StorageLink('isFavorite') isFavorite: boolean = false;
   @StorageLink('isSilentMode') isSilentMode: boolean = false;
@@ -163,6 +168,39 @@ export struct ControlAreaComponent {
             if (song) {
               AVSessionController.getInstance().updateFavoriteState(song.id.toString());
             }
+          })
+
+        Text(this.speedLabel())
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(Color.White)
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('rgba(255, 255, 255, 0.16)')
+          .borderRadius(12)
+          .onClick(() => {
+            this.isShowSpeed = true;
+          })
+          .bindSheet($$this.isShowSpeed, this.speedSheet(), {
+            detents: [SheetSize.MEDIUM],
+            dragBar: true,
+            showClose: true,
+            preferType: SheetType.BOTTOM,
+            backgroundColor: this.getThemeColors().cardBg
+          })
+
+        Image($r('app.media.ic_sleep'))
+          .fillColor(Color.White)
+          .controlImageBuilder()
+          .width(24)
+          .onClick(() => {
+            this.isShowSleep = true;
+          })
+          .bindSheet($$this.isShowSleep, this.sleepSheet(), {
+            detents: [SheetSize.MEDIUM],
+            dragBar: true,
+            showClose: true,
+            preferType: SheetType.BOTTOM,
+            backgroundColor: this.getThemeColors().cardBg
           })
       }
       .width(StyleConstants.FULL_WIDTH)
@@ -290,6 +328,121 @@ export struct ControlAreaComponent {
         right: $r('app.float.control_padding')
       })
     }
+  }
+
+  private speedLabel(): string {
+    if (this.currentSpeed === 1.0) {
+      return '1x';
+    }
+    const s: string = this.currentSpeed.toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
+    return s + 'x';
+  }
+
+  private rateLabel(rate: number): string {
+    if (rate === 1.0) {
+      return '1x（正常）';
+    }
+    const s: string = rate.toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
+    return s + 'x';
+  }
+
+  private toast(message: string): void {
+    try {
+      this.getUIContext().getPromptAction().showToast({ message });
+    } catch (e) {
+      Logger.error(TAG, 'toast failed');
+    }
+  }
+
+  @Builder
+  speedSheet() {
+    Column() {
+      Text('播放速度')
+        .fontSize(17)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.getThemeColors().primaryText)
+        .margin({ top: 16, bottom: 8 })
+      ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], (rate: number) => {
+        Row() {
+          Text(this.rateLabel(rate))
+            .fontSize(16)
+            .fontColor(this.currentSpeed === rate ? this.getThemeColors().accent : this.getThemeColors().primaryText)
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .height(52)
+        .padding({ left: 20, right: 20 })
+        .backgroundColor(this.currentSpeed === rate ? this.getThemeColors().secondaryBg : Color.Transparent)
+        .borderRadius(12)
+        .onClick(() => {
+          AudioRendererController.getInstance().setSpeed(rate);
+          this.isShowSpeed = false;
+        })
+      }, (rate: number) => 'speed_' + rate.toString())
+    }
+    .width('100%')
+    .backgroundColor(this.getThemeColors().cardBg)
+  }
+
+  @Builder
+  sleepSheet() {
+    Column() {
+      Text('睡眠定时')
+        .fontSize(17)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.getThemeColors().primaryText)
+        .margin({ top: 16, bottom: 8 })
+      ForEach([15, 30, 45, 60, 90], (min: number) => {
+        Row() {
+          Text(min + ' 分钟')
+            .fontSize(16)
+            .fontColor(this.getThemeColors().primaryText)
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .height(52)
+        .padding({ left: 20, right: 20 })
+        .onClick(() => {
+          SleepTimer.getInstance().start(min);
+          SettingsStore.getInstance().setSleepTimer(min);
+          this.isShowSleep = false;
+          this.toast('将在 ' + min + ' 分钟后暂停播放');
+        })
+      }, (min: number) => 'sleep_' + min.toString())
+      // 播完当前曲后停止
+      Row() {
+        Text('播完当前曲后停止')
+          .fontSize(16)
+          .fontColor(this.getThemeColors().primaryText)
+          .layoutWeight(1)
+      }
+      .width('100%')
+      .height(52)
+      .padding({ left: 20, right: 20 })
+      .onClick(() => {
+        SleepTimer.getInstance().startEndOfSong();
+        SettingsStore.getInstance().setSleepTimer(-1);
+        this.isShowSleep = false;
+        this.toast('将在播完当前歌曲后暂停');
+      })
+      Row() {
+        Text('关闭定时')
+          .fontSize(16)
+          .fontColor('#FA2759')
+          .layoutWeight(1)
+      }
+      .width('100%')
+      .height(52)
+      .padding({ left: 20, right: 20 })
+      .onClick(() => {
+        SleepTimer.getInstance().cancel();
+        SettingsStore.getInstance().setSleepTimer(0);
+        this.isShowSleep = false;
+        this.toast('已关闭睡眠定时');
+      })
+    }
+    .width('100%')
+    .backgroundColor(this.getThemeColors().cardBg)
   }
 
   private getThemeColors(): ColorTokens {

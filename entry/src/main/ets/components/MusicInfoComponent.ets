@@ -30,6 +30,8 @@
  */
 
 import { SongItem } from '../songdatacontroller/SongData';
+import { AudioQuality } from '../models/music';
+import { QualityBadge } from './QualityBadge';
 import { StyleConstants } from '../common/constants/StyleConstants';
 import { BreakpointConstants } from '../common/constants/BreakpointConstants';
 import { ControlAreaComponent } from './ControlAreaComponent';
@@ -164,9 +166,29 @@ export struct MusicInfoComponent {
     // 鸿蒙新特性 AttributeString（StyledString）：标题与歌手合并为单个富文本，
     // 同一字符串内多 run 差异化样式（标题加粗放大、歌手常规缩小降透明度）。
     // StyledString 经 TextController 绑定到 Text（Text 构造本身仅接受 string | Resource）。
-    Text('', { controller: this.textController })
-      .width(StyleConstants.FULL_WIDTH)
-      .margin({ top: $r('app.float.music_info_margin_top') })
+    Column() {
+      Text('', { controller: this.textController })
+        .width(StyleConstants.FULL_WIDTH)
+        .margin({ top: $r('app.float.music_info_margin_top') })
+
+      if (this.showQualityBadge()) {
+        QualityBadge({ quality: this.currentSong()!.getQuality() })
+          .margin({ top: 10, left: 2 })
+      }
+    }
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  /**
+   * 当前歌曲为无损或 Hi-Res 时显示音质徽标（损耗编码与未知规格不展示，避免播放页杂乱）。
+   */
+  private showQualityBadge(): boolean {
+    const song: SongItem | undefined = this.currentSong();
+    if (!song) {
+      return false;
+    }
+    const quality: AudioQuality = song.getQuality();
+    return quality === 'lossless' || quality === 'hires';
   }
 
   /**

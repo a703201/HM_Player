@@ -23,6 +23,7 @@ import { AudioRendererController } from '../utils/AudioRendererController';
 import { CoverCache } from '../utils/CoverCache';
 import { AudioMetaReader } from '../utils/AudioMeta';
 import { CoverImageView } from '../components/CoverImageView';
+import { QualityBadge } from '../components/QualityBadge';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { picker } from '@kit.CoreFileKit';
@@ -178,6 +179,9 @@ export struct LocalLibrary {
               song.album = meta.album ?? '';
               song.author = meta.author ?? '';
               song.year = meta.year ?? '';
+              song.sampleRate = meta.sampleRate ?? 0;
+              song.bitDepth = meta.bitDepth ?? 0;
+              song.codec = meta.codec ?? '';
             } else {
               song.title = fallbackTitle;
               song.singer = '未知艺术家';
@@ -348,14 +352,21 @@ export struct LocalLibrary {
         }
 
         Column() {
-          Text(song.title)
-            .fontSize(16)
-            .fontColor(this.store.currentIndex === index ? '#FA2759' : this.getThemeColors().primaryText)
-            .fontWeight(FontWeight.Medium)
-            .margin({ bottom: 4 })
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .animation({ duration: 200, curve: Curve.EaseOut })
+          Row() {
+            Text(song.title)
+              .fontSize(16)
+              .fontColor(this.store.currentIndex === index ? '#FA2759' : this.getThemeColors().primaryText)
+              .fontWeight(FontWeight.Medium)
+              .layoutWeight(1)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .animation({ duration: 200, curve: Curve.EaseOut })
+
+            QualityBadge({ quality: song.getQuality() })
+              .margin({ left: 6 })
+          }
+          .alignItems(VerticalAlign.Center)
+          .margin({ bottom: 4 })
 
           Text(song.singer)
             .fontSize(13)

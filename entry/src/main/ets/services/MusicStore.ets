@@ -32,6 +32,9 @@ interface SongData {
   author?: string;
   year?: string;
   lyric?: string;
+  sampleRate?: number;
+  bitDepth?: number;
+  codec?: string;
 }
 
 const PREF_NAME = 'music_store';
@@ -41,6 +44,15 @@ const KEY_RECENTLY_PLAYED = 'recently_played';
 const KEY_PLAYLISTS = 'playlists';
 const KEY_REPEAT_MODE = 'repeat_mode';
 const KEY_CURRENT_INDEX = 'current_index';
+const KEY_PLAY_COUNTS = 'play_counts';
+const KEY_PLAY_MS = 'play_ms';
+
+export interface PlayStatsSummary {
+  totalMs: number;
+  totalPlays: number;
+  songCount: number;
+  topSongs: SongItem[];
+}
 
 export class MusicStore {
   private static instance: MusicStore | null = null;
@@ -54,6 +66,10 @@ export class MusicStore {
   public favorites: Set<number> = new Set();
   public playlists: Playlist[] = [];
   public recentlyPlayed: SongItem[] = [];
+  /** 听歌统计：播放次数（songId -> count） */
+  public playCounts: Map<number, number> = new Map<number, number>();
+  /** 听歌统计：累计播放时长（songId -> ms） */
+  public playMs: Map<number, number> = new Map<number, number>();
   /** 持久化加载失败标记：页面据此展示错误态+重试按钮 */
   public loadError: boolean = false;
 
@@ -271,6 +287,71 @@ export class MusicStore {
     return out;
   }
 
+  // ===== 听歌统计 =====
+  recordPlayStart(songId: number): void {
+    if (songId <= 0) {
+      return;
+    }
+    const c: number = this.playCounts.get(songId) ?? 0;
+    this.playCounts.set(songId, c + 1);
+    this.saveNumberMap(KEY_PLAY_COUNTS, this.playCounts);
+  }
+
+  recordPlayDuration(songId: number, ms: number): void {
+    if (songId <= 0 || ms <= 0) {
+      return;
+    }
+    const t: number = this.playMs.get(songId) ?? 0;
+    this.playMs.set(songId, t + ms);
+    this.saveNumberMap(KEY_PLAY_MS, this.playMs);
+  }
+
+  getPlayCount(songId: number): number {
+    return this.playCounts.get(songId) ?? 0;
+  }
+
+  getPlayMs(songId: number): number {
+    return this.playMs.get(songId) ?? 0;
+  }
+
+  getTotalPlayMs(): number {
+    let total: number = 0;
+    this.playMs.forEach((v: number) => {
+      total += v;
+    });
+    return total;
+  }
+
+  getTotalPlays(): number {
+    let total: number = 0;
+    this.playCounts.forEach((v: number) => {
+      total += v;
+    });
+    return total;
+  }
+
+  getMostPlayed(limit: number = 20): SongItem[] {
+    const entries: Array<[number, number]> = Array.from(this.playCounts.entries());
+    entries.sort((a: [number, number], b: [number, number]) => b[1] - a[1]);
+    const out: SongItem[] = [];
+    for (let i = 0; i < entries.length && out.length < limit; i++) {
+      const song: SongItem | undefined = this.songs.find((s: SongItem) => s.id === entries[i][0]);
+      if (song) {
+        out.push(song);
+      }
+    }
+    return out;
+  }
+
+  getStatsSummary(): PlayStatsSummary {
+    return {
+      totalMs: this.getTotalPlayMs(),
+      totalPlays: this.getTotalPlays(),
+      songCount: this.songs.length,
+      topSongs: this.getMostPlayed(10)
+    };
+  }
+
   getFavoriteSongs(): SongItem[] {
     return this.songs.filter(s => this.favorites.has(s.id));
   }
@@ -351,6 +432,19 @@ export class MusicStore {
           song.year = meta.year;
           changed = true;
         }
+        // 音频规格：采样率/位深/编码，用于无损/Hi-Res 徽标（补扫路径一并回填）
+        if (meta.sampleRate && meta.sampleRate > 0) {
+          song.sampleRate = meta.sampleRate;
+          changed = true;
+        }
+        if (meta.bitDepth && meta.bitDepth > 0) {
+          song.bitDepth = meta.bitDepth;
+          changed = true;
+        }
+        if (meta.codec && meta.codec.trim().length > 0) {
+          song.codec = meta.codec;
+          changed = true;
+        }
       }
     }
     if (changed) {
@@ -381,6 +475,9 @@ export class MusicStore {
         song.author = data.author ?? '';
         song.year = data.year ?? '';
         song.lyric = data.lyric ?? '';
+        song.sampleRate = data.sampleRate ?? 0;
+        song.bitDepth = data.bitDepth ?? 0;
+        song.codec = data.codec ?? '';
         return song;
       });
       this.playList = [...this.songs];
@@ -402,6 +499,9 @@ export class MusicStore {
         song.author = data.author ?? '';
         song.year = data.year ?? '';
         song.lyric = data.lyric ?? '';
+        song.sampleRate = data.sampleRate ?? 0;
+        song.bitDepth = data.bitDepth ?? 0;
+        song.codec = data.codec ?? '';
         return song;
       });
 
@@ -426,6 +526,9 @@ export class MusicStore {
 
       const currentIndex = await this.preferences.get(KEY_CURRENT_INDEX, 0) as number;
       this.currentIndex = currentIndex;
+
+      this.playCounts = await this.loadNumberMap(KEY_PLAY_COUNTS);
+      this.playMs = await this.loadNumberMap(KEY_PLAY_MS);
     } catch (err) {
       this.loadError = true;
       Logger.error('Failed to load state');
@@ -479,6 +582,42 @@ export class MusicStore {
       await this.preferences.flush();
     } catch (err) {
       Logger.error('Failed to save repeat mode');
+    }
+  }
+
+  private async loadNumberMap(key: string): Promise<Map<number, number>> {
+    if (!this.preferences) {
+      return new Map<number, number>();
+    }
+    try {
+      const str: string = await this.preferences.get(key, '{}') as string;
+      const obj: Record<string, number> = JSON.parse(str) as Record<string, number>;
+      const m: Map<number, number> = new Map<number, number>();
+      Object.keys(obj).forEach((k: string) => {
+        const id: number = Number(k);
+        if (!isNaN(id)) {
+          m.set(id, obj[k]);
+        }
+      });
+      return m;
+    } catch (e) {
+      return new Map<number, number>();
+    }
+  }
+
+  private async saveNumberMap(key: string, m: Map<number, number>): Promise<void> {
+    if (!this.preferences) {
+      return;
+    }
+    try {
+      const obj: Record<string, number> = {};
+      m.forEach((v: number, k: number) => {
+        obj[k.toString()] = v;
+      });
+      await this.preferences.put(key, JSON.stringify(obj));
+      await this.preferences.flush();
+    } catch (err) {
+      Logger.error('Failed to save number map: ' + key);
     }
   }
 }

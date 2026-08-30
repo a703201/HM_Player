@@ -74,6 +74,7 @@ export class AVSessionController {
   private isCasting: boolean = false;
   private castFile: fileIo.File | undefined = undefined; // 投播独立文件句柄，与本地播放 curFile 解耦
   private castRemotePositionMs: number = 0; // 记录远端播放进度，断连后本地续播对齐
+  private progressTimerId: number = -1; // 桌面卡片进度/歌词实时同步定时器（-1 表示未启动）
   // [EndExclude avsession_controller]
   // [StartExclude avsession_controller]
   constructor() {
@@ -106,6 +107,10 @@ export class AVSessionController {
       // 声明支持投播（局域网/远端设备），AVCastPicker 才能拉起可投播设备列表
       this.AVSession.setExtras({ requireAbilityList: ['url-cast'] }).catch((err: BusinessError) => {
         Logger.error(TAG, `setExtras failed: ${err.message}`);
+      });
+      // 声明支持的变速档位，使系统媒体中心（锁屏/控制中心）能显示并控制播放速度
+      this.AVSession.setSupportedPlaySpeeds([0.5, 0.75, 1.0, 1.25, 1.5, 2.0]).catch((err: BusinessError) => {
+        Logger.error(TAG, `setSupportedPlaySpeeds failed: ${err.message}`);
       });
     } catch (e) {
       Logger.error(TAG, 'AVSession create/activate failed');
@@ -610,14 +615,60 @@ export class AVSessionController {
         }
       });
     }
+    // 播放中启动 1s 周期同步（进度+歌词），暂停/停止则停止定时器（末态仍会经下方 pushFormUpdate 推送一次）
+    if (isPlay) {
+      this.startProgressSync();
+    } else {
+      this.stopProgressSync();
+    }
     // 同步推送桌面卡片状态
     this.pushFormUpdate();
   }
 
+  /**
+   * 启动桌面卡片进度/歌词实时同步：每 1s 经 pushFormUpdate 跨进程刷新位置与当前歌词行。
+   * 已启动则幂等返回，避免重复定时器。
+   */
+  private startProgressSync(): void {
+    if (this.progressTimerId >= 0) {
+      return;
+    }
+    this.progressTimerId = setInterval(() => {
+      this.pushFormUpdate();
+    }, 1000);
+  }
+
+  /**
+   * 停止进度同步定时器（暂停/停止/切歌过渡时调用）。
+   */
+  private stopProgressSync(): void {
+    if (this.progressTimerId >= 0) {
+      clearInterval(this.progressTimerId);
+      this.progressTimerId = -1;
+    }
+  }
+
+  /**
+   * 将当前播放速度同步到系统媒体中心（锁屏/控制中心），
+   * 让系统播控卡片显示当前倍速（如 1.5x）。变速档位由 setSupportedPlaySpeeds 声明。
+   */
+  public setSpeedState(speed: number): void {
+    if (this.AVSession) {
+      this.AVSession.setAVPlaybackState({ speed: speed }, (err: BusinessError) => {
+        if (err) {
+          Logger.error(TAG, `SetAVPlaybackState speed BusinessError: code: ${err.code}, message: ${err.message}`);
+        } else {
+          Logger.info(TAG, 'SetAVPlaybackState speed successfully');
+        }
+      });
+    }
+  }
+
   // [StartExclude form_card]
   /**
-   * 向所有已添加的桌面卡片推送当前播放状态（标题/艺术家/专辑/时长/是否播放中）。
-   * 由 setAVMetadata / setPlayState 触发；卡片进程与主应用独立，经 formProvider 跨进程更新。
+   * 向所有已添加的桌面卡片推送当前播放状态（标题/艺术家/专辑/时长/是否播放中/进度/当前歌词）。
+   * 由 setAVMetadata / setPlayState 触发，亦由 startProgressSync 每 1s 调用以实现进度与歌词实时刷新；
+   * 卡片进程与主应用独立，经 formProvider 跨进程更新。
    */
   public pushFormUpdate(): void {
     if (!this.context) {
@@ -629,6 +680,8 @@ export class AVSessionController {
     let album: string = song?.album ?? '';
     let isPlaying: boolean = (AppStorage.get('isPlay') as boolean) ?? false;
     let duration: number = this.getDuration() ?? 0;
+    let position: number = this.audioRendererController?.getCurrentPosition() ?? 0;
+    let lyric: string = (AppStorage.get('cardLyric') as string) ?? '';
     PreferencesUtil.getInstance().getFormIds(this.context)
       .then((formIds: Array<string>) => {
         formIds.forEach((formId: string) => {
@@ -641,6 +694,8 @@ export class AVSessionController {
             artist: artist,
             album: album,
             duration: duration,
+            position: position,
+            lyric: lyric,
             isPlaying: isPlaying
           }))
             .catch((err: BusinessError) => {
@@ -750,6 +805,8 @@ export class AVSessionController {
     if (!this.AVSession) {
       return;
     }
+    // 退出/释放会话时清理进度同步定时器，避免后台遗留 setInterval 持续推送
+    this.stopProgressSync();
     try {
       this.AVSession.off('play');
       this.AVSession.off('pause');

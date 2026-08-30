@@ -26,6 +26,8 @@ struct AudioMetadata {
     int durationMs;
     int sampleRate;
     int channels;
+    int bitDepth;       // 位深（FLAC/WAV/ALAC 真实值；MP3/AAC 等损耗编码为 0 表示不适用）
+    std::string codec;  // 容器/编码：flac / mp3 / m4a / alac / wav 等，用于无损/Hi-Res 判定
 };
 
 AudioMetadata parseAudioMetadata(const std::string& filePath);

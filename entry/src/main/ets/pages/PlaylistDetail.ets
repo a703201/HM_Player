@@ -20,6 +20,7 @@ import { MusicStore } from '../services/MusicStore';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { Logger } from '../utils/Logger';
 import { CoverImageView } from '../components/CoverImageView';
+import { QualityBadge } from '../components/QualityBadge';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
@@ -417,12 +418,20 @@ struct PlaylistDetail {
       CoverImageView({ src: this.getCoverSrc(song), coverSize: 48, coverRadius: 8 })
 
       Column() {
-        Text(song.title)
-          .fontSize(15)
-          .fontColor(this.getThemeColors().primaryText)
-          .fontWeight(FontWeight.Medium)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Row() {
+          Text(song.title)
+            .fontSize(15)
+            .fontColor(this.getThemeColors().primaryText)
+            .fontWeight(FontWeight.Medium)
+            .layoutWeight(1)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+          QualityBadge({ quality: song.getQuality() })
+            .margin({ left: 6 })
+        }
+        .alignItems(VerticalAlign.Center)
+        .margin({ bottom: 4 })
 
         Text(song.singer)
           .fontSize(13)

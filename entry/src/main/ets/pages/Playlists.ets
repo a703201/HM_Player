@@ -21,6 +21,7 @@ import { MusicStore } from '../services/MusicStore';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { Logger } from '../utils/Logger';
 import { SettingsStore } from '../utils/SettingsStore';
+import { SmartPlaylistService, SmartPlaylist } from '../services/SmartPlaylistService';
 
 const TAG: string = 'Playlists';
 
@@ -354,6 +355,65 @@ struct Playlists {
     })
   }
 
+  @Builder
+  buildSmartItem(pl: SmartPlaylist) {
+    Row() {
+      Stack() {
+        Image($r('app.media.ic_music_list'))
+          .width(26)
+          .height(26)
+          .fillColor('#FA2759')
+      }
+      .width(56)
+      .height(56)
+      .borderRadius(10)
+      .backgroundColor('rgba(250, 39, 89, 0.1)')
+
+      Column() {
+        Text(pl.name)
+          .fontSize(16)
+          .fontColor(this.getThemeColors().primaryText)
+          .fontWeight(FontWeight.Medium)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Text(`${pl.songs.length} 首`)
+          .fontSize(12)
+          .fontColor(this.getThemeColors().secondaryText)
+          .margin({ top: 4 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+      .padding({ left: 12, right: 8 })
+
+      Image($r('app.media.ic_play_all'))
+        .width(22)
+        .height(22)
+        .fillColor('#FA2759')
+        .margin({ right: 14 })
+        .onClick(() => {
+          this.playSmart(pl);
+        })
+    }
+    .width('100%')
+    .height(76)
+    .padding({ left: 12, right: 14 })
+    .backgroundColor(this.getThemeColors().cardBg)
+    .borderRadius(14)
+    .margin({ left: 8, right: 8, bottom: 8 })
+    .onClick(() => {
+      this.playSmart(pl);
+    })
+  }
+
+  private playSmart(pl: SmartPlaylist): void {
+    if (pl.songs.length === 0) {
+      this.toast(pl.name + ' 暂无歌曲');
+      return;
+    }
+    AudioRendererController.getInstance().setQueue(pl.songs, 0, true);
+    this.pathStack.pushPathByName('PlayerPage', null);
+  }
+
   build() {
     NavDestination() {
       Column() {
@@ -416,6 +476,20 @@ struct Playlists {
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
+
+        // 智能歌单（端侧规则生成，不联网，隐私优先）
+        Column() {
+          Text('智能歌单')
+            .fontSize(13)
+            .fontColor(this.getThemeColors().secondaryText)
+            .fontWeight(FontWeight.Medium)
+            .margin({ left: 16, top: 12, bottom: 8 })
+          ForEach(SmartPlaylistService.all(), (pl: SmartPlaylist) => {
+            this.buildSmartItem(pl)
+          }, (pl: SmartPlaylist) => pl.id)
+        }
+        .width('100%')
+        .backgroundColor(this.getThemeColors().bg)
 
         if (this.playlists.length === 0) {
           Column() {

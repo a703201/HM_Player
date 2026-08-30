@@ -43,6 +43,7 @@ import { Logger } from './Logger';
 import { PreferencesUtil } from './PreferencesUtil';
 import { MusicStore } from '../services/MusicStore';
 import { SettingsStore } from './SettingsStore';
+import { SleepTimer } from './SleepTimer';
 
 const TAG = 'AudioRendererController';
 
@@ -62,6 +63,12 @@ export class AudioRendererController {
   private curFile?: fileIo.File;
   // 投播状态标记：为 true 时本地播放器在 prepared 后不自动起播，保持静音（由远端设备出声）
   public castActive: boolean = false;
+  // 播放速度（倍速），默认 1.0
+  private speed: number = 1.0;
+  // 听歌统计：当前曲目累计播放时长（ms）与上一帧时间，避免在 timeUpdate 高频回写偏好
+  private playMsAccum: number = 0;
+  private prevTimeMs: number = 0;
+  private curStatSongId: number = -1;
 
   constructor() {
     let list: SongItem[] | undefined = AppStorage.get('songList');
@@ -107,6 +114,7 @@ export class AudioRendererController {
       } else if (state === 'prepared') {
         // 准备完成。投播状态下本地保持静音（由远端设备出声），不自动起播。
         if (!this.castActive) {
+          this.applySpeed();
           this.start();
         }
       } else if (state === 'playing') {
@@ -124,6 +132,10 @@ export class AudioRendererController {
       this.curMs = time;
       AppStorage.setOrCreate('progress', time);
       AppStorage.setOrCreate('currentTime', MediaTools.msToCountdownTime(time));
+      if (this.curStatSongId > 0 && this.prevTimeMs > 0 && time >= this.prevTimeMs) {
+        this.playMsAccum += (time - this.prevTimeMs);
+      }
+      this.prevTimeMs = time;
       if (this.avSessionController) {
         this.avSessionController.setProgressState(time);
       }
@@ -181,6 +193,10 @@ export class AudioRendererController {
     const playedSong: SongItem | undefined = this.songList[this.musicIndex];
     if (playedSong) {
       MusicStore.getInstance().addToRecentlyPlayed(playedSong);
+      this.curStatSongId = playedSong.id;
+      this.playMsAccum = 0;
+      this.prevTimeMs = 0;
+      MusicStore.getInstance().recordPlayStart(playedSong.id);
     }
     await this.loadAndPlay();
   }
@@ -415,6 +431,46 @@ export class AudioRendererController {
     this.avSessionController.setPlayState(isPlay);
   }
 
+  public getSpeed(): number {
+    return this.speed;
+  }
+
+  public async setSpeed(rate: number): Promise<void> {
+    if (rate <= 0) {
+      return;
+    }
+    this.speed = rate;
+    AppStorage.setOrCreate('playSpeed', rate);
+    if (this.avPlayer) {
+      try {
+        await this.avPlayer.setSpeed(rate);
+      } catch (e) {
+        Logger.error(TAG, 'setSpeed failed');
+      }
+    }
+    // 同步倍速到系统媒体中心（锁屏/控制中心）
+    if (this.avSessionController) {
+      this.avSessionController.setSpeedState(rate);
+    }
+  }
+
+  private applySpeed(): void {
+    if (this.avPlayer && this.speed !== 1.0) {
+      try {
+        this.avPlayer.setSpeed(this.speed);
+      } catch (e) {
+        Logger.error(TAG, 'applySpeed failed');
+      }
+    }
+  }
+
+  private flushStat(): void {
+    if (this.curStatSongId > 0 && this.playMsAccum > 0) {
+      MusicStore.getInstance().recordPlayDuration(this.curStatSongId, this.playMsAccum);
+      this.playMsAccum = 0;
+    }
+  }
+
   public getDuration(): number {
     return this.duration;
   }
@@ -437,6 +493,7 @@ export class AudioRendererController {
       try {
         await this.avPlayer.pause();
         this.updateIsPlay(false);
+        this.flushStat();
         Logger.info(TAG, 'pause success');
       } catch (e) {
         Logger.error(TAG, 'pause failed');
@@ -447,6 +504,8 @@ export class AudioRendererController {
   public seek(ms: number): void {
     if (this.avPlayer) {
       this.curMs = ms;
+      this.flushStat();
+      this.prevTimeMs = ms;
       AppStorage.setOrCreate('progress', ms);
       AppStorage.setOrCreate('currentTime', MediaTools.msToCountdownTime(ms));
       try {
@@ -466,6 +525,13 @@ export class AudioRendererController {
    * 空队列守卫由 playNext() 内部保证（stop() 不依赖队列）。
    */
   private onPlaybackCompleted(): void {
+    this.flushStat();
+    // 睡眠定时「播完当前曲后停止」模式：自然界线后暂停，不再自动续播
+    if (SleepTimer.getInstance().isEndOfSong()) {
+      SleepTimer.getInstance().cancel();
+      this.pause();
+      return;
+    }
     if (SettingsStore.getInstance().getAutoNext()) {
       this.playNext();
     } else {
@@ -561,6 +627,7 @@ export class AudioRendererController {
       try {
         await this.avPlayer.stop();
         this.curMs = 0;
+        this.flushStat();
         this.updateIsPlay(false);
         AppStorage.setOrCreate('currentTime', "00:00");
         AppStorage.setOrCreate('progress', 0);

@@ -39,6 +39,10 @@ interface AudioMetadata {
   sampleRate: number;
   /** 声道数（1=单声道，2=立体声） */
   channels: number;
+  /** 位深（FLAC/WAV/ALAC 真实值；MP3/AAC 等损耗编码为 0 表示不适用） */
+  bitDepth: number;
+  /** 容器/编码：flac / mp3 / m4a / alac / wav，用于无损/Hi-Res 判定 */
+  codec: string;
 }
 
 interface DeviceInfo {

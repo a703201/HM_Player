@@ -87,6 +87,22 @@
       "data": {
         "description": "this is PlaylistDetail"
       }
+    },
+    {
+      "name": "DuplicateSongs",
+      "pageSourceFile": "src/main/ets/pages/DuplicateSongs.ets",
+      "buildFunction": "DuplicateSongsBuilder",
+      "data": {
+        "description": "this is DuplicateSongs"
+      }
+    },
+    {
+      "name": "Wrapped",
+      "pageSourceFile": "src/main/ets/pages/Wrapped.ets",
+      "buildFunction": "WrappedBuilder",
+      "data": {
+        "description": "this is Wrapped"
+      }
     }
   ]
 }

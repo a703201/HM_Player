@@ -19,6 +19,7 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { MusicStore } from '../services/MusicStore';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { CoverImageView } from '../components/CoverImageView';
+import { QualityBadge } from '../components/QualityBadge';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
@@ -199,14 +200,21 @@ struct Favorites {
       }
 
       Column() {
-        Text(song.title)
-          .fontSize(15)
-          .fontColor(this.playingIndex === song.id ? '#FA2759' : this.getThemeColors().primaryText)
-          .fontWeight(FontWeight.Medium)
-          .margin({ bottom: 4 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .animation({ duration: 200, curve: Curve.EaseOut })
+        Row() {
+          Text(song.title)
+            .fontSize(15)
+            .fontColor(this.playingIndex === song.id ? '#FA2759' : this.getThemeColors().primaryText)
+            .fontWeight(FontWeight.Medium)
+            .layoutWeight(1)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .animation({ duration: 200, curve: Curve.EaseOut })
+
+          QualityBadge({ quality: song.getQuality() })
+            .margin({ left: 6 })
+        }
+        .alignItems(VerticalAlign.Center)
+        .margin({ bottom: 4 })
 
         Text(song.singer)
           .fontSize(13)
