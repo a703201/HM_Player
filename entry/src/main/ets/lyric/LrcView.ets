@@ -206,13 +206,9 @@ export default struct shiLrcView {
    */
   private scrollIdleTimer: number = -1;
   /**
-   * 触摸手势状态（用于区分 tap / pan）。
+   * 拖拽滚动状态（PanGesture 增量累计，替代此前 .onTouch 手动累加导致的卡顿/阻力）。
    */
-  private touchStartX: number = 0;
-  private touchStartY: number = 0;
-  private touchStartTime: number = 0;
-  private lastTouchY: number = 0;
-  private hasMoved: boolean = false;
+  private lastPanY: number = 0;
   /**
    * How many degrees is each angle of a star.
    */
@@ -928,48 +924,10 @@ export default struct shiLrcView {
   }
 
   /**
-   * 处理 Canvas 触摸：区分 tap（歌词点击跳转）与垂直 pan（手动滑动浏览）。
+   * 处理 Canvas 触摸：使用 PanGesture（垂直方向）做顺滑跟手滑动，
+   * 点击跳转统一交给 .onClick（PanGesture 只认拖拽，tap 不会触发，二者天然分离，
+   * 不存在「滑动结束误触点击」的问题）。
    */
-  private handleTouch(event: TouchEvent): void {
-    const touch: TouchObject = event.touches[0];
-    if (!touch) {
-      return;
-    }
-    switch (event.type) {
-      case TouchType.Down:
-        this.cancelAutoReturn();
-        this.touchStartX = touch.x;
-        this.touchStartY = touch.y;
-        this.lastTouchY = touch.y;
-        this.touchStartTime = Date.now();
-        this.hasMoved = false;
-        break;
-      case TouchType.Move:
-        const deltaY: number = touch.y - this.lastTouchY;
-        const totalMoveY: number = Math.abs(touch.y - this.touchStartY);
-        if (totalMoveY > 8) {
-          this.hasMoved = true;
-          this.isUserScrolling = true;
-        }
-        if (this.isUserScrolling) {
-          this.userOffsetY = this.userOffsetY + deltaY;
-          this.lastTouchY = touch.y;
-          this.drawContent(this.curCanvasOffsetY);
-        }
-        break;
-      case TouchType.Up:
-      case TouchType.Cancel:
-        if (!this.hasMoved) {
-          // 视为点击，注意点击坐标需叠加当前用户偏移（热区是 Canvas 坐标）
-          this.handleClick(touch.x, touch.y);
-        } else if (this.isUserScrolling) {
-          this.scheduleAutoReturn();
-        }
-        break;
-      default:
-        break;
-    }
-  }
 
   build() {
     Canvas(this.context)
@@ -989,11 +947,28 @@ export default struct shiLrcView {
           this.drawContent(-offset, true);
         }
       })
+      // 垂直方向 PanGesture：跟手增量累计，0 阈值（distance 仅用于区分 tap/pan），
+      // 滑动手感顺滑、无阻力；与 .onClick 天然分离，滑动绝不触发点击跳转。
+      .gesture(
+        PanGesture({ direction: PanDirection.Vertical, distance: 4 })
+          .onActionStart(() => {
+            this.cancelAutoReturn();
+            this.isUserScrolling = true;
+            this.lastPanY = 0;
+          })
+          .onActionUpdate((event: GestureEvent) => {
+            const dy: number = event.offsetY - this.lastPanY;
+            this.lastPanY = event.offsetY;
+            this.userOffsetY = this.userOffsetY + dy;
+            this.drawContent(this.curCanvasOffsetY);
+          })
+          .onActionEnd(() => {
+            this.scheduleAutoReturn();
+          })
+      )
+      // 点击歌词行跳转：PanGesture 只识别拖拽，纯点击不会触发它，故此处 .onClick 安全无重复。
       .onClick((event: ClickEvent) => {
         this.handleClick(event.x, event.y);
-      })
-      .onTouch((event: TouchEvent) => {
-        this.handleTouch(event);
       })
   }
 }

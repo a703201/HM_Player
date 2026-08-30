@@ -203,21 +203,37 @@ export class AVSessionController {
     }
     try {
       if (this.context) {
-        let mediaImage = await MediaTools.getPixelMapFromResource(this.context,
-          this.songList[this.musicIndex].label as resourceManager.Resource);
-        Logger.info(TAG, 'getPixelMapFromResource success' + JSON.stringify(mediaImage));
+        const songItem: SongItem | undefined = this.songList[this.musicIndex];
+        if (!songItem) {
+          Logger.error(TAG, 'setAVMetadata: current song is undefined');
+          return;
+        }
+        // 封面优先取 CoverCache 命中的 PixelMap（getLabel 已内含缓存回退到默认 Resource），
+        // PixelMap 直接用作媒体封面避免重复解码；仅当为 Resource 时才走 resourceManager 解码。
+        // 此前整段强制按 Resource 解码，PixelMap 分支会抛错导致整个 setAVMetadata 中断、
+        // 系统播控卡片拿不到元数据而无法正常显示。
+        let mediaImage: PixelMap | undefined = undefined;
+        const label: Resource | PixelMap = songItem.getLabel();
+        if (label && typeof (label as PixelMap).getImageInfo === 'function') {
+          mediaImage = label as PixelMap;
+        } else if (label) {
+          try {
+            mediaImage = await MediaTools.getPixelMapFromResource(this.context, label as resourceManager.Resource);
+          } catch (e) {
+            Logger.error(TAG, 'getPixelMapFromResource failed');
+          }
+        }
         // 收藏以 song.id 为稳定主键（队列索引会漂移），与 MusicStore 收藏存储保持一致
-        const curSongForMeta: SongItem | undefined = this.songList[this.musicIndex ?? -1];
         let metadata: avSession.AVMetadata = {
-          assetId: curSongForMeta ? `${curSongForMeta.id}` : `${this.musicIndex ?? 0}`,
-          title: this.songList[this.musicIndex].title,
-          artist: this.songList[this.musicIndex].singer,
+          assetId: `${songItem.id}`,
+          title: songItem.title,
+          artist: songItem.singer,
           mediaImage: mediaImage,
           duration: this.getDuration(),
         };
-        let lrc = await MediaTools.getLrcFromRawFile(this.context, this.songList[this.musicIndex].lyric);
+        let lrc = await MediaTools.getLrcFromRawFile(this.context, songItem.lyric);
         if (!lrc) {
-          lrc = await EmbeddedLyricReader.read(this.songList[this.musicIndex].src);
+          lrc = await EmbeddedLyricReader.read(songItem.src);
         }
         if (lrc) {
           metadata.lyric = lrc;

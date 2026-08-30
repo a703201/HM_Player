@@ -44,8 +44,9 @@ export struct TopAreaComponent {
   @State color: Color = Color.White
 
   getIsDark() {
-    this.isDark = this.songList[this.selectIndex].isDarkBackground;
-    this.color = this.isDark ? Color.White : Color.Black
+    const song = this.songList.length > 0 ? this.songList[this.selectIndex] : undefined;
+    this.isDark = song ? song.isDarkBackground : true;
+    this.color = this.isDark ? Color.White : Color.Black;
   }
 
   build() {

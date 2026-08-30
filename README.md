@@ -240,13 +240,12 @@ Lumio_Music/
 
 ## 权限说明
 
-本应用遵循**权限最小化**原则，`module.json5` 中实际仅声明以下 3 项权限：
+本应用遵循**权限最小化**原则，`module.json5` 中实际仅声明以下 2 项权限：
 
 | 权限 | 用途 | 时机 |
 |------|------|------|
 | `ohos.permission.KEEP_BACKGROUND_RUNNING` | 后台持续播放（长时任务：audioPlayback） | inuse |
 | `ohos.permission.INTERNET` | 关于页跳转开发者主页 / 投播设备网络发现 | always |
-| `ohos.permission.GET_NETWORK_INFO` | 查询网络状态，判断投播可用性 | always |
 
 **为什么没有媒体库权限？**
 歌曲来源全部为「用户主动通过 `DocumentViewPicker` 选择 → 拷贝进应用沙箱 → 记录于 `dataPreferences`」，

@@ -1,0 +1,12 @@
+{
+  "startupTasks": [
+    {
+      "name": "LumioCoverPreloadTask",
+      "srcEntry": "./ets/startup/LumioCoverPreloadTask.ets",
+      "dependencies": [],
+      "runOnThread": "taskPool",
+      "waitOnMainThread": false
+    }
+  ],
+  "configEntry": "./ets/startup/LumioStartupConfig.ets"
+}

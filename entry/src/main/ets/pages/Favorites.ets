@@ -22,6 +22,7 @@ import { CoverImageView } from '../components/CoverImageView';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
+import { Logger } from '../utils/Logger';
 
 @Builder
 export function FavoritesBuilder() {
@@ -85,7 +86,11 @@ struct Favorites {
 
   toggleFavoriteSong(song: SongItem): void {
     this.store.toggleFavorite(song.id);
-    this.getUIContext().getPromptAction().showToast({ message: '已取消收藏' });
+    try {
+      this.getUIContext().getPromptAction().showToast({ message: '已取消收藏' });
+    } catch (e) {
+      Logger.error('Favorites', 'showToast failed');
+    }
   }
 
   openAddToPlaylist(song: SongItem): void {

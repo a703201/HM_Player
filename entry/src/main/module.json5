@@ -11,6 +11,7 @@
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:main_pages",
+    "appStartup": "$profile:startup_config",
     "requestPermissions": [
       {
         "name": "ohos.permission.KEEP_BACKGROUND_RUNNING",

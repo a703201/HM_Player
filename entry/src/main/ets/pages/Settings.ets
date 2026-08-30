@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Logger } from '../utils/Logger';
 import { MusicStore } from '../services/MusicStore';
 import { SettingsStore } from '../utils/SettingsStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { SettingsCategoryDetail } from './SettingsCategory';
 
 interface SettingsCategoryParam {
   category: string;
@@ -33,25 +33,32 @@ interface CategoryItem {
 
 @Builder
 export function SettingsBuilder() {
-  Settings()
+  NavDestination() {
+    Settings({})
+  }
+  .hideTitleBar(true)
 }
 
 @Component
-struct Settings {
-  pathStack: NavPathStack = new NavPathStack();
+export struct Settings {
+  /** 由外层（Mine 的 bindSheet）传入：关闭整个设置 sheet。 */
+  onRequestClose: () => void = () => {};
+  /** 由外层传入：跳转到更深页（ManageSongs / PrivacyPolicy）时关闭 sheet 并走主导航栈。 */
+  onNavigate: (name: string) => void = () => {};
+  /** 当前选中的子分类；'' 表示根列表。用于 sheet 内二级导航（无需再开一个 NavDestination）。 */
+  @State selectedCategory: string = '';
   store: MusicStore = MusicStore.getInstance();
   settings: SettingsStore = SettingsStore.getInstance();
   @StorageProp('topHeight') topHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
 
-  /** 主题响应式：根据 isDark 取对应令牌。 */
+  /** 主题响应式：跟随应用浅色/深色主题（sheet 内页面与全局一致，不强制灰底白字）。 */
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
   }
 
   /**
-   * 设置分类入口。每个分类点击后进入对应的下一级页面（SettingsCategory），
-   * 由该页按 category 参数渲染具体设置项。分类结构预置，便于后续扩展新功能。
+   * 设置分类入口。
    */
   private categories(): Array<CategoryItem> {
     return [
@@ -65,28 +72,38 @@ struct Settings {
     ];
   }
 
+  private currentTitle(): string {
+    if (this.selectedCategory === '') {
+      return '设置';
+    }
+    const found = this.categories().find((c: CategoryItem) => c.id === this.selectedCategory);
+    return found ? found.title : '设置';
+  }
+
   build() {
-    NavDestination() {
-      Column() {
-        // Header
-        Row() {
+    Column() {
+      // 头部：返回箭头在二级页显示，标题随状态切换
+      Row() {
+        if (this.selectedCategory !== '') {
           Image($r('app.media.ic_hm_back'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
             .onClick(() => {
-              this.pathStack.pop();
+              this.selectedCategory = '';
             })
-          Text('设置')
-            .fontSize(20)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
-            .layoutWeight(1)
         }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
+        Text(this.currentTitle())
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.getThemeColors().primaryText)
+          .margin({ left: this.selectedCategory !== '' ? 12 : 0 })
+          .layoutWeight(1)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
 
+      if (this.selectedCategory === '') {
         Scroll() {
           Column() {
             Text('设置分类')
@@ -112,37 +129,32 @@ struct Settings {
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: -24 })))
+      } else {
+        SettingsCategoryDetail({
+          category: this.selectedCategory,
+          onBack: () => {
+            this.selectedCategory = '';
+          },
+          onNavigate: this.onNavigate
+        })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 24 })))
       }
-      .width('100%')
-      .height('100%')
-      .backgroundColor(this.getThemeColors().bg)
     }
-    .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack;
-    })
-    .hideTitleBar(true)
+    .width('100%')
+    .height('100%')
+    .backgroundColor(this.getThemeColors().bg)
   }
 
   @Builder
   buildCategoryItem(cat: CategoryItem) {
     Row() {
-      Stack() {
-        Image(cat.icon)
-          .width(20)
-          .height(20)
-          .fillColor(Color.White)
-      }
-      .width(36)
-      .height(36)
-      .borderRadius(10)
-      .backgroundColor(cat.iconColor)
-      .margin({ right: 14 })
-      .shadow({
-        radius: 6,
-        color: `${cat.iconColor}33`,
-        offsetX: 0,
-        offsetY: 2
-      })
+      Image(cat.icon)
+        .width(24)
+        .height(24)
+        .fillColor(cat.iconColor)
+        .margin({ right: 16 })
 
       Column() {
         Text(cat.title)
@@ -168,8 +180,7 @@ struct Settings {
     .borderRadius(14)
     .margin({ bottom: 2 })
     .onClick(() => {
-      const param: SettingsCategoryParam = { category: cat.id };
-      this.pathStack.pushPathByName('SettingsCategory', param);
+      this.selectedCategory = cat.id;
     })
   }
 }

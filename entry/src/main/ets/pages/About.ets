@@ -19,16 +19,21 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 
 @Builder
 export function AboutBuilder() {
-  About()
+  NavDestination() {
+    About({})
+  }
+  .hideTitleBar(true)
 }
 
 @Component
-struct About {
-  pathStack: NavPathStack = new NavPathStack();
+export struct About {
+  /** 由外层（Mine 的 bindSheet）传入：关闭关于 sheet。 */
+  onRequestClose: () => void = () => {};
   @StorageProp('topHeight') topHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
 
   private getThemeColors(): ColorTokens {
+    // 跟随应用浅色/深色主题（sheet 内页面与全局一致，不强制灰底白字）
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
   }
 
@@ -67,138 +72,132 @@ struct About {
   }
 
   build() {
-    NavDestination() {
-      Scroll() {
+    Scroll() {
+      Column() {
+        // Header section
         Column() {
-          // Header section
-          Column() {
-            Image($r('app.media.logo'))
-              .width(108)
-              .height(108)
-              .borderRadius(24)
-              .shadow({
-                radius: 16,
-                color: 'rgba(250, 39, 89, 0.2)',
-                offsetX: 0,
-                offsetY: 8
-              })
-              .scale({ x: this.logoScale, y: this.logoScale })
-              .opacity(this.logoOpacity)
-              .animation({
-                duration: 600,
-                curve: Curve.EaseOut,
-              })
+          Image($r('app.media.logo'))
+            .width(108)
+            .height(108)
+            .borderRadius(24)
+            .shadow({
+              radius: 16,
+              color: 'rgba(250, 39, 89, 0.2)',
+              offsetX: 0,
+              offsetY: 8
+            })
+            .scale({ x: this.logoScale, y: this.logoScale })
+            .opacity(this.logoOpacity)
+            .animation({
+              duration: 600,
+              curve: Curve.EaseOut,
+            })
 
-            Text('Lumio Music')
-              .fontSize(30)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.getThemeColors().primaryText)
-              .margin({ top: 20, bottom: 6 })
-              .opacity(this.titleOpacity)
-              .transition(TransitionEffect.translate({ y: 10 }))
-              .animation({ duration: 400, curve: Curve.EaseOut })
-
-            Text('本地音乐播放器')
-              .fontSize(15)
-              .fontColor(this.getThemeColors().secondaryText)
-              .opacity(this.subtitleOpacity)
-              .transition(TransitionEffect.translate({ y: 10 }))
-              .animation({ duration: 400, curve: Curve.EaseOut })
-          }
-          .width('100%')
-          .padding({ top: this.topHeight + 48, bottom: 36 })
-          .backgroundColor(this.getThemeColors().secondaryBg)
-
-          // Features section
-          Text('功能特色')
-            .fontSize(13)
-            .fontColor(this.getThemeColors().secondaryText)
-            .width('100%')
-            .padding({ left: 20, bottom: 12 })
-
-          Row() {
-            Column() {
-              Text('🎵')
-                .fontSize(28)
-                .margin({ bottom: 8 })
-              Text('本地播放')
-                .fontSize(13)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(this.getThemeColors().primaryText)
-            }
-            .layoutWeight(1)
-            .scale({ x: this.featureScales[0], y: this.featureScales[0] })
-            .opacity(this.featureOpacities[0])
+          Text('Lumio Music')
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.getThemeColors().primaryText)
+            .margin({ top: 20, bottom: 6 })
+            .opacity(this.titleOpacity)
+            .transition(TransitionEffect.translate({ y: 10 }))
             .animation({ duration: 400, curve: Curve.EaseOut })
 
-            Column() {
-              Text('🔍')
-                .fontSize(28)
-                .margin({ bottom: 8 })
-              Text('文件扫描')
-                .fontSize(13)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(this.getThemeColors().primaryText)
-            }
-            .layoutWeight(1)
-            .scale({ x: this.featureScales[1], y: this.featureScales[1] })
-            .opacity(this.featureOpacities[1])
-            .animation({ duration: 400, curve: Curve.EaseOut })
-
-            Column() {
-              Text('📝')
-                .fontSize(28)
-                .margin({ bottom: 8 })
-              Text('歌词显示')
-                .fontSize(13)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(this.getThemeColors().primaryText)
-            }
-            .layoutWeight(1)
-            .scale({ x: this.featureScales[2], y: this.featureScales[2] })
-            .opacity(this.featureOpacities[2])
-            .animation({ duration: 400, curve: Curve.EaseOut })
-          }
-          .width('100%')
-          .padding({ left: 24, right: 24, top: 12, bottom: 24 })
-          .justifyContent(FlexAlign.SpaceAround)
-
-          // Info section
-          Text('应用信息')
-            .fontSize(13)
+          Text('本地音乐播放器')
+            .fontSize(15)
             .fontColor(this.getThemeColors().secondaryText)
-            .width('100%')
-            .padding({ left: 20, bottom: 12 })
-
-          Column() {
-            this.buildAboutItem('应用版本', this.appVersion, 0)
-            this.buildAboutItem('开发者', '何宇翔', 1)
-            this.buildAboutItem('技术支持', 'HarmonyOS SDK', 2)
-            this.buildAboutItem('架构', 'ArkTS + C++ Native', 3)
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16 })
-
-          Text('一款简洁的本地音乐播放器，支持导入本地音频、播放控制、歌词显示等功能。')
-            .fontSize(14)
-            .fontColor(this.getThemeColors().secondaryText)
-            .textAlign(TextAlign.Center)
-            .width('100%')
-            .margin({ top: 32, bottom: 40 })
-            .padding({ left: 30, right: 30 })
-            .transition(TransitionEffect.OPACITY)
-            .animation({ duration: 500, curve: Curve.EaseOut, delay: 800 })
+            .opacity(this.subtitleOpacity)
+            .transition(TransitionEffect.translate({ y: 10 }))
+            .animation({ duration: 400, curve: Curve.EaseOut })
         }
         .width('100%')
+        .padding({ top: this.topHeight + 48, bottom: 36 })
+        .backgroundColor(this.getThemeColors().secondaryBg)
+
+        // Features section
+        Text('功能特色')
+          .fontSize(13)
+          .fontColor(this.getThemeColors().secondaryText)
+          .width('100%')
+          .padding({ left: 20, bottom: 12 })
+
+        Row() {
+          Column() {
+            Text('🎵')
+              .fontSize(28)
+              .margin({ bottom: 8 })
+            Text('本地播放')
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(this.getThemeColors().primaryText)
+          }
+          .layoutWeight(1)
+          .scale({ x: this.featureScales[0], y: this.featureScales[0] })
+          .opacity(this.featureOpacities[0])
+          .animation({ duration: 400, curve: Curve.EaseOut })
+
+          Column() {
+            Text('🔍')
+              .fontSize(28)
+              .margin({ bottom: 8 })
+            Text('文件扫描')
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(this.getThemeColors().primaryText)
+          }
+          .layoutWeight(1)
+          .scale({ x: this.featureScales[1], y: this.featureScales[1] })
+          .opacity(this.featureOpacities[1])
+          .animation({ duration: 400, curve: Curve.EaseOut })
+
+          Column() {
+            Text('📝')
+              .fontSize(28)
+              .margin({ bottom: 8 })
+            Text('歌词显示')
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(this.getThemeColors().primaryText)
+          }
+          .layoutWeight(1)
+          .scale({ x: this.featureScales[2], y: this.featureScales[2] })
+          .opacity(this.featureOpacities[2])
+          .animation({ duration: 400, curve: Curve.EaseOut })
+        }
+        .width('100%')
+        .padding({ left: 24, right: 24, top: 12, bottom: 24 })
+        .justifyContent(FlexAlign.SpaceAround)
+
+        // Info section
+        Text('应用信息')
+          .fontSize(13)
+          .fontColor(this.getThemeColors().secondaryText)
+          .width('100%')
+          .padding({ left: 20, bottom: 12 })
+
+        Column() {
+          this.buildAboutItem('应用版本', this.appVersion, 0)
+          this.buildAboutItem('开发者', '何宇翔', 1)
+          this.buildAboutItem('技术支持', 'HarmonyOS SDK', 2)
+          this.buildAboutItem('架构', 'ArkTS + C++ Native', 3)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16 })
+
+        Text('一款简洁的本地音乐播放器，支持导入本地音频、播放控制、歌词显示等功能。')
+          .fontSize(14)
+          .fontColor(this.getThemeColors().secondaryText)
+          .textAlign(TextAlign.Center)
+          .width('100%')
+          .margin({ top: 32, bottom: 40 })
+          .padding({ left: 30, right: 30 })
+          .transition(TransitionEffect.OPACITY)
+          .animation({ duration: 500, curve: Curve.EaseOut, delay: 800 })
       }
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-      .backgroundColor(this.getThemeColors().bg)
+      .width('100%')
     }
-    .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack;
-    })
-    .hideTitleBar(true)
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
+    .backgroundColor(this.getThemeColors().bg)
   }
 
   @Builder

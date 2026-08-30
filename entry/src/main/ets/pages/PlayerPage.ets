@@ -21,8 +21,7 @@ import { BreakpointSystem } from '../common/utils/BreakpointSystem';
 import { PlayerInfoComponent } from '../components/PlayerInfoComponent';
 import { MusicStore } from '../services/MusicStore';
 import { SongItem } from '../models/music';
-
-const PLAYER_COVER_ID: string = 'player_cover';
+import { Motion, springSoft } from '../common/utils/DesignSystem';
 
 @Builder
 export function PlayerPageBuilder() {
@@ -36,6 +35,7 @@ struct PlayerPage {
   @StorageLink('songList') songList: SongItem[] = [];
   @State isShowPlay: boolean = false;
   @StorageProp('currentBreakpoint') currentBreakpoint: string = BreakpointConstants.BREAKPOINT_SM;
+  @State entered: boolean = false;
   private breakpointSystem: BreakpointSystem = new BreakpointSystem();
 
   aboutToAppear(): void {
@@ -66,10 +66,25 @@ struct PlayerPage {
 
   build() {
     NavDestination() {
-      PlayerInfoComponent({ isShowPlay: this.isShowPlay })
+      Column() {
+        PlayerInfoComponent({ isShowPlay: this.isShowPlay })
+      }
+      .width('100%')
+      .height('100%')
+      .opacity(this.entered ? 1 : 0)
+      .scale({ x: this.entered ? 1 : 0.98, y: this.entered ? 1 : 0.98 })
     }
     .ignoreLayoutSafeArea([LayoutSafeAreaType.SYSTEM], [LayoutSafeAreaEdge.TOP, LayoutSafeAreaEdge.BOTTOM])
     .hideTitleBar(true)
+    .onWillShow(() => {
+      // NavDestination 生命周期（onWillShow/onWillHide 为 API 10+ 通用能力）：入场时以弹簧曲线淡入内容
+      this.getUIContext().animateTo({ duration: Motion.fade, curve: springSoft() }, () => {
+        this.entered = true;
+      });
+    })
+    .onWillHide(() => {
+      this.entered = false;
+    })
     .onBackPressed(() => {
       this.back();
       return true;

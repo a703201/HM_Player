@@ -24,6 +24,8 @@ import { SongItem } from '../models/music';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { MusicStore } from '../services/MusicStore';
 import { fileIo as fs } from '@kit.CoreFileKit';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { ApiCompat } from '../common/utils/ApiCompat';
 
 function getFileName(src: string): string {
   try {
@@ -66,6 +68,8 @@ export struct SongDetailSheet {
   @StorageProp('isDark') isDark: boolean = false;
   @Prop songId: number = 0;
   store: MusicStore = MusicStore.getInstance();
+  // 系统材质实例（API 26 经动态 import 注入；API 24 恒为 undefined，走背景色兜底）
+  @State material: uiMaterial.Material | undefined = undefined;
 
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
@@ -76,6 +80,22 @@ export struct SongDetailSheet {
       return undefined;
     }
     return this.store.songs.find((s: SongItem) => s.id === this.songId);
+  }
+
+  aboutToAppear(): void {
+    // API 26 才动态加载 @ohos.arkui.uiMaterial（该模块为 API 26 整模块新增，API 24 不存在）；
+    // 动态 import 失败仅进入 catch 兜底，确保 API 24 真机不加载此模块、不调用 systemMaterial，避免崩溃。
+    if (ApiCompat.isAtLeast(ApiCompat.API_26)) {
+      import('@ohos.arkui.uiMaterial').then((mod: ESObject): void => {
+        const def: ESObject = mod.default;
+        const materialObj: ESObject = new (def.ImmersiveMaterial as ESObject)({
+          style: (def.ImmersiveStyle as ESObject).REGULAR
+        });
+        this.material = materialObj as uiMaterial.Material;
+      }).catch((): void => {
+        this.material = undefined;
+      });
+    }
   }
 
   @Builder
@@ -98,24 +118,41 @@ export struct SongDetailSheet {
   }
 
   build() {
-    Column() {
-      Text('歌曲信息')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: 20, bottom: 16 })
-
-      if (this.getSong()) {
-        this.songContent(this.getSong()!)
-      } else {
-        Text('未选择歌曲')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().secondaryText)
+    if (ApiCompat.isAtLeast(ApiCompat.API_26) && this.material !== undefined) {
+      // 鸿蒙新特性 uiMaterial（API 26 沉浸系统材质）：半模态根容器启用系统级毛玻璃，
+      // 自动适配深浅色与设备算力档位，与苹果风系统材质一致。material 仅在 API 26 动态加载成功后有值。
+      Column() {
+        this.SheetBody()
       }
+      .width('100%')
+      .padding({ left: 20, right: 20, bottom: 24 })
+      .systemMaterial(this.material)
+    } else {
+      // API 24 降级：uiMaterial 模块/方法均不存在，用主题卡片背景色模拟毛玻璃兜底，保证面板可用。
+      Column() {
+        this.SheetBody()
+      }
+      .width('100%')
+      .padding({ left: 20, right: 20, bottom: 24 })
+      .backgroundColor(this.getThemeColors().cardBg)
     }
-    .width('100%')
-    .padding({ left: 20, right: 20, bottom: 24 })
-    .backgroundColor(this.getThemeColors().cardBg)
+  }
+
+  @Builder
+  private SheetBody() {
+    Text('歌曲信息')
+      .fontSize(18)
+      .fontWeight(FontWeight.Bold)
+      .fontColor(this.getThemeColors().primaryText)
+      .margin({ top: 20, bottom: 16 })
+
+    if (this.getSong()) {
+      this.songContent(this.getSong()!)
+    } else {
+      Text('未选择歌曲')
+        .fontSize(14)
+        .fontColor(this.getThemeColors().secondaryText)
+    }
   }
 
   @Builder

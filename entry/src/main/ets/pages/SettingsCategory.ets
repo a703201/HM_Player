@@ -32,19 +32,54 @@ interface CategorySelectOption {
 
 @Builder
 export function SettingsCategoryBuilder() {
-  SettingsCategory()
+  NavDestination() {
+    SettingsCategoryRoute()
+  }
+  .hideTitleBar(true)
+}
+
+/** 路由包装：从 path param 读取分类并渲染详情（保留 SettingsCategory 路由兼容）。 */
+@Component
+struct SettingsCategoryRoute {
+  pathStack: NavPathStack = new NavPathStack();
+  @State category: string = '';
+
+  build() {
+    NavDestination() {
+      SettingsCategoryDetail({
+        category: this.category,
+        onNavigate: (name: string) => {
+          this.pathStack.pushPathByName(name, null);
+        }
+      })
+    }
+    .onReady((context: NavDestinationContext) => {
+      this.pathStack = context.pathStack;
+      const param: Object = context.pathInfo.param as Object;
+      if (param !== undefined && param !== null && typeof param === 'object') {
+        const cat: string = (param as SettingsCategoryParam).category;
+        if (cat !== undefined && cat !== null && cat.length > 0) {
+          this.category = cat;
+        }
+      }
+    })
+    .hideTitleBar(true)
+  }
 }
 
 @Component
-struct SettingsCategory {
-  pathStack: NavPathStack = new NavPathStack();
+export struct SettingsCategoryDetail {
   store: MusicStore = MusicStore.getInstance();
   settings: SettingsStore = SettingsStore.getInstance();
   @StorageProp('topHeight') topHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
 
-  /** 由上级设置页经路由参数传入的分类 id。 */
-  @State category: string = '';
+  /** 由上层（Settings / 路由包装）传入的分类 id。 */
+  @Prop category: string = '';
+  /** 返回上一级（sheet 内二级导航）。 */
+  onBack: () => void = () => {};
+  /** 跳转更深页（ManageSongs / PrivacyPolicy）：交由上层决定（sheet 内关闭 sheet + 主导航栈）。 */
+  onNavigate: (name: string) => void = () => {};
 
   @State autoNext: boolean = true;
   @State repeatMode: RepeatModeSetting = 'list';
@@ -56,6 +91,7 @@ struct SettingsCategory {
   @State appVersionDisplay: string = 'Lumio Music';
 
   private getThemeColors(): ColorTokens {
+    // 跟随应用浅色/深色主题（sheet 内页面与全局一致，不强制灰底白字）
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
   }
 
@@ -86,20 +122,6 @@ struct SettingsCategory {
       this.getUIContext().getPromptAction().showToast({ message });
     } catch (e) {
       Logger.error('toast failed');
-    }
-  }
-
-  // ===== 当前分类标题 =====
-  private categoryTitle(): string {
-    switch (this.category) {
-      case 'playback': return '播放';
-      case 'appearance': return '用户界面';
-      case 'accessibility': return '无障碍';
-      case 'storage': return '存储';
-      case 'notification': return '通知';
-      case 'privacy': return '隐私';
-      case 'about': return '关于';
-      default: return '设置';
     }
   }
 
@@ -246,18 +268,11 @@ struct SettingsCategory {
   buildToggleItem(icon: ResourceStr, title: string, subtitle: string, index: number,
     iconColor: string, isOn: boolean, onToggle: (v: boolean) => void) {
     Row() {
-      Stack() {
-        Image(icon)
-          .width(20)
-          .height(20)
-          .fillColor(Color.White)
-      }
-      .width(36)
-      .height(36)
-      .borderRadius(10)
-      .backgroundColor(iconColor)
-      .margin({ right: 14 })
-      .shadow({ radius: 6, color: `${iconColor}33`, offsetX: 0, offsetY: 2 })
+      Image(icon)
+        .width(24)
+        .height(24)
+        .fillColor(iconColor)
+        .margin({ right: 16 })
 
       Column() {
         Text(title)
@@ -292,18 +307,11 @@ struct SettingsCategory {
   buildSelectItem(icon: ResourceStr, title: string, options: CategorySelectOption[], selectedIndex: number,
     index: number, iconColor: string, onSelect: (i: number) => void) {
     Row() {
-      Stack() {
-        Image(icon)
-          .width(20)
-          .height(20)
-          .fillColor(Color.White)
-      }
-      .width(36)
-      .height(36)
-      .borderRadius(10)
-      .backgroundColor(iconColor)
-      .margin({ right: 14 })
-      .shadow({ radius: 6, color: `${iconColor}33`, offsetX: 0, offsetY: 2 })
+      Image(icon)
+        .width(24)
+        .height(24)
+        .fillColor(iconColor)
+        .margin({ right: 16 })
 
       Column() {
         Text(title)
@@ -334,18 +342,11 @@ struct SettingsCategory {
   buildNavItem(icon: ResourceStr, title: string, subtitle: string, index: number,
     iconColor: string, onClick: () => void) {
     Row() {
-      Stack() {
-        Image(icon)
-          .width(20)
-          .height(20)
-          .fillColor(Color.White)
-      }
-      .width(36)
-      .height(36)
-      .borderRadius(10)
-      .backgroundColor(iconColor)
-      .margin({ right: 14 })
-      .shadow({ radius: 6, color: `${iconColor}33`, offsetX: 0, offsetY: 2 })
+      Image(icon)
+        .width(24)
+        .height(24)
+        .fillColor(iconColor)
+        .margin({ right: 16 })
 
       Column() {
         Text(title)
@@ -380,7 +381,7 @@ struct SettingsCategory {
   // ===== 各分类内容 =====
   @Builder
   buildPlaybackGroup() {
-    this.buildSectionLabel('播放');
+    this.buildSectionLabel('播放')
     Column() {
       this.buildToggleItem(
         $r('app.media.ic_auto'), '自动下一首', '', 0, '#34C759', this.autoNext,
@@ -400,7 +401,7 @@ struct SettingsCategory {
 
   @Builder
   buildAppearanceGroup() {
-    this.buildSectionLabel('用户界面');
+    this.buildSectionLabel('用户界面')
     Column() {
       this.buildSelectItem(
         $r('app.media.ic_hm_moon'), '深色模式', this.themeOptions(), this.themeIndex(), 0, '#5E5CE6',
@@ -416,7 +417,7 @@ struct SettingsCategory {
 
   @Builder
   buildAccessibilityGroup() {
-    this.buildSectionLabel('无障碍');
+    this.buildSectionLabel('无障碍')
     Column() {
       this.buildToggleItem(
         $r('app.media.ic_hm_profile'), '降低动态效果', '减少歌词流光等动画', 0, '#007AFF', this.reduceMotion,
@@ -424,12 +425,11 @@ struct SettingsCategory {
       )
     }
     .margin({ bottom: 8 })
-    // 分类已预置，后续可在本组追加大字号、高对比度等无障碍开关
   }
 
   @Builder
   buildStorageGroup() {
-    this.buildSectionLabel('存储');
+    this.buildSectionLabel('存储')
     Column() {
       this.buildNavItem(
         $r('app.media.ic_hm_trash'), '清除缓存', this.cacheSizeText, 0, '#FF9500',
@@ -444,7 +444,7 @@ struct SettingsCategory {
       )
       this.buildNavItem(
         $r('app.media.ic_hm_folder'), '本地歌曲管理', '', 2, '#FA2759',
-        () => { this.pathStack.pushPathByName('ManageSongs', null); }
+        () => { this.onNavigate('ManageSongs'); }
       )
     }
     .margin({ bottom: 8 })
@@ -452,7 +452,7 @@ struct SettingsCategory {
 
   @Builder
   buildNotificationGroup() {
-    this.buildSectionLabel('通知');
+    this.buildSectionLabel('通知')
     Column() {
       this.buildToggleItem(
         $r('app.media.ic_bells_o'), '锁屏/状态栏控制', '', 0, '#FFCC00', this.notificationLockScreen,
@@ -464,7 +464,7 @@ struct SettingsCategory {
 
   @Builder
   buildPrivacyGroup() {
-    this.buildSectionLabel('隐私');
+    this.buildSectionLabel('隐私')
     Column() {
       this.buildToggleItem(
         $r('app.media.ic_favorite'), '启用听歌统计', '', 0, '#FA2759', this.privacyStats,
@@ -480,7 +480,7 @@ struct SettingsCategory {
 
   @Builder
   buildAboutGroup() {
-    this.buildSectionLabel('关于');
+    this.buildSectionLabel('关于')
     Column() {
       this.buildNavItem(
         $r('app.media.ic_hm_settings'), '版本信息', this.appVersionDisplay, 0, '#5856D6',
@@ -492,78 +492,42 @@ struct SettingsCategory {
       )
       this.buildNavItem(
         $r('app.media.ic_review'), '隐私政策', '', 2, '#007AFF',
-        () => { this.pathStack.pushPathByName('PrivacyPolicy', null); }
+        () => { this.onNavigate('PrivacyPolicy'); }
       )
     }
     .margin({ bottom: 8 })
   }
 
   build() {
-    NavDestination() {
+    Scroll() {
       Column() {
-        Row() {
-          Image($r('app.media.ic_hm_back'))
-            .width(24)
-            .height(24)
-            .fillColor(this.getThemeColors().primaryText)
-            .onClick(() => {
-              this.pathStack.pop();
-            })
-          Text(this.categoryTitle())
-            .fontSize(20)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
-            .layoutWeight(1)
+        if (this.category === 'playback') {
+          this.buildPlaybackGroup();
+        } else if (this.category === 'appearance') {
+          this.buildAppearanceGroup();
+        } else if (this.category === 'accessibility') {
+          this.buildAccessibilityGroup();
+        } else if (this.category === 'storage') {
+          this.buildStorageGroup();
+        } else if (this.category === 'notification') {
+          this.buildNotificationGroup();
+        } else if (this.category === 'privacy') {
+          this.buildPrivacyGroup();
+        } else if (this.category === 'about') {
+          this.buildAboutGroup();
+        } else {
+          Text('请选择设置分类')
+            .fontSize(14)
+            .fontColor(this.getThemeColors().secondaryText)
+            .width('100%')
+            .padding({ left: 4, top: 16 })
         }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
-
-        Scroll() {
-          Column() {
-            if (this.category === 'playback') {
-              this.buildPlaybackGroup();
-            } else if (this.category === 'appearance') {
-              this.buildAppearanceGroup();
-            } else if (this.category === 'accessibility') {
-              this.buildAccessibilityGroup();
-            } else if (this.category === 'storage') {
-              this.buildStorageGroup();
-            } else if (this.category === 'notification') {
-              this.buildNotificationGroup();
-            } else if (this.category === 'privacy') {
-              this.buildPrivacyGroup();
-            } else if (this.category === 'about') {
-              this.buildAboutGroup();
-            } else {
-              Text('请选择设置分类')
-                .fontSize(14)
-                .fontColor(this.getThemeColors().secondaryText)
-                .width('100%')
-                .padding({ left: 4, top: 16 })
-            }
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, bottom: 40 })
-        }
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
       }
       .width('100%')
-      .height('100%')
-      .backgroundColor(this.getThemeColors().bg)
+      .padding({ left: 16, right: 16, bottom: 40 })
     }
-    .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack;
-      const param: Object = context.pathInfo.param as Object;
-      if (param !== undefined && param !== null && typeof param === 'object') {
-        const cat: string = (param as SettingsCategoryParam).category;
-        if (cat !== undefined && cat !== null && cat.length > 0) {
-          this.category = cat;
-        }
-      }
-    })
-    .hideTitleBar(true)
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
   }
 
   private showClearCacheDialog(): void {

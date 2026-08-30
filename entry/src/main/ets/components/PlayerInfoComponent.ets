@@ -48,7 +48,7 @@ import { ControlAreaComponent } from './ControlAreaComponent';
 @Component
 export struct PlayerInfoComponent {
   @StorageProp('currentBreakpoint') currentBreakpoint: string = BreakpointConstants.BREAKPOINT_SM;
-  @StorageLink('songList') songList: SongItem[] = [];
+  @StorageLink('songList') @Watch('syncImageLabel') songList: SongItem[] = [];
   @StorageProp('selectIndex') @Watch('getImageColor') selectIndex: number = 0;
   @StorageProp('coverRefreshToken') @Watch('getImageColor') coverRefreshToken: number = 0;
   @StorageLink('imageColor') imageColor: string = 'rgba(0, 0, 2, 1.00)';
@@ -56,7 +56,7 @@ export struct PlayerInfoComponent {
   @StorageProp('lyricBgDark') lyricBgDark: boolean = true;
   @StorageLink('topHeight') topHeight: number = 0;
   @StorageLink('bottomHeight') bottomHeight: number = 0;
-  @State imageLabel: PixelMap | Resource = this.songList[this.selectIndex].getLabel();
+  @State imageLabel: PixelMap | Resource = $r('app.media.ic_default_cover');
   @State isShowControl: boolean = true;
   @State isShowControlLg: boolean = false;
   @State isTablet: boolean = true;
@@ -77,6 +77,7 @@ export struct PlayerInfoComponent {
   };
 
   aboutToAppear(): void {
+    this.syncImageLabel();
     this.getImageColor();
     try {
       if (canIUse('SystemCapability.Window.SessionManager')) {
@@ -193,7 +194,7 @@ export struct PlayerInfoComponent {
                 offset: { lg: BreakpointConstants.OFFSET_MD }
               }) {
                 Column() {
-                  Image(this.songList[this.selectIndex].getLabel())
+                  Image(this.currentSong()?.getLabel() ?? $r('app.media.ic_default_cover'))
                     .width(StyleConstants.FULL_WIDTH)
                     .aspectRatio(1)
                     .borderRadius($r('app.float.cover_radius'))
@@ -287,15 +288,35 @@ export struct PlayerInfoComponent {
   }
 
   /**
+   * 取当前播放歌曲（带边界保护，避免 songList 为空或索引越界导致崩溃）。
+   */
+  private currentSong(): SongItem | undefined {
+    if (!this.songList || this.songList.length === 0) {
+      return undefined;
+    }
+    return this.songList[this.selectIndex] ?? undefined;
+  }
+
+  /**
+   * 同步封面源（默认图兜底），供 aboutToAppear 与 @Watch 调用。
+   */
+  private syncImageLabel(): void {
+    const song = this.currentSong();
+    this.imageLabel = song ? song.getLabel() : $r('app.media.ic_default_cover');
+  }
+
+  /**
    * Get largest proportion color of an image.
    */
   getImageColor() {
-    if (!this.context || !this.songList || this.songList.length === 0 || !this.songList[this.selectIndex]) {
+    const song = this.currentSong();
+    // 封面随歌曲切换即时刷新（默认图兜底），再异步抽取主题色
+    this.imageLabel = song ? song.getLabel() : $r('app.media.ic_default_cover');
+    if (!this.context || !song) {
       return;
     }
-    const currentSong = this.songList[this.selectIndex];
-    ColorConversion.setSysBarLightBackground(currentSong.isDarkBackground);
-    const songLabel = currentSong.getLabel();
+    ColorConversion.setSysBarLightBackground(song.isDarkBackground);
+    const songLabel = song.getLabel();
     if (!songLabel) {
       return;
     }

@@ -17,6 +17,7 @@
 import { image } from '@kit.ImageKit';
 import { CoverCache } from '../utils/CoverCache';
 import { Logger } from '../utils/Logger';
+import { Motion, springSnappy } from '../common/utils/DesignSystem';
 
 const TAG = 'CoverImageView';
 
@@ -40,6 +41,7 @@ export struct CoverImageView {
   @Prop coverSize: number = 56;
   @Prop coverRadius: number = 8;
   @State cover: Resource | image.PixelMap = $r('app.media.ic_default_cover');
+  @State pressScale: number = 1.0;
 
   aboutToAppear(): void {
     this.refresh();
@@ -83,7 +85,16 @@ export struct CoverImageView {
       .borderRadius(this.coverRadius)
       .objectFit(ImageFit.Cover)
       .clip(true)
-      .animation({ duration: 300, curve: Curve.EaseOut })
+      .scale({ x: this.pressScale, y: this.pressScale })
+      .shadow({ radius: 6, color: 'rgba(0, 0, 0, 0.18)', offsetX: 0, offsetY: 2 })
+      .animation({ duration: Motion.tap, curve: springSnappy() })
+      .onTouch((event: TouchEvent) => {
+        if (event.type === TouchType.Down) {
+          this.pressScale = 0.95;
+        } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+          this.pressScale = 1.0;
+        }
+      })
       .onError(() => {
         Logger.debugPrivate(TAG, `cover render error for ${this.src}`);
       })

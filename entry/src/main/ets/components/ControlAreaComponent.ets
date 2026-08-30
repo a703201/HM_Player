@@ -43,6 +43,7 @@ import { ResourceConversion } from '../common/utils/ResourceConversion';
 import { MusicStore } from '../services/MusicStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { sortSongs } from '../common/utils/SortUtil';
+import { Motion, springSnappy } from '../common/utils/DesignSystem';
 
 const TAG = 'ControlAreaComponent'
 
@@ -148,7 +149,8 @@ export struct ControlAreaComponent {
           .fillColor(this.isFavorite ? Color.Red : Color.White)
           .controlImageBuilder()
           .animation({
-            duration: 500
+            duration: Motion.fade,
+            curve: springSnappy()
           })
           .width(new BreakpointType({
             sm: $r('app.float.twenty_four'),
@@ -223,7 +225,7 @@ export struct ControlAreaComponent {
           .width(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
           $r('app.float.control_width_lg') : $r('app.float.control_width'))
           .scale({ x: this.prevScale, y: this.prevScale })
-          .animation({ duration: 120, curve: Curve.EaseOut })
+          .animation({ duration: Motion.tap, curve: springSnappy() })
           .onClick(() => {
             AudioRendererController.getInstance().playPrevious();
             this.pageShowTime = 0;
@@ -243,7 +245,7 @@ export struct ControlAreaComponent {
             lg: $r('app.float.image_play_width_lg')
           }).getValue(this.currentBreakpoint))
           .scale({ x: this.playBtnScale, y: this.playBtnScale })
-          .animation({ duration: 120, curve: Curve.EaseOut })
+          .animation({ duration: Motion.tap, curve: springSnappy() })
           .onClick(() => {
             if (this.isPlay) {
               AudioRendererController.getInstance().pause();
@@ -268,7 +270,7 @@ export struct ControlAreaComponent {
           .width(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
           $r('app.float.control_width_lg') : $r('app.float.control_width'))
           .scale({ x: this.nextScale, y: this.nextScale })
-          .animation({ duration: 120, curve: Curve.EaseOut })
+          .animation({ duration: Motion.tap, curve: springSnappy() })
           .onClick(() => {
             AudioRendererController.getInstance().playNext();
             this.pageShowTime = 0;

@@ -42,3 +42,12 @@
 - **收藏已统一收口**：收藏唯一权威源为 `MusicStore.favorites`(按 song.id)；`AVSessionController` 不再写 `myStore.formIds`，`formIds` 仅存桌面卡片 ID；assetId 由队列下标改为 song.id（本轮 W3 已完成，PRD R2 标记 ✅）。
 - **README 权限表已过时**：实际 `module.json5` 仅 `KEEP_BACKGROUND_RUNNING`+`INTERNET`+`GET_NETWORK_INFO`，无 `READ_MEDIA`/`WRITE_MEDIA`/`DETECT_GESTURE`（与本文档权限最小化一致）。
 - 发现页 `Find.ets` 已于 2026-08-05 删除（复核为孤儿文件：未注册导航、无引用），FR-21 标记 ✅ 已下线；播放列表 UI 已落地（Playlists/PlaylistDetail + route_map 注册 + Mine 入口，歌单 id 含随机后缀防同毫秒碰撞，支持 `ForEach.onMove` 拖拽排序 FR-24 ✅）。
+
+## ⚠️ API 24/26 兼容（min 24 / target 26）
+- 测试真机 API 24（HarmonyOS 6.1.1），`compatibleSdkVersion="6.1.1(24)"`、`targetSdkVersion="26.0.0"`，编译基于 API 26 SDK。
+- ⚠️ **版本号格式**：API 10–25 必须用 `'X.Y.Z(API)'`（如 `'6.1.1(24)'`，括号里是 API 号）；只有 API 26+ 用纯 `'26.0.0'`。用错格式 hvigor 报 `Specification Limit Violation`。API 24 ↔ HarmonyOS 6.1.1 由 SDK d.ts `@since 6.1.1(24)` 证实。
+- **运行期版本闸门**：`common/utils/ApiCompat.ets`，`import deviceInfo from '@ohos.deviceInfo'`（**默认导出**非命名导出）取 `deviceInfo.sdkApiVersion: number`（`@since 6`），`ApiCompat.isAtLeast(api)` 分支降级。
+- **API 26 专属、必须降级**：`ContainerReader`(@since 26 组件)、`uiMaterial.systemMaterial`(@since 26 方法)。降级方式：`ApiCompat.isAtLeast(26)` 走 `if/else` 分支，API 24 走兼容写法。
+  - ⚠️ `uiMaterial` 是 API 26 **整模块新增**，静态 `import uiMaterial from '@ohos.arkui.uiMaterial'` 会在 API 24 模块加载即崩 → 必须 `import type uiMaterial`（编译期擦除）+ `aboutToAppear` 内动态 `import('@ohos.arkui.uiMaterial')` 注入 `@State material: uiMaterial.Material`，API 26 才 `.systemMaterial(this.material)`。
+  - ⚠️ 不能写「带构造签名的接口」/`arkts-no-ctor-signatures-iface` 或内联对象字面量类型去包动态构造器；用 `new (def.ImmersiveMaterial as ESObject)({ style: (def.ImmersiveStyle as ESObject).REGULAR })` 经 ESObject 逃逸构造。
+- **安全（≤API 18，无需降级）**：`HdsNavigation`(UIDesignKit @since 12)、`StyledString`/`TextController.setStyledString`(@since 12/18)、`@Reusable`/`geometryTransition`/`bindSheet`/`SymbolGlyph`/`interpolatingSpring`/`NavDestination` 生命周期。

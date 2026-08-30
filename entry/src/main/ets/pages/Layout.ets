@@ -20,9 +20,13 @@ import { Mine } from './Mine';
 import { MusicStore } from '../services/MusicStore';
 import { SongItem } from '../models/music';
 import { common } from '@kit.AbilityKit';
+import { curves } from '@kit.ArkUI';
+import { Motion, springSnappy } from '../common/utils/DesignSystem';
 import { image } from '@kit.ImageKit';
 import { PreferencesUtil } from '../utils/PreferencesUtil';
 import { SettingsStore } from '../utils/SettingsStore';
+import { ApiCompat } from '../common/utils/ApiCompat';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
 
 const ACCENT: string = '#FA2759';
 const PLAYER_COVER_ID: string = 'player_cover';
@@ -57,9 +61,14 @@ struct Layout {
   private rotateTimer: number = -1;
   @State currentIndex: number = 0;
   @State coverRotation: number = 0;
+  // 底部悬浮导航交互动画状态
+  @State playerScale: number = 1.0;
+  @State tabScales: number[] = [1.0, 1.0];
   // 底部迷你播放条的封面：缓存当前播放歌曲的真实封面（取自 CoverCache；未抽取到时回退默认图），
   // 通过 refreshPlayerCover() 在切歌 / 封面抽取完成（coverRefreshToken）时刷新。
   @State playerCover: Resource | image.PixelMap = $r('app.media.ic_default_cover');
+  // 底部浮动栏的沉浸系统材质（仅 API 26 经动态 import 注入；API 24 用 backgroundBlurStyle 兜底）
+  @State miniBarMaterial: uiMaterial.Material | undefined = undefined;
 
   private tabs: TabItem[] = [
     { title: '音乐库', icon: $r('sys.symbol.music_square_stack_fill') },
@@ -78,6 +87,16 @@ struct Layout {
     }
     this.maybeShowPermissionGuide();
     this.refreshPlayerCover();
+    // API 26 才动态加载 @ohos.arkui.uiMaterial（整模块 API 26 新增，API 24 运行时不存在），
+    // 注入沉浸系统材质；失败仅进入 catch 兜底，不影响底栏渲染。
+    if (ApiCompat.isAtLeast(ApiCompat.API_26)) {
+      import('@ohos.arkui.uiMaterial').then((mod: ESObject): void => {
+        const def: ESObject = mod.default;
+        this.miniBarMaterial = new (def.ImmersiveMaterial as ESObject)({ style: (def.ImmersiveStyle as ESObject).REGULAR });
+      }).catch((): void => {
+        this.miniBarMaterial = undefined;
+      });
+    }
   }
 
   // 首次启动展示权限用途说明，仅弹一次（持久化标记）
@@ -133,9 +152,16 @@ struct Layout {
   }
 
   private openPlayer(): void {
-    // 直接 push：让底部栏封面与播放页封面的 geometryTransition('player_cover') 接管"一镜到底"，
-    // 封面从底部栏位置平滑飞到播放页位置，而不是整页滑动（背景位移）的感觉。
-    this.pathStack.pushPathByName('PlayerPage', null);
+    // 进入播放页同样包在 animateTo 里，让底部栏封面与播放页封面的
+    // geometryTransition('player_cover') 接管「一镜到底」——封面从底部栏位置
+    // 平滑飞到播放页位置（spring 曲线）。退出时的 back() 已对称包 animateTo，
+    // 此前进入遗漏该上下文，导致进入转场消失、只剩退出转场。
+    this.getUIContext().animateTo(
+      { curve: curves.interpolatingSpring(0, 1, 342, 38) },
+      () => {
+        this.pathStack.pushPathByName('PlayerPage', null);
+      }
+    );
   }
 
   @Builder
@@ -155,8 +181,21 @@ struct Layout {
     .height('100%')
     .layoutWeight(1)
     .justifyContent(FlexAlign.Center)
+    .scale({ x: this.tabScales[index] ?? 1.0, y: this.tabScales[index] ?? 1.0 })
+    .animation({ curve: springSnappy(), duration: Motion.tap })
     .onClick(() => {
       this.tabsController.changeIndex(index);
+    })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        let scales = [...this.tabScales];
+        scales[index] = 0.9;
+        this.tabScales = scales;
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        let scales = [...this.tabScales];
+        scales[index] = 1.0;
+        this.tabScales = scales;
+      }
     })
   }
 
@@ -178,19 +217,14 @@ struct Layout {
           })
           .geometryTransition(PLAYER_COVER_ID, { follow: true })
 
-        // 暂停时在封面中央显示暂停图标
-        if (!this.isPlaying) {
-          Column()
-            .width(48)
-            .height(48)
-            .borderRadius(14)
-            .backgroundColor('rgba(0, 0, 0, 0.35)')
-            .justifyContent(FlexAlign.Center)
-            .hitTestBehavior(HitTestMode.None)
-          SymbolGlyph($r('sys.symbol.pause_fill'))
-            .fontSize(22)
-            .fontColor(['#FFFFFF'])
-            .hitTestBehavior(HitTestMode.None)
+        // 封面中央播放状态指示（非交互，点击由 playerButton 打开播放页）。
+        // 用可靠位图资源，避免 SymbolGlyph 在部分设备渲染不确定导致图标错乱/误导。
+        // 注意：AppStorage('isPlay') 在本入口的运行时绑定与播放态相反（与播放页主按钮一致），
+        // 故采用反相映射——实际播放中显示「开始/播放」三角(ic_hm_play)，停止时显示「暂停」双竖条(ic_hm_pause)。
+        if (this.isPlaying) {
+          this.playStateOverlay($r('app.media.ic_hm_pause'))
+        } else {
+          this.playStateOverlay($r('app.media.ic_hm_play'))
         }
       } else {
         Image($r('app.media.ic_hm_play'))
@@ -209,39 +243,98 @@ struct Layout {
       offsetX: 0,
       offsetY: 4
     })
+    .scale({ x: this.playerScale, y: this.playerScale })
+    .animation({ curve: springSnappy(), duration: Motion.tap })
     .onClick(() => {
       this.openPlayer();
     })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.playerScale = 0.9;
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        this.playerScale = 1.0;
+      }
+    })
+  }
+
+  /** 封面中央播放状态遮罩图标（不可交互，点击交由 playerButton 打开播放页）。 */
+  @Builder
+  private playStateOverlay(icon: ResourceStr) {
+    Column() {
+      Image(icon)
+        .width(22)
+        .height(22)
+        .fillColor('#FFFFFF')
+        .hitTestBehavior(HitTestMode.None)
+    }
+    .width(48)
+    .height(48)
+    .borderRadius(14)
+    .backgroundColor('rgba(0, 0, 0, 0.35)')
+    .justifyContent(FlexAlign.Center)
+    .hitTestBehavior(HitTestMode.None)
   }
 
   @Builder
-  private customBottomBar() {
-    Row({ space: 16 }) {
+  private miniBarInner() {
+    Row({ space: 12 }) {
       Row({ space: 0 }) {
         ForEach(this.tabs, (item: TabItem, index: number) => {
           this.capsuleTabItem(item, index)
         }, (item: TabItem, index: number) => index.toString())
       }
-      .width('100%')
-      .height(64)
-      .backgroundColor(this.getThemeColors().cardBg)
-      .backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THICK)
-      .borderRadius(32)
-      .padding({ left: 8, right: 8 })
-      .shadow({
-        radius: 16,
-        color: 'rgba(0, 0, 0, 0.10)',
-        offsetX: 0,
-        offsetY: 6
-      })
       .layoutWeight(1)
+      .height(56)
       .justifyContent(FlexAlign.SpaceEvenly)
 
       this.playerButton()
     }
     .width('100%')
-    .height(80)
-    .padding({ left: 16, right: 16, bottom: this.bottomHeight + 8 })
+    .padding({ left: 8, right: 8 })
+  }
+
+  /**
+   * 底部悬浮导航（苹果风浮动胶囊 / 鸿蒙 Hds 浮动栏）：
+   * - 居中悬浮胶囊（非通栏），浮于内容之上，内容可滚动至系统导航条区域，全屏沉浸；
+   * - API 26：启用 uiMaterial 系统沉浸材质（动态注入），自动适配深浅色与算力档位；
+   * - API 24：退回 backgroundBlurStyle 系统材料，保证真机可用。
+   */
+  @Builder
+  private customBottomBar() {
+    // @Builder 调用返回 void，不能直接链式挂材质；材质挂在外层真实容器 Row 上。
+    if (ApiCompat.isAtLeast(ApiCompat.API_26) && this.miniBarMaterial) {
+      Row() {
+        this.miniBarInner()
+      }
+      .width('92%')
+      .constraintSize({ maxWidth: 520 })
+      .backgroundColor(this.getThemeColors().cardBg)
+      .systemMaterial(this.miniBarMaterial as uiMaterial.Material)
+      .shadow({
+        radius: 22,
+        color: 'rgba(0, 0, 0, 0.18)',
+        offsetX: 0,
+        offsetY: 8
+      })
+      .borderRadius(30)
+      .margin({ bottom: this.bottomHeight + 12 })
+    } else {
+      Row() {
+        this.miniBarInner()
+      }
+      .width('92%')
+      .constraintSize({ maxWidth: 520 })
+      .backgroundColor(this.getThemeColors().cardBg)
+      .backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THICK)
+      .shadow({
+        radius: 22,
+        color: 'rgba(0, 0, 0, 0.18)',
+        offsetX: 0,
+        offsetY: 8
+      })
+      .borderRadius(30)
+      .margin({ bottom: this.bottomHeight + 12 })
+    }
   }
 
   build() {
@@ -262,7 +355,9 @@ struct Layout {
         .onChange((index: number) => {
           this.currentIndex = index;
         })
-        .padding({ bottom: 96 + this.bottomHeight })
+        // 全屏沉浸：内容底部仅预留系统导航条安全区 + 少量余量，
+        // 列表可滚动至系统导航条区域，浮动底栏覆盖其上方而非预留整块空白。
+        .padding({ bottom: this.bottomHeight + 16 })
 
         this.customBottomBar()
       }

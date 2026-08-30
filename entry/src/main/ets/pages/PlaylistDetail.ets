@@ -145,9 +145,13 @@ struct PlaylistDetail {
   private toggleFavoriteSong(song: SongItem): void {
     const isFav: boolean = this.store.isFavorite(song.id);
     this.store.toggleFavorite(song.id);
-    this.getUIContext().getPromptAction().showToast({
-      message: isFav ? '已取消收藏' : '已收藏'
-    });
+    try {
+      this.getUIContext().getPromptAction().showToast({
+        message: isFav ? '已取消收藏' : '已收藏'
+      });
+    } catch (e) {
+      Logger.error('PlaylistDetail', 'showToast failed');
+    }
   }
 
   private openAddToPlaylist(song: SongItem): void {
