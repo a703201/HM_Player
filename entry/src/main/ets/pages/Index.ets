@@ -15,20 +15,42 @@
  */
 
 import { HdsNavigation } from '@kit.UIDesignKit';
+import { SplashView } from './Splash';
 
 @Entry
 @Component
 struct Index {
   @Provide('navPathStack') pathStack: NavPathStack = new NavPathStack()
+  /** 启动页是否结束：结束后淡出 Splash 覆盖层，露出已就绪的主界面。 */
+  @State splashDone: boolean = false
+
+  aboutToAppear(): void {
+    // 暴露导航栈到 AppStorage，供 Want「用 Lumio 打开」场景跨 Ability 打开播放页
+    AppStorage.setOrCreate('navPathStack', this.pathStack);
+  }
 
   build() {
-    HdsNavigation(this.pathStack) {
+    Stack() {
+      HdsNavigation(this.pathStack) {
+      }
+      .onAppear(() => {
+        this.pathStack.pushPathByName('Layout', null, false);
+      })
+      .hideNavBar(true)
+      .hideTitleBar(true)
+      .mode(NavigationMode.Stack)
+
+      if (!this.splashDone) {
+        SplashView()
+      }
     }
+    .width('100%')
+    .height('100%')
     .onAppear(() => {
-      this.pathStack.pushPathByName('Layout', null, false);
+      // 品牌展示约 1.2s 后淡出，露出主界面（此时 Layout 已挂载于导航栈背后）
+      setTimeout(() => {
+        this.splashDone = true;
+      }, 1200);
     })
-    .hideNavBar(true)
-    .hideTitleBar(true)
-    .mode(NavigationMode.Stack)
   }
 }

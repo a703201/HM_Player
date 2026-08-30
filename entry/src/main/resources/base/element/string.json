@@ -115,6 +115,10 @@
     {
       "name": "empty_go_library",
       "value": "去音乐库"
+    },
+    {
+      "name": "distributed_reason",
+      "value": "用于跨设备流转（把正在播放的歌曲接力到平板、智慧屏等同一华为账号设备）"
     }
   ]
 }

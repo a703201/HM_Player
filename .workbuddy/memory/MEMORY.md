@@ -1,7 +1,7 @@
-# HM_Player 长期规范与架构事实
+# Lumio Music 长期规范与架构事实
 
 ## 项目身份与许可证
-- **品牌名：Lumio Music**（应用 `app_name`=`AppScope/resources/base/element/string.json` 早已是 "Lumio Music"；bundleName=`com.lumio.music`）。文档/许可证统一用 Lumio Music，勿回退成 HM Music/HM_Player。
+- **品牌名：Lumio Music**（应用 `app_name`=`AppScope/resources/base/element/string.json` 早已是 "Lumio Music"；bundleName=`com.Lumio.music`，注意 L 大写）。文档/许可证统一用 Lumio Music，勿回退成 HM Music/HM_Player。
 - ⚠️ **改 bundleName 后调试签名失效**：根 `build-profile.json5` 的 `.cer/.p7b/.p12` 是绑定旧 bundleName 生成的，改完需在 DevEco 重新 auto-sign（或换匹配新 bundleName 的证书）才能 `bash build_hap.sh` 继续出包。`entry/build/` 下 `BuildProfile.ets` 是生成物，下次构建会自动重生成。
 - **许可证：Apache-2.0**；根目录 `LICENSE`(完整文本)+`NOTICE`；版权人 **何宇翔**（Copyright 2026 何宇翔）。任何分发须保留声明+NOTICE+声明修改。
 
@@ -20,7 +20,7 @@
 
 ## SDK 行为与权限（API 24 / 6.1.1）
 - 投播(`AVCastPicker`/`AVCastController`,`@kit.AVSessionKit`)≠播控(`AVSession`)。本地文件经 `AVCastController`+独立 fd 投远端；远程控制走 `sendControlCommand({command})`（无直接 play/pause）。设备切换 `AVSession.on('outputDeviceChange')`。`off` 对 playNext/playPrevious 类型重载缺失，经 `(castController as ESObject)?.off(...)` 透传。
-- 权限已最小化：`KEEP_BACKGROUND_RUNNING`+`INTERNET`+`GET_NETWORK_INFO`；删 `READ/WRITE_MEDIA`（歌曲来自 preferences+DocumentViewPicker+沙箱，无媒体库访问）。
+- 权限已最小化：`KEEP_BACKGROUND_RUNNING`+`INTERNET`+`DISTRIBUTED_DATASYNC`；删 `READ/WRITE_MEDIA`/`GET_NETWORK_INFO`（歌曲来自 preferences+DocumentViewPicker+沙箱，无媒体库访问；`GET_NETWORK_INFO` 曾声明但从未使用，已移除，勿再写回）。
 - 空间音频：`isSpatializationEnabledForCurrentDevice()` 只读；`set` 需系统权限，三方不可做开关。多频段 EQ：无公开 API。
 - 桌面卡片：`@kit.FormKit` FormExtensionAbility+`formProvider.updateForm`+`postCardAction`（form 进程独立，回控经 EntryAbility）。
 

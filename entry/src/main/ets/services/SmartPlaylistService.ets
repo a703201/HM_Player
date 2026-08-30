@@ -32,6 +32,8 @@ export class SmartPlaylistService {
   static readonly RECENT_HEAVY: string = 'smart_recent_heavy';
   static readonly ERA_MIX: string = 'smart_era';
   static readonly DISCOVERY: string = 'smart_discovery';
+  static readonly LOSSLESS_MIX: string = 'smart_lossless';
+  static readonly LOSSY_MIX: string = 'smart_lossy';
 
   static getFavoritesMix(): SmartPlaylist {
     const store: MusicStore = MusicStore.getInstance();
@@ -72,12 +74,52 @@ export class SmartPlaylistService {
     return { id: SmartPlaylistService.DISCOVERY, name: '发现惊喜', songs: candidates.slice(0, limit) };
   }
 
+  static getLosslessMix(): SmartPlaylist {
+    const store: MusicStore = MusicStore.getInstance();
+    const songs: SongItem[] = store.songs.filter((s: SongItem) => {
+      const q = s.getQuality();
+      return q === 'lossless' || q === 'hires';
+    });
+    return { id: SmartPlaylistService.LOSSLESS_MIX, name: '无损臻享', songs };
+  }
+
+  static getLossyMix(): SmartPlaylist {
+    const store: MusicStore = MusicStore.getInstance();
+    const songs: SongItem[] = store.songs.filter((s: SongItem) => s.getQuality() === 'lossy');
+    return { id: SmartPlaylistService.LOSSY_MIX, name: '经典有损', songs };
+  }
+
+  /**
+   * 按艺术家自动聚合：每位有歌曲的艺术家生成一张智能歌单（按歌曲数降序）。
+   * 「未知艺术家」单独归并，避免每个人名碎片化成空歌单。
+   */
+  static getArtistPlaylists(): SmartPlaylist[] {
+    const store: MusicStore = MusicStore.getInstance();
+    const byArtist: Map<string, SongItem[]> = new Map<string, SongItem[]>();
+    store.songs.forEach((s: SongItem) => {
+      const a: string = (s.singer && s.singer.trim().length > 0 && s.singer !== '未知艺术家')
+        ? s.singer : '未知艺术家';
+      const arr: SongItem[] = byArtist.get(a) ?? [];
+      arr.push(s);
+      byArtist.set(a, arr);
+    });
+    const list: SmartPlaylist[] = [];
+    byArtist.forEach((songs: SongItem[], artist: string) => {
+      list.push({ id: 'smart_artist_' + artist, name: '♪ ' + artist, songs });
+    });
+    list.sort((a: SmartPlaylist, b: SmartPlaylist) => b.songs.length - a.songs.length);
+    return list;
+  }
+
   static all(): SmartPlaylist[] {
     return [
       SmartPlaylistService.getFavoritesMix(),
       SmartPlaylistService.getRecentHeavy(),
       SmartPlaylistService.getEraMix(),
-      SmartPlaylistService.getDiscovery()
+      SmartPlaylistService.getDiscovery(),
+      SmartPlaylistService.getLosslessMix(),
+      SmartPlaylistService.getLossyMix(),
+      ...SmartPlaylistService.getArtistPlaylists()
     ];
   }
 }

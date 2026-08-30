@@ -2,7 +2,7 @@
 
 > **Lumio 系列** · 本地优先的 HarmonyOS NEXT 原生应用（同系列：碰卡 / NearCard）
 
-<img width="200" height="200" alt="logo" src="https://github.com/user-attachments/assets/bec472ea-0320-4c85-85a5-1c898d9d9aee" />
+<img width="200" height="200" alt="Lumio Music logo" src="./entry/src/main/resources/base/media/logo.svg" />
 
 一款运行在 **HarmonyOS** 平台的本地音乐播放器，基于 **ArkTS + ArkUI + C++ Native** 开发。
 主打简洁流畅的本地听歌体验，并已全面接入 **HDS 设计系统** 与 **沉浸光感**，播放器进出采用 **一镜到底** 共享元素动画。
@@ -15,7 +15,7 @@
 
 本应用为 HarmonyOS 移动端原生应用，无法通过 Web 链接在线访问。以下是真机演示视频：
 
-<video src="https://raw.githubusercontent.com/a703201/Lumio_Music/main/Video/Demo.mp4" controls width="100%" poster="https://github.com/user-attachments/assets/bec472ea-0320-4c85-85a5-1c898d9d9aee"></video>
+<video src="https://raw.githubusercontent.com/a703201/Lumio_Music/main/Video/Demo.mp4" controls width="100%" poster="./entry/src/main/resources/base/media/logo.svg"></video>
 
 > 💡 如果视频无法在线播放，可 [点击此处下载](./Video/Demo.mp4) 后本地观看（~50MB）。
 
@@ -85,7 +85,6 @@ bash build_hap.sh
 - **设置子页**（`SettingsCategory`）：点击设置项进入分类子页，支持自动下一首开关、播放模式选择、主题切换（系统/浅色/深色）、锁屏媒体控制开关。
 - **版本信息**：跳转关于页查看版本与功能特色。
 - **隐私政策**：查看应用隐私政策。
-- **开发者**：点击跳转开发者简历网页 `https://www.a703201sworld.top/resume/`（开发者署名：何宇翔）。
 
 ### 沉浸与握姿适配
 - **HDS 设计系统**：根导航 `HdsNavigation` + 主布局 `HdsTabs`，底部标签栏采用自定义沉浸式样式。
@@ -138,7 +137,7 @@ Lumio_Music/
 │   │   │   ├── LocalLibrary.ets     # 音乐库 Tab（合并 Songs+Moment，含导入）
 │   │   │   ├── Mine.ets             # 我的 Tab（可滚动，含统计面板/歌单/历史入口）
 │   │   │   ├── PlayerPage.ets       # 播放器页（一镜到底目标）
-│   │   │   ├── Settings.ets         # 设置：清空历史 / 版本 / 开发者
+│   │   │   ├── Settings.ets         # 设置：清空历史 / 版本 / 关于
 │   │   │   ├── SettingsCategory.ets # 设置子页：自动下一首/播放模式/主题/锁屏开关
 │   │   │   ├── About.ets            # 关于（版本 + 功能特色）
 │   │   │   ├── PrivacyPolicy.ets    # 隐私政策
@@ -240,12 +239,13 @@ Lumio_Music/
 
 ## 权限说明
 
-本应用遵循**权限最小化**原则，`module.json5` 中实际仅声明以下 2 项权限：
+本应用遵循**权限最小化**原则，`module.json5` 中实际仅声明以下 3 项权限：
 
 | 权限 | 用途 | 时机 |
 |------|------|------|
 | `ohos.permission.KEEP_BACKGROUND_RUNNING` | 后台持续播放（长时任务：audioPlayback） | inuse |
-| `ohos.permission.INTERNET` | 关于页跳转开发者主页 / 投播设备网络发现 | always |
+| `ohos.permission.INTERNET` | 投播（Cast+）设备网络发现与媒体流传输 | always |
+| `ohos.permission.DISTRIBUTED_DATASYNC` | 跨设备流转（continuationManager 接力） | inuse |
 
 **为什么没有媒体库权限？**
 歌曲来源全部为「用户主动通过 `DocumentViewPicker` 选择 → 拷贝进应用沙箱 → 记录于 `dataPreferences`」，

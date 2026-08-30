@@ -44,6 +44,8 @@ export class SongItem {
   bitDepth: number = 0;
   /** 容器/编码：flac / mp3 / m4a / alac / wav 等；无数据时空串。 */
   codec: string = '';
+  /** 来源文件夹名（导入时从 picker URI 的父目录解析，如「周杰伦」）；空串表示未归类（归入「导入音乐」）。 */
+  folder: string = '';
 
   /** 音质分级：无损(flac/wav/alac) / Hi-Res(位深≥24 或 采样率≥96k) / 损耗(mp3/aac) / 未知。 */
   getQuality(): AudioQuality {

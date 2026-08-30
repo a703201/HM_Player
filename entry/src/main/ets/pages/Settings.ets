@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
+import { curves } from '@kit.ArkUI';
 import { MusicStore } from '../services/MusicStore';
 import { SettingsStore } from '../utils/SettingsStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { SettingsCategoryDetail } from './SettingsCategory';
+import {
+  ManageSongsBody,
+  DuplicateSongsBody,
+  WrappedBody,
+  PrivacyPolicyBody
+} from '../components/SettingsSubPageBodies';
 
 interface SettingsCategoryParam {
   category: string;
@@ -43,10 +50,10 @@ export function SettingsBuilder() {
 export struct Settings {
   /** 由外层（Mine 的 bindSheet）传入：关闭整个设置 sheet。 */
   onRequestClose: () => void = () => {};
-  /** 由外层传入：跳转到更深页（ManageSongs / PrivacyPolicy）时关闭 sheet 并走主导航栈。 */
-  onNavigate: (name: string) => void = () => {};
   /** 当前选中的子分类；'' 表示根列表。用于 sheet 内二级导航（无需再开一个 NavDestination）。 */
   @State selectedCategory: string = '';
+  /** Settings sheet 内嵌子页（避免关闭 sheet 再开主导航栈）；'' 表示无子页。 */
+  @State subPage: string = '';
   store: MusicStore = MusicStore.getInstance();
   settings: SettingsStore = SettingsStore.getInstance();
   @StorageProp('topHeight') topHeight: number = 0;
@@ -67,12 +74,14 @@ export struct Settings {
       { id: 'accessibility', title: '无障碍', subtitle: '降低动态效果', icon: $r('app.media.ic_hm_profile'), iconColor: '#007AFF' },
       { id: 'storage', title: '存储', subtitle: '缓存 · 播放历史 · 本地管理', icon: $r('app.media.ic_hm_trash'), iconColor: '#FF9500' },
       { id: 'notification', title: '通知', subtitle: '锁屏/状态栏控制', icon: $r('app.media.ic_bells_o'), iconColor: '#FFCC00' },
-      { id: 'privacy', title: '隐私', subtitle: '听歌统计', icon: $r('app.media.ic_favorite'), iconColor: '#FA2759' },
-      { id: 'about', title: '关于', subtitle: '版本 · 开发者 · 隐私政策', icon: $r('app.media.ic_hm_settings'), iconColor: '#5856D6' }
+      { id: 'privacy', title: '隐私', subtitle: '听歌统计', icon: $r('app.media.ic_favorite'), iconColor: '#FA2759' }
     ];
   }
 
   private currentTitle(): string {
+    if (this.subPage !== '') {
+      return this.subPageTitle(this.subPage);
+    }
     if (this.selectedCategory === '') {
       return '设置';
     }
@@ -80,38 +89,98 @@ export struct Settings {
     return found ? found.title : '设置';
   }
 
+  private subPageTitle(kind: string): string {
+    switch (kind) {
+      case 'manage': return '本地歌曲管理';
+      case 'duplicate': return '重复歌曲清理';
+      case 'wrapped': return '我的听歌报告';
+      case 'privacy': return '隐私政策';
+      default: return '设置';
+    }
+  }
+
+  /**
+   * sheet 内统一返回：优先退出 subPage，再退出 selectedCategory，最后关闭整个 sheet。
+   * 系统返回手势（侧滑/虚拟返回键）应只回退这一层栈，而不是直接关掉设置 sheet。
+   */
+  goBackInSheet(): void {
+    if (this.subPage !== '') {
+      // 关闭 subPage 回到分类页或设置根
+      this.getUIContext().animateTo(
+        { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 240 },
+        () => {
+          this.subPage = '';
+        }
+      );
+      return;
+    }
+    if (this.selectedCategory !== '') {
+      this.getUIContext().animateTo(
+        { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 240 },
+        () => {
+          this.selectedCategory = '';
+        }
+      );
+      return;
+    }
+    // 设置根：关闭 sheet（外层 Mine 处理）
+    this.onRequestClose();
+  }
+
+  /** 进入 subPage：sheet 内动画切到对应子页（管理/重复/听歌报告/隐私政策）。 */
+  openSubPage(kind: string): void {
+    if (this.subPage === kind) {
+      return;
+    }
+    this.getUIContext().animateTo(
+      { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 280 },
+      () => {
+        this.subPage = kind;
+      }
+    );
+  }
+
   build() {
     Column() {
       // 头部：返回箭头在二级页显示，标题随状态切换
       Row() {
-        if (this.selectedCategory !== '') {
+        if (this.subPage !== '' || this.selectedCategory !== '') {
           Image($r('app.media.ic_hm_back'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
-            .onClick(() => {
-              this.selectedCategory = '';
-            })
+            .onClick(() => this.goBackInSheet())
         }
         Text(this.currentTitle())
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
-          .margin({ left: this.selectedCategory !== '' ? 12 : 0 })
+          .margin({ left: (this.subPage !== '' || this.selectedCategory !== '') ? 12 : 0 })
           .layoutWeight(1)
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
 
-      if (this.selectedCategory === '') {
+      // 渲染优先级：subPage > selectedCategory > 根列表
+      if (this.subPage === 'manage') {
+        ManageSongsBody({ onBack: () => this.goBackInSheet(), showHeader: false })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 32 })))
+      } else if (this.subPage === 'duplicate') {
+        DuplicateSongsBody({ onBack: () => this.goBackInSheet(), showHeader: false })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 32 })))
+      } else if (this.subPage === 'wrapped') {
+        WrappedBody({ onBack: () => this.goBackInSheet(), showHeader: false })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 32 })))
+      } else if (this.subPage === 'privacy') {
+        PrivacyPolicyBody({ onBack: () => this.goBackInSheet(), showHeader: false })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 32 })))
+      } else if (this.selectedCategory === '') {
         Scroll() {
           Column() {
-            Text('设置分类')
-              .fontSize(13)
-              .fontColor(this.getThemeColors().secondaryText)
-              .width('100%')
-              .padding({ left: 4, bottom: 10 })
-
             Column() {
               ForEach(this.categories(), (cat: CategoryItem) => {
                 this.buildCategoryItem(cat);
@@ -133,10 +202,8 @@ export struct Settings {
       } else {
         SettingsCategoryDetail({
           category: this.selectedCategory,
-          onBack: () => {
-            this.selectedCategory = '';
-          },
-          onNavigate: this.onNavigate
+          onBack: () => this.goBackInSheet(),
+          onNavigate: (name: string) => this.openSubPage(this.routeToSubPage(name))
         })
           .layoutWeight(1)
           .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 24 })))
@@ -145,6 +212,24 @@ export struct Settings {
     .width('100%')
     .height('100%')
     .backgroundColor(this.getThemeColors().bg)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+  }
+
+  /** 把分类页中 onNavigate 调用的目标名映射到 sheet 内 subPage。 */
+  private routeToSubPage(name: string): string {
+    if (name === 'ManageSongs') {
+      return 'manage';
+    }
+    if (name === 'DuplicateSongs') {
+      return 'duplicate';
+    }
+    if (name === 'Wrapped') {
+      return 'wrapped';
+    }
+    if (name === 'PrivacyPolicy') {
+      return 'privacy';
+    }
+    return '';
   }
 
   @Builder
@@ -180,7 +265,12 @@ export struct Settings {
     .borderRadius(14)
     .margin({ bottom: 2 })
     .onClick(() => {
-      this.selectedCategory = cat.id;
+      this.getUIContext().animateTo(
+        { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 240 },
+        () => {
+          this.selectedCategory = cat.id;
+        }
+      );
     })
   }
 }

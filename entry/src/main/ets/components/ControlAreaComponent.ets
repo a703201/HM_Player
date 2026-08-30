@@ -132,6 +132,7 @@ export struct ControlAreaComponent {
             detents: [SheetSize.MEDIUM],
             dragBar: false,
             showClose: false,
+            backgroundColor: this.getThemeColors().cardBg,
             preferType: SheetType.CENTER,
             onWillAppear: () => {
               Logger.info(TAG, 'musicListBuilder');

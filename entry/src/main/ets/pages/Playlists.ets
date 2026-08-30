@@ -48,6 +48,8 @@ struct Playlists {
   @State backScale: number = 1.0;
   @State addScale: number = 1.0;
   @State emptyIconScale: number = 1.0;
+  // 智能歌单折叠：默认展开，用户可收起以聚焦自定义歌单
+  @State smartCollapsed: boolean = false;
 
   // 命名弹窗上下文：editingId 为空串表示「新建」，非空表示「重命名该歌单」
   @State editingId: string = '';
@@ -216,7 +218,7 @@ struct Playlists {
   buildPlaylistMenu(playlist: Playlist) {
     Column() {
       Row() {
-        Image($r('app.media.ic_play_all'))
+        Image($r('app.media.ic_hos_play'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -234,7 +236,7 @@ struct Playlists {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_music_list'))
+        Image($r('app.media.ic_hos_rename'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -252,7 +254,7 @@ struct Playlists {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_trash'))
+        Image($r('app.media.ic_hos_delete'))
           .width(18)
           .fillColor('#FA2759')
           .margin({ right: 12 })
@@ -320,7 +322,7 @@ struct Playlists {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: 12, right: 8 })
 
-      Image($r('app.media.ic_play_all'))
+      Image($r('app.media.ic_hos_play'))
         .width(22)
         .height(22)
         .fillColor('#FA2759')
@@ -385,7 +387,7 @@ struct Playlists {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: 12, right: 8 })
 
-      Image($r('app.media.ic_play_all'))
+      Image($r('app.media.ic_hos_play'))
         .width(22)
         .height(22)
         .fillColor('#FA2759')
@@ -412,6 +414,53 @@ struct Playlists {
     }
     AudioRendererController.getInstance().setQueue(pl.songs, 0, true);
     this.pathStack.pushPathByName('PlayerPage', null);
+  }
+
+  /**
+   * 智能歌单分组头部：标题 + 折叠箭头（ic_back_down 旋转表示展开/收起），点击切换 smartCollapsed。
+   * 默认展开，用户可收起以聚焦自定义歌单。
+   */
+  @Builder
+  buildSmartGroupHeader() {
+    Row() {
+      Text('智能歌单')
+        .fontSize(13)
+        .fontColor(this.getThemeColors().secondaryText)
+        .fontWeight(FontWeight.Medium)
+        .layoutWeight(1)
+        .margin({ left: 16, top: 12, bottom: 8 })
+
+      Image($r('app.media.ic_hos_chevron'))
+        .width(18)
+        .height(18)
+        .objectFit(ImageFit.Contain)
+        .fillColor(this.getThemeColors().secondaryText)
+        .margin({ right: 16, top: 6, bottom: 6 })
+        .rotate({ angle: this.smartCollapsed ? 180 : 0 })
+        .animation({ duration: 200, curve: Curve.EaseOut })
+    }
+    .width('100%')
+    .backgroundColor(this.getThemeColors().bg)
+    .onClick(() => {
+      this.smartCollapsed = !this.smartCollapsed;
+    })
+  }
+
+  /**
+   * 自定义歌单分组头部：仅小标题「我的歌单」（无折叠，自定义歌单为用户必看分区，保持常驻）。
+   * 样式对齐智能歌单分组头部，top 略增以与上方智能歌单分组拉开间距。
+   */
+  @Builder
+  buildCustomGroupHeader() {
+    Row() {
+      Text('我的歌单')
+        .fontSize(13)
+        .fontColor(this.getThemeColors().secondaryText)
+        .fontWeight(FontWeight.Medium)
+        .margin({ left: 16, top: 16, bottom: 8 })
+    }
+    .width('100%')
+    .backgroundColor(this.getThemeColors().bg)
   }
 
   build() {
@@ -477,66 +526,67 @@ struct Playlists {
         .width('100%')
         .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
 
-        // 智能歌单（端侧规则生成，不联网，隐私优先）
-        Column() {
-          Text('智能歌单')
-            .fontSize(13)
-            .fontColor(this.getThemeColors().secondaryText)
-            .fontWeight(FontWeight.Medium)
-            .margin({ left: 16, top: 12, bottom: 8 })
-          ForEach(SmartPlaylistService.all(), (pl: SmartPlaylist) => {
-            this.buildSmartItem(pl)
-          }, (pl: SmartPlaylist) => pl.id)
+        // 整页合并为单个可滚动 List：智能歌单（可折叠分组，默认展开）+ 自定义歌单
+        List() {
+          ListItemGroup({ header: this.buildSmartGroupHeader() }) {
+            if (!this.smartCollapsed) {
+              ForEach(SmartPlaylistService.all(), (pl: SmartPlaylist) => {
+                ListItem() {
+                  this.buildSmartItem(pl)
+                }
+              }, (pl: SmartPlaylist) => pl.id)
+            }
+          }
+
+          ListItemGroup({ header: this.buildCustomGroupHeader() }) {
+            if (this.playlists.length === 0) {
+              ListItem() {
+                Column() {
+                  Image($r('app.media.ic_song_list'))
+                    .width(72)
+                    .height(72)
+                    .fillColor(this.getThemeColors().secondaryText)
+                    .margin({ bottom: 16 })
+                    // scale 由 startBreathing() 的 animateTo 显式驱动，此处不得再叠加 .animation()
+                    .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
+
+                  Text('还没有自建歌单')
+                    .fontSize(16)
+                    .fontColor(this.getThemeColors().secondaryText)
+                    .fontWeight(FontWeight.Medium)
+
+                  Text('点击右上角「+」创建第一个歌单')
+                    .fontSize(13)
+                    .fontColor('#636366')
+                    .margin({ top: 8 })
+
+                  Button('新建歌单')
+                    .fontSize(14)
+                    .fontColor('#FFFFFF')
+                    .backgroundColor('#FA2759')
+                    .borderRadius(20)
+                    .height(36)
+                    .margin({ top: 20 })
+                    .onClick(() => {
+                      this.openCreateDialog();
+                    })
+                }
+                .width('100%')
+                .padding({ top: 40, bottom: 40 })
+              }
+            } else {
+              ForEach(this.playlists, (playlist: Playlist, index: number) => {
+                ListItem() {
+                  this.buildPlaylistItem(playlist, index)
+                }
+              }, (playlist: Playlist): string => playlist.id)
+            }
+          }
         }
         .width('100%')
-        .backgroundColor(this.getThemeColors().bg)
-
-        if (this.playlists.length === 0) {
-          Column() {
-            Image($r('app.media.ic_song_list'))
-              .width(72)
-              .height(72)
-              .fillColor(this.getThemeColors().secondaryText)
-              .margin({ bottom: 16 })
-              // scale 由 startBreathing() 的 animateTo 显式驱动，此处不得再叠加 .animation()
-              .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-
-            Text('还没有自建歌单')
-              .fontSize(16)
-              .fontColor(this.getThemeColors().secondaryText)
-              .fontWeight(FontWeight.Medium)
-
-            Text('点击右上角「+」创建第一个歌单')
-              .fontSize(13)
-              .fontColor('#636366')
-              .margin({ top: 8 })
-
-            Button('新建歌单')
-              .fontSize(14)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#FA2759')
-              .borderRadius(20)
-              .height(36)
-              .margin({ top: 20 })
-              .onClick(() => {
-                this.openCreateDialog();
-              })
-          }
-          .layoutWeight(1)
-          .justifyContent(FlexAlign.Center)
-        } else {
-          List() {
-            ForEach(this.playlists, (playlist: Playlist, index: number) => {
-              ListItem() {
-                this.buildPlaylistItem(playlist, index)
-              }
-            }, (playlist: Playlist): string => playlist.id)
-          }
-          .width('100%')
-          .layoutWeight(1)
-          .scrollBar(BarState.Off)
-          .padding({ bottom: this.bottomHeight + 16 })
-        }
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+        .padding({ bottom: this.bottomHeight + 16 })
       }
       .width('100%')
       .height('100%')

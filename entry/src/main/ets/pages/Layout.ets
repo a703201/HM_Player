@@ -26,6 +26,7 @@ import { image } from '@kit.ImageKit';
 import { PreferencesUtil } from '../utils/PreferencesUtil';
 import { SettingsStore } from '../utils/SettingsStore';
 import { ApiCompat } from '../common/utils/ApiCompat';
+import { OnboardingSheet } from '../components/OnboardingSheet';
 import type uiMaterial from '@ohos.arkui.uiMaterial';
 
 const ACCENT: string = '#FA2759';
@@ -51,6 +52,9 @@ struct Layout {
   @StorageProp('bottomHeight') bottomHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
   @StorageProp('coverRefreshToken') @Watch('onCoverRefreshed') coverRefreshToken: number = 0;
+  // 首次引导（半蒙面 Sheet）调度：AppStorage('showOnboarding') 由首启逻辑或「关于页-重新查看引导」置 true。
+  @StorageLink('showOnboarding') @Watch('onShowOnboarding') showOnboarding: boolean = false;
+  @State onboardingVisible: boolean = false;
 
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
@@ -86,6 +90,7 @@ struct Layout {
       }, 40);
     }
     this.maybeShowPermissionGuide();
+    this.maybeShowOnboarding();
     this.refreshPlayerCover();
     // API 26 才动态加载 @ohos.arkui.uiMaterial（整模块 API 26 新增，API 24 运行时不存在），
     // 注入沉浸系统材质；失败仅进入 catch 兜底，不影响底栏渲染。
@@ -132,6 +137,46 @@ struct Layout {
     if (this.rotateTimer >= 0) {
       clearInterval(this.rotateTimer);
     }
+  }
+
+  /** showOnboarding 变化（首启或关于页重入）时同步 Sheet 可见态。 */
+  private onShowOnboarding(): void {
+    this.onboardingVisible = this.showOnboarding;
+  }
+
+  /** 首次启动展示引导（半蒙面 Sheet），仅弹一次（持久化标记）。 */
+  private maybeShowOnboarding(): void {
+    const context: common.UIAbilityContext | undefined =
+      AppStorage.get('context') as common.UIAbilityContext;
+    if (!context) {
+      return;
+    }
+    PreferencesUtil.getInstance().isOnboardingShown(context)
+      .then((shown: boolean) => {
+        if (shown) {
+          return;
+        }
+        setTimeout(() => {
+          AppStorage.setOrCreate('showOnboarding', true);
+        }, 600);
+      })
+      .catch(() => {});
+  }
+
+  /** 关闭引导：隐藏 Sheet 并持久化已展示标记（避免下次启动重复弹出）。 */
+  private closeOnboarding(): void {
+    AppStorage.setOrCreate('showOnboarding', false);
+    const context: common.UIAbilityContext | undefined =
+      AppStorage.get('context') as common.UIAbilityContext;
+    if (context) {
+      PreferencesUtil.getInstance().markOnboardingShown(context);
+    }
+  }
+
+  /** 引导 Sheet 内容构建器（bindSheet 要求 CustomBuilder 入参）。 */
+  @Builder
+  private onboardingContent() {
+    OnboardingSheet({ onClose: () => this.closeOnboarding() })
   }
 
   private onCoverRefreshed(): void {
@@ -297,7 +342,8 @@ struct Layout {
    * 底部悬浮导航（苹果风浮动胶囊 / 鸿蒙 Hds 浮动栏）：
    * - 居中悬浮胶囊（非通栏），浮于内容之上，内容可滚动至系统导航条区域，全屏沉浸；
    * - API 26：启用 uiMaterial 系统沉浸材质（动态注入），自动适配深浅色与算力档位；
-   * - API 24：退回 backgroundBlurStyle 系统材料，保证真机可用。
+   * - API 24：仅用 cardBg 主题色 + 阴影兜底（移除背景模糊：深色模式下 BlurStyle.CARD_*
+   *   在部分机型/仿真器上仍以白雾覆盖主题色，致胶囊在暗色模式下显示为白色，违背主题）。
    */
   @Builder
   private customBottomBar() {
@@ -312,9 +358,13 @@ struct Layout {
       .systemMaterial(this.miniBarMaterial as uiMaterial.Material)
       .shadow({
         radius: 22,
-        color: 'rgba(0, 0, 0, 0.18)',
+        color: this.isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.18)',
         offsetX: 0,
         offsetY: 8
+      })
+      .border({
+        width: this.isDark ? 0.5 : 0,
+        color: 'rgba(255, 255, 255, 0.08)'
       })
       .borderRadius(30)
       .margin({ bottom: this.bottomHeight + 12 })
@@ -325,12 +375,15 @@ struct Layout {
       .width('92%')
       .constraintSize({ maxWidth: 520 })
       .backgroundColor(this.getThemeColors().cardBg)
-      .backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THICK)
       .shadow({
         radius: 22,
-        color: 'rgba(0, 0, 0, 0.18)',
+        color: this.isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.18)',
         offsetX: 0,
         offsetY: 8
+      })
+      .border({
+        width: 0.5,
+        color: this.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
       })
       .borderRadius(30)
       .margin({ bottom: this.bottomHeight + 12 })
@@ -352,6 +405,7 @@ struct Layout {
         .barHeight(0)
         .scrollable(false)
         .animationDuration(200)
+        .backgroundColor(this.getThemeColors().bg)
         .onChange((index: number) => {
           this.currentIndex = index;
         })
@@ -365,6 +419,14 @@ struct Layout {
       .height('100%')
       .backgroundColor(this.getThemeColors().bg)
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .bindSheet($$this.onboardingVisible, this.onboardingContent(), {
+        detents: ['90%'],
+        dragBar: true,
+        showClose: true,
+        onDisappear: () => {
+          this.closeOnboarding();
+        }
+      })
     }
     .hideTitleBar(true)
   }

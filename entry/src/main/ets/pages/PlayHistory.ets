@@ -34,6 +34,7 @@ struct PlayHistory {
   pathStack: NavPathStack = new NavPathStack();
   store: MusicStore = MusicStore.getInstance();
   @StorageProp('topHeight') topHeight: number = 0;
+  @StorageProp('bottomHeight') bottomHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
   @StorageProp('coverRefreshToken') @Watch('onCoverRefreshed') coverRefreshToken: number = 0;
 
@@ -103,7 +104,7 @@ struct PlayHistory {
   buildSongMenu(song: SongItem) {
     Column() {
       Row() {
-        Image($r('app.media.ic_hm_play'))
+        Image($r('app.media.ic_hos_play'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -121,7 +122,7 @@ struct PlayHistory {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_favorite'))
+        Image($r('app.media.ic_hos_collect'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -139,7 +140,7 @@ struct PlayHistory {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_folder'))
+        Image($r('app.media.ic_hos_add'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -157,7 +158,7 @@ struct PlayHistory {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_sort_list'))
+        Image($r('app.media.ic_hos_detail'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -327,9 +328,9 @@ struct PlayHistory {
             })
           }
           .width('100%')
-          .height('100%')
           .layoutWeight(1)
           .scrollBar(BarState.Off)
+          .padding({ bottom: this.bottomHeight + 16 })
         }
       }
       .width('100%')
@@ -340,6 +341,7 @@ struct PlayHistory {
         detents: [SheetSize.MEDIUM, SheetSize.LARGE],
         dragBar: true,
         showClose: true,
+        backgroundColor: this.getThemeColors().bg,
         preferType: SheetType.BOTTOM
       })
     }

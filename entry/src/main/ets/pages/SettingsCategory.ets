@@ -87,6 +87,7 @@ export struct SettingsCategoryDetail {
   @State notificationLockScreen: boolean = true;
   @State privacyStats: boolean = true;
   @State reduceMotion: boolean = false;
+  @State gapless: boolean = true;
   @State cacheSizeText: string = '约 0.0 MB';
   @State appVersionDisplay: string = 'Lumio Music';
 
@@ -115,6 +116,7 @@ export struct SettingsCategoryDetail {
     this.notificationLockScreen = this.settings.getNotificationLockScreen();
     this.privacyStats = this.settings.getPrivacyStats();
     this.reduceMotion = this.settings.getReduceMotion();
+    this.gapless = this.settings.getGapless();
   }
 
   private toast(message: string): void {
@@ -168,10 +170,6 @@ export struct SettingsCategoryDetail {
       Logger.error('Failed to open url: ' + (err as Error).message);
       this.toast('无法打开网页');
     }
-  }
-
-  private openDeveloper(): void {
-    this.openUrl('https://www.a703201sworld.top/resume/');
   }
 
   // ===== 缓存估算与清理 =====
@@ -325,6 +323,14 @@ export struct SettingsCategoryDetail {
       Select(options)
         .selected(selectedIndex)
         .value(options[selectedIndex]?.value?.toString() ?? '')
+        .optionFont({ size: 14, weight: FontWeight.Normal })
+        .selectedOptionFont({ size: 14, weight: FontWeight.Medium })
+        // 主题适配：浅色模式灰底白底/深色模式深底浅字；避免默认值在深色模式下文字不可见。
+        .fontColor(this.getThemeColors().primaryText)
+        .selectedOptionFontColor(this.getThemeColors().primaryText)
+        .optionFontColor(this.getThemeColors().primaryText)
+        .selectedOptionBgColor(this.getThemeColors().secondaryBg)
+        .optionBgColor(this.getThemeColors().cardBg)
         .onSelect((i: number, text: string) => {
           onSelect(i);
         })
@@ -394,6 +400,10 @@ export struct SettingsCategoryDetail {
           this.repeatMode = order[i];
           this.settings.setRepeatMode(order[i]);
         }
+      )
+      this.buildToggleItem(
+        $r('app.media.ic_sequence'), '无缝播放 (Gapless)', '减少曲间停顿', 2, '#007AFF', this.gapless,
+        (v: boolean) => { this.gapless = v; this.settings.setGapless(v); }
       )
     }
     .margin({ bottom: 8 })
@@ -486,26 +496,6 @@ export struct SettingsCategoryDetail {
     .margin({ bottom: 8 })
   }
 
-  @Builder
-  buildAboutGroup() {
-    this.buildSectionLabel('关于')
-    Column() {
-      this.buildNavItem(
-        $r('app.media.ic_hm_settings'), '版本信息', this.appVersionDisplay, 0, '#5856D6',
-        () => {}
-      )
-      this.buildNavItem(
-        $r('app.media.ic_hm_profile'), '开发者', '何宇翔', 1, '#34C759',
-        () => { this.openDeveloper(); }
-      )
-      this.buildNavItem(
-        $r('app.media.ic_review'), '隐私政策', '', 2, '#007AFF',
-        () => { this.onNavigate('PrivacyPolicy'); }
-      )
-    }
-    .margin({ bottom: 8 })
-  }
-
   build() {
     Scroll() {
       Column() {
@@ -519,11 +509,9 @@ export struct SettingsCategoryDetail {
           this.buildStorageGroup();
         } else if (this.category === 'notification') {
           this.buildNotificationGroup();
-        } else if (this.category === 'privacy') {
-          this.buildPrivacyGroup();
-        } else if (this.category === 'about') {
-          this.buildAboutGroup();
-        } else {
+      } else if (this.category === 'privacy') {
+        this.buildPrivacyGroup();
+      } else {
           Text('请选择设置分类')
             .fontSize(14)
             .fontColor(this.getThemeColors().secondaryText)

@@ -103,6 +103,14 @@
       "data": {
         "description": "this is Wrapped"
       }
+    },
+    {
+      "name": "FolderBrowse",
+      "pageSourceFile": "src/main/ets/pages/FolderBrowse.ets",
+      "buildFunction": "FolderBrowseBuilder",
+      "data": {
+        "description": "this is FolderBrowse"
+      }
     }
   ]
 }

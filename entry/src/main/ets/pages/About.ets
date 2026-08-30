@@ -16,6 +16,8 @@
 
 import { getAppVersionName } from '../utils/AppInfoUtil';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { curves } from '@kit.ArkUI';
+import { PrivacyPolicyBody } from '../components/SettingsSubPageBodies';
 
 @Builder
 export function AboutBuilder() {
@@ -29,6 +31,8 @@ export function AboutBuilder() {
 export struct About {
   /** 由外层（Mine 的 bindSheet）传入：关闭关于 sheet。 */
   onRequestClose: () => void = () => {};
+  /** 由外层传入：关闭本 Sheet 后再弹出新手引导（避免两 Sheet 同帧叠加出空白页）。 */
+  onStartOnboarding: () => void = () => {};
   @StorageProp('topHeight') topHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
 
@@ -41,10 +45,12 @@ export struct About {
   @State logoOpacity: number = 0;
   @State titleOpacity: number = 0;
   @State subtitleOpacity: number = 0;
-  @State itemScales: number[] = [1.0, 1.0, 1.0, 1.0];
+  @State itemScales: number[] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
   @State featureScales: number[] = [0.9, 0.9, 0.9];
   @State featureOpacities: number[] = [0, 0, 0];
   @State appVersion: string = '';
+  /** sheet 内嵌子页：'main' 关于主页 / 'privacy' 隐私政策。 */
+  @State subPage: string = 'main';
 
   aboutToAppear(): void {
     this.appVersion = getAppVersionName();
@@ -71,7 +77,68 @@ export struct About {
     }
   }
 
+  private openSubPage(target: string): void {
+    if (this.subPage === target) {
+      return;
+    }
+    this.getUIContext().animateTo(
+      { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 280 },
+      () => {
+        this.subPage = target;
+      }
+    );
+  }
+
+  private goBackFromSubPage(): void {
+    if (this.subPage === 'main') {
+      this.onRequestClose();
+      return;
+    }
+    this.getUIContext().animateTo(
+      { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 240 },
+      () => {
+        this.subPage = 'main';
+      }
+    );
+  }
+
   build() {
+    Column() {
+      // 顶部头部：subPage=privacy 时显示返回；其它与旧逻辑一致（无头部，标题区在内部）
+      if (this.subPage === 'privacy') {
+        Row() {
+          Image($r('app.media.ic_hm_back'))
+            .width(24)
+            .height(24)
+            .fillColor(this.getThemeColors().primaryText)
+            .onClick(() => this.goBackFromSubPage())
+          Text('隐私政策')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.getThemeColors().primaryText)
+            .margin({ left: 12 })
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 12 })
+      }
+
+      if (this.subPage === 'main') {
+        this.buildMain()
+      } else if (this.subPage === 'privacy') {
+        PrivacyPolicyBody({ onBack: () => this.goBackFromSubPage(), showHeader: false })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 32 })))
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(this.getThemeColors().bg)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+  }
+
+  @Builder
+  buildMain() {
     Scroll() {
       Column() {
         // Header section
@@ -185,6 +252,55 @@ export struct About {
           this.buildAboutItem('开发者', '何宇翔', 1)
           this.buildAboutItem('技术支持', 'HarmonyOS SDK', 2)
           this.buildAboutItem('架构', 'ArkTS + C++ Native', 3)
+
+          // 重新查看新手引导：关闭本 Sheet 并触发 Layout 的引导半蒙面展示
+          Row() {
+            Text('新手引导')
+              .fontSize(15)
+              .fontColor(this.getThemeColors().primaryText)
+              .layoutWeight(1)
+              .textAlign(TextAlign.Start)
+            Image($r('app.media.ic_hm_more'))
+              .width(16)
+              .height(16)
+              .fillColor(this.getThemeColors().secondaryText)
+          }
+          .width('100%')
+          .height(56)
+          .padding({ left: 16, right: 16 })
+          .backgroundColor(this.getThemeColors().cardBg)
+          .borderRadius(14)
+          .margin({ bottom: 2 })
+          .scale({ x: this.itemScales[4] ?? 1.0, y: this.itemScales[4] ?? 1.0 })
+          .animation({ duration: 300, curve: Curve.EaseOut, delay: 820 })
+          .onClick(() => {
+            // 关闭本 Sheet 并交由外层在 Sheet 关闭后再弹引导，避免同帧出现空白 large 页。
+            this.onStartOnboarding();
+          })
+
+          // 隐私政策：以 sheet 内嵌子页形式呈现，不再走主导航栈
+          Row() {
+            Text('隐私政策')
+              .fontSize(15)
+              .fontColor(this.getThemeColors().primaryText)
+              .layoutWeight(1)
+              .textAlign(TextAlign.Start)
+            Image($r('app.media.ic_hm_more'))
+              .width(16)
+              .height(16)
+              .fillColor(this.getThemeColors().secondaryText)
+          }
+          .width('100%')
+          .height(56)
+          .padding({ left: 16, right: 16 })
+          .backgroundColor(this.getThemeColors().cardBg)
+          .borderRadius(14)
+          .margin({ bottom: 2 })
+          .scale({ x: this.itemScales[5] ?? 1.0, y: this.itemScales[5] ?? 1.0 })
+          .animation({ duration: 300, curve: Curve.EaseOut, delay: 900 })
+          .onClick(() => {
+            this.openSubPage('privacy');
+          })
         }
         .width('100%')
         .padding({ left: 16, right: 16 })
@@ -204,6 +320,7 @@ export struct About {
     .layoutWeight(1)
     .scrollBar(BarState.Off)
     .backgroundColor(this.getThemeColors().bg)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder

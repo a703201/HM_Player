@@ -30,7 +30,13 @@
  */
 
 import { Logger } from '../utils/Logger';
-import { UIAbility, Configuration, ConfigurationConstant, Want } from '@kit.AbilityKit';
+import {
+  UIAbility,
+  Configuration,
+  ConfigurationConstant,
+  Want,
+  AbilityConstant
+} from '@kit.AbilityKit';
 import { display, window } from '@kit.ArkUI';
 import { BreakpointConstants } from '../common/constants/BreakpointConstants';
 import { MusicStore } from '../services/MusicStore';
@@ -38,18 +44,31 @@ import { SettingsStore } from '../utils/SettingsStore';
 import { ThemeManager } from '../utils/ThemeManager';
 import { AVSessionController } from '../utils/AVSessionController';
 import { CoverCache } from '../utils/CoverCache';
+import { SongItem } from '../models/music';
+import { AudioMetaReader } from '../utils/AudioMeta';
+import { AudioRendererController } from '../utils/AudioRendererController';
 
 // 与 CoverCache.CoverSource 对齐的具名入参类型（CoverSource 在 CoverCache.ets 内未导出，这里独立声明）
 interface CoverSrcItem {
   src: string;
 }
 
+// 跨设备流转待恢复状态（由 onContinue 注入，maybeRestoreContinuation 消费）
+interface ContinueRestore {
+  songId: number;
+  position: number;
+  isPlaying: boolean;
+}
+
 export default class EntryAbility extends UIAbility {
   private windowObj?: window.Window;
+  // 冷启动携带的 want（可能含文件打开 uri），待 store 初始化后处理
+  private pendingStartWant?: Want;
 
   onCreate(want: Want) {
     AppStorage.setOrCreate('context', this.context);
     Logger.info('Ability onCreate');
+    this.pendingStartWant = want;
     // 处理来自桌面卡片（FormAbility.onFormEvent）的播放控制指令
     this.handleControlWant(want);
   }
@@ -57,6 +76,8 @@ export default class EntryAbility extends UIAbility {
   onNewWant(want: Want) {
     Logger.info('Ability onNewWant');
     this.handleControlWant(want);
+    // 应用已运行时，从文件管理器/浏览器「用 Lumio 打开」拉起播放
+    this.handleFileWant(want);
   }
 
   /**
@@ -84,6 +105,205 @@ export default class EntryAbility extends UIAbility {
     AVSessionController.getInstance().remoteControl(control);
   }
 
+  /**
+   * 处理外部「用 Lumio 打开」音频文件（文件管理器 / 浏览器下载完成）：
+   * 解析 want.uri → 命中库内已导入歌曲则直接播放，否则按 uri 生成临时 SongItem 入库存后起播。
+   * 同时最佳努力地自动打开播放页（依赖 UI 就绪后的 NavPathStack）。
+   */
+  private async handleFileWant(want: Want): Promise<void> {
+    const uri: string | undefined = want.uri;
+    if (!uri || uri.length === 0) {
+      return;
+    }
+    const lower: string = uri.toLowerCase();
+    const isAudio: boolean =
+      lower.endsWith('.mp3') || lower.endsWith('.flac') || lower.endsWith('.wav') ||
+      lower.endsWith('.m4a') || lower.endsWith('.aac') || lower.endsWith('.ogg') ||
+      lower.endsWith('.wma') || (want.type ?? '').startsWith('audio');
+    if (!isAudio) {
+      return;
+    }
+    Logger.info('Ability', `handleFileWant: ${uri}`);
+    const store: MusicStore = MusicStore.getInstance();
+    let song: SongItem | undefined = store.songs.find((s: SongItem) => s.src === uri);
+    if (!song) {
+      const fileName: string = decodeURIComponent(uri.substring(uri.lastIndexOf('/') + 1));
+      const fallbackTitle: string = fileName.includes('.')
+        ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+      const newSong: SongItem = new SongItem();
+      newSong.id = this.hashUri(uri);
+      newSong.src = uri;
+      newSong.folder = this.extractFolderName(uri);
+      newSong.title = fallbackTitle;
+      newSong.singer = '未知艺术家';
+      try {
+        const meta = await AudioMetaReader.read(uri);
+        if (meta) {
+          newSong.title = (meta.title && meta.title.trim().length > 0) ? meta.title : fallbackTitle;
+          newSong.singer = (meta.artist && meta.artist.trim().length > 0) ? meta.artist : '未知艺术家';
+          newSong.album = meta.album ?? '';
+          newSong.author = meta.author ?? '';
+          newSong.year = meta.year ?? '';
+          newSong.sampleRate = meta.sampleRate ?? 0;
+          newSong.bitDepth = meta.bitDepth ?? 0;
+          newSong.codec = meta.codec ?? '';
+        }
+      } catch (e) {
+        Logger.error('Ability', 'handleFileWant meta read failed');
+      }
+      store.setSongs([...store.songs, newSong]);
+      song = newSong;
+    }
+    const playIndex: number = store.songs.findIndex((s: SongItem) => s.id === song!.id);
+    AudioRendererController.getInstance().setQueue(store.songs, playIndex >= 0 ? playIndex : 0, true);
+    this.tryOpenPlayer();
+  }
+
+  /** 最佳努力打开播放页：UI 可能尚未就绪，最多重试若干次。 */
+  private tryOpenPlayer(retry: number = 0): void {
+    const nav: NavPathStack | undefined = AppStorage.get<NavPathStack>('navPathStack');
+    if (nav) {
+      try {
+        nav.pushPathByName('PlayerPage', null);
+      } catch (e) {
+        Logger.error('Ability', 'tryOpenPlayer push failed');
+      }
+      return;
+    }
+    if (retry < 6) {
+      setTimeout(() => this.tryOpenPlayer(retry + 1), 200);
+    }
+  }
+
+  // ===== 分布式流转（跨设备接力播放）=====
+
+  /**
+   * 注册流转能力：在用户于「超级终端」选择目标设备时，回调返回携带当前播放状态的 Want，
+   * 系统据此在目标设备拉起本 Ability 并触发 onContinue。设备需登录同一华为账号且开启多设备协同。
+   * continuationManager 在部分 API 版本/设备上不暴露，这里以 ESObject 逃逸访问并做能力兜底，
+   * 不支持时静默跳过，不影响常规播放。
+   */
+  private registerContinuation(): void {
+    try {
+      const ctx: ESObject = this.context as ESObject;
+      const mgr: ESObject = ctx.continuationManager;
+      if (!mgr || typeof mgr.register !== 'function') {
+        Logger.info('Ability', 'continuationManager not available on this device');
+        return;
+      }
+      mgr.register((info: ESObject): Want => {
+        Logger.info('Ability', 'continuation register callback, device: ' + (info?.deviceId ?? ''));
+        return this.buildContinueWant();
+      });
+    } catch (e) {
+      Logger.error('Ability', 'register continuation failed: ' + (e as Error).message);
+    }
+  }
+
+  /** 构造流转 Want：携带当前播放歌曲 id、进度、播放模式与队列，供目标设备重建会话。 */
+  private buildContinueWant(): Want {
+    const controller: AudioRendererController = AudioRendererController.getInstance();
+    const song: SongItem | undefined = controller.getCurrentSong();
+    const params: Record<string, Object> = {};
+    if (song) {
+      params['continueSongId'] = song.id;
+      params['continuePosition'] = controller.getCurrentPosition();
+      params['continuePlayMode'] = controller.getPlayMode();
+      params['continueIsPlaying'] = (AppStorage.get<boolean>('isPlay') ?? false);
+      const ids: number[] = controller.getQueue().map((s: SongItem) => s.id);
+      params['continueQueueIds'] = ids;
+    }
+    return {
+      bundleName: 'com.lumio.music',
+      abilityName: 'EntryAbility',
+      parameters: params
+    } as Want;
+  }
+
+  /**
+   * 流转目标侧：系统在拉起本 Ability 时回调，传入源设备保存的播放状态。
+   * 仅记录待恢复标记，待 store 初始化后再由 maybeRestoreContinuation 应用（避免空库误判）。
+   */
+  onContinue(wantParams: Record<string, Object>): AbilityConstant.OnContinueResult {
+    try {
+      const songId: number = wantParams['continueSongId'] as number;
+      if (songId === undefined || songId === null) {
+        return AbilityConstant.OnContinueResult.AGREE;
+      }
+      const position: number = (wantParams['continuePosition'] as number) ?? 0;
+      const isPlaying: boolean = (wantParams['continueIsPlaying'] as boolean) ?? false;
+      const restore: ContinueRestore = { songId, position, isPlaying };
+      AppStorage.setOrCreate<ContinueRestore>('continueRestore', restore);
+      Logger.info('Ability', `onContinue received songId=${songId}, position=${position}`);
+    } catch (e) {
+      Logger.error('Ability', 'onContinue parse failed: ' + (e as Error).message);
+    }
+    return AbilityConstant.OnContinueResult.AGREE;
+  }
+
+  /** 若本机是被流转目标，按保存的歌曲 id 在本地库中定位并接力恢复播放进度。 */
+  private maybeRestoreContinuation(): void {
+    const restore: ContinueRestore | undefined = AppStorage.get<ContinueRestore>('continueRestore');
+    if (!restore || restore.songId === undefined || restore.songId === null) {
+      return;
+    }
+    AppStorage.delete('continueRestore');
+    const store: MusicStore = MusicStore.getInstance();
+    const idx: number = store.songs.findIndex((s: SongItem) => s.id === restore.songId);
+    if (idx < 0) {
+      // 目标设备曲目库不含该歌曲（本地文件不同步），无法接力，静默放弃
+      Logger.warn('Ability', 'continuation target library missing song, skip restore');
+      return;
+    }
+    const controller: AudioRendererController = AudioRendererController.getInstance();
+    controller.setQueue(store.songs, idx, true);
+    // 等音频 prepare 后再 seek 并对齐播放/暂停状态（最佳努力）
+    setTimeout(() => {
+      if (restore.position && restore.position > 0) {
+        controller.seek(restore.position);
+      }
+      if (restore.isPlaying) {
+        controller.start();
+      } else {
+        controller.pause();
+      }
+    }, 600);
+    this.tryOpenPlayer();
+    Logger.info('Ability', `continuation restored to index=${idx}`);
+  }
+
+  private hashUri(str: string): number {
+    let hash: number = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash * 31 + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash);
+  }
+
+  private extractFolderName(uri: string): string {
+    try {
+      let path: string = uri;
+      if (path.startsWith('file://')) {
+        path = path.substring('file://'.length);
+      }
+      const q: number = path.indexOf('?');
+      if (q >= 0) {
+        path = path.substring(0, q);
+      }
+      const lastSlash: number = path.lastIndexOf('/');
+      if (lastSlash <= 0) {
+        return '';
+      }
+      const parentSlash: number = path.lastIndexOf('/', lastSlash - 1);
+      if (parentSlash < 0) {
+        return '';
+      }
+      return decodeURIComponent(path.substring(parentSlash + 1, lastSlash));
+    } catch (e) {
+      return '';
+    }
+  }
+
   onDestroy() {
     Logger.info('Ability onDestroy');
   }
@@ -92,6 +312,16 @@ export default class EntryAbility extends UIAbility {
     Logger.info('Ability onWindowStageCreate');
 
     await this.initStore();
+    // 冷启动从外部「用 Lumio 打开音频文件」拉起：store 就绪后解析 uri 起播
+    if (this.pendingStartWant) {
+      const w: Want = this.pendingStartWant;
+      this.pendingStartWant = undefined;
+      await this.handleFileWant(w);
+    }
+    // 跨设备流转目标：若由 onContinue 注入恢复标记，则接力恢复播放进度
+    this.maybeRestoreContinuation();
+    // 注册分布式流转能力（同一华为账号下的平板/智慧屏等可接力当前播放）
+    this.registerContinuation();
     // 初始化设置项偏好与主题管理器（需在窗口就绪前完成，供页面与系统栏取色）
     await SettingsStore.getInstance().ensureInitialized(this.context);
     ThemeManager.init();

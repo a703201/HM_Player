@@ -48,6 +48,8 @@ export struct LocalLibrary {
   @StorageProp('bottomHeight') bottomHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
   @StorageProp('coverRefreshToken') @Watch('onCoverRefreshed') coverRefreshToken: number = 0;
+  // 响应式断点：sm 单列列表，md/lg（折叠屏/平板/2-in-1）两列网格
+  @StorageProp('currentBreakpoint') breakpoint: string = 'sm';
 
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
@@ -136,8 +138,11 @@ export struct LocalLibrary {
   // 原歌曲页的导入功能，已迁移至音乐库页
   async onPickMusic(): Promise<void> {
     try {
-      const audioPicker = new picker.DocumentViewPicker();
-      const result: string[] = await audioPicker.select();
+      const documentPicker = new picker.DocumentViewPicker();
+      const documentOptions = new picker.DocumentSelectOptions();
+      // 限定为常见音频后缀：仍可浏览目录，仅在目录中显示/可选中音频文件（flac/mp3/m4a/wav/ogg/ape/wma/aac 等）
+      documentOptions.fileSuffixFilters = ['.flac', '.mp3', '.m4a', '.wav', '.ogg', '.ape', '.wma', '.aac', '.m4b', '.mp2', '.aiff', '.alac', '.opus'];
+      const result: string[] = await documentPicker.select(documentOptions);
       if (result && result.length > 0) {
         this.isLoading = true;
         const context = AppStorage.get<common.UIAbilityContext>('context') as common.UIAbilityContext;
@@ -170,6 +175,7 @@ export struct LocalLibrary {
             const song = new SongItem();
             song.id = Math.abs(hashCode(srcPath));
             song.src = srcPath;
+            song.folder = this.extractFolderName(uri);
             song.index = this.store.songs.length + newSongs.length;
             // 读取音频内嵌文本元数据：标题 / 艺术家 / 专辑 / 作者
             const meta = await AudioMetaReader.read(srcPath);
@@ -212,6 +218,34 @@ export struct LocalLibrary {
       this.errorMessage = '导入失败：' + ((err as Error).message ?? '未知错误');
       Logger.error('Pick music failed');
       this.isLoading = false;
+    }
+  }
+
+  /**
+   * 从 picker URI 解析父目录名作为「来源文件夹」，用于按文件夹浏览本地音乐。
+   * 例：file:///.../Music/周杰伦/七里香.mp3 → '周杰伦'。解析失败返回空串（归入「导入音乐」）。
+   */
+  private extractFolderName(uri: string): string {
+    try {
+      let path: string = uri;
+      if (path.startsWith('file://')) {
+        path = path.substring('file://'.length);
+      }
+      const q: number = path.indexOf('?');
+      if (q >= 0) {
+        path = path.substring(0, q);
+      }
+      const lastSlash: number = path.lastIndexOf('/');
+      if (lastSlash <= 0) {
+        return '';
+      }
+      const parentSlash: number = path.lastIndexOf('/', lastSlash - 1);
+      if (parentSlash < 0) {
+        return '';
+      }
+      return decodeURIComponent(path.substring(parentSlash + 1, lastSlash));
+    } catch (e) {
+      return '';
     }
   }
 
@@ -384,13 +418,6 @@ export struct LocalLibrary {
         this.playSong(song);
       })
 
-      if (this.store.currentIndex !== index) {
-        Text(`${index + 1}`)
-          .fontSize(13)
-          .fontColor(this.getThemeColors().secondaryText)
-          .margin({ right: 4 })
-      }
-
     }
     .width('100%')
     .height(72)
@@ -419,7 +446,7 @@ export struct LocalLibrary {
   buildSongMenu(song: SongItem) {
     Column() {
       Row() {
-        Image($r('app.media.ic_hm_play'))
+        Image($r('app.media.ic_hos_play'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -437,7 +464,7 @@ export struct LocalLibrary {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_favorite'))
+        Image($r('app.media.ic_hos_collect'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -455,7 +482,7 @@ export struct LocalLibrary {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_folder'))
+        Image($r('app.media.ic_hos_add'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -473,7 +500,7 @@ export struct LocalLibrary {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_sort_list'))
+        Image($r('app.media.ic_hos_detail'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -491,7 +518,7 @@ export struct LocalLibrary {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_trash'))
+        Image($r('app.media.ic_hos_delete'))
           .width(18)
           .fillColor('#FA2759')
           .margin({ right: 12 })
@@ -507,9 +534,12 @@ export struct LocalLibrary {
       })
     }
     .width(176)
-    .backgroundColor(this.getThemeColors().bg)
+    // 卡片色（cardBg）在深色模式为 #1C1C1E（深灰），避免用 `bg` (#000000 纯黑) 使菜单呈现
+    // "墨底亮字" 难以辨认；浅色模式亦保持卡片灰，确保双模式下背景统一。
+    .backgroundColor(this.getThemeColors().cardBg)
+    .border({ width: 0.5, color: this.getThemeColors().separator })
     .borderRadius(12)
-    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
+    .shadow({ radius: 12, color: this.isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 4 })
   }
 
   @Builder
@@ -673,17 +703,34 @@ export struct LocalLibrary {
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
       } else {
-        List() {
-          ForEach(this.filteredSongs, (song: SongItem, index: number) => {
-            ListItem() {
-              this.buildSongItem(song, index)
-            }
-          })
+        if (this.breakpoint === 'sm') {
+          List() {
+            ForEach(this.filteredSongs, (song: SongItem, index: number) => {
+              ListItem() {
+                this.buildSongItem(song, index)
+              }
+            })
+          }
+          .width('100%')
+          .height('100%')
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+        } else {
+          // 折叠屏 / 平板 / 2-in-1：两列网格，更高效地利用横向空间
+          Grid() {
+            ForEach(this.filteredSongs, (song: SongItem, index: number) => {
+              GridItem() {
+                this.buildSongItem(song, index)
+              }
+            }, (song: SongItem): string => song.id.toString())
+          }
+          .columnsTemplate('1fr 1fr')
+          .rowsGap(8)
+          .width('100%')
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+          .padding({ left: 8, right: 8 })
         }
-        .width('100%')
-        .height('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
       }
     }
     .width('100%')
@@ -695,6 +742,7 @@ export struct LocalLibrary {
       detents: [SheetSize.MEDIUM, SheetSize.LARGE],
       dragBar: true,
       showClose: true,
+      backgroundColor: this.getThemeColors().bg,
       preferType: SheetType.BOTTOM
     })
   }

@@ -38,6 +38,7 @@ const MY_STORE = 'myStore';
 const FORM_ID = 'formIds';
 const PERM_GUIDE_SHOWN = 'permGuideShown';
 const SILENT_MODE = 'silentMode';
+const ONBOARDING_SHOWN = 'onboardingShown';
 
 export class PreferencesUtil {
   private static preferencesUtil: PreferencesUtil;
@@ -194,6 +195,37 @@ export class PreferencesUtil {
     } catch (error) {
       let err = error as BusinessError;
       Logger.error(TAG, `markPermGuideShown failed. message:${err.message}`);
+    }
+  }
+
+  async isOnboardingShown(context: Context): Promise<boolean> {
+    try {
+      let preference = await this.getPreferences(context);
+      if (preference === null) {
+        return false;
+      }
+      return preference.getSync(ONBOARDING_SHOWN, false) as boolean;
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(TAG, `isOnboardingShown failed. message:${err.message}`);
+      return false;
+    }
+  }
+
+  async markOnboardingShown(context: Context): Promise<void> {
+    try {
+      let preference = await this.getPreferences(context);
+      if (preference === null) {
+        return;
+      }
+      preference.put(ONBOARDING_SHOWN, true, (err: BusinessError) => {
+        if (!err) {
+          preference.flush();
+        }
+      });
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(TAG, `markOnboardingShown failed. message:${err.message}`);
     }
   }
 

@@ -70,6 +70,17 @@ export class AudioRendererController {
   private playMsAccum: number = 0;
   private prevTimeMs: number = 0;
   private curStatSongId: number = -1;
+  // ===== Gapless 无缝播放 =====
+  // 第二路 AVPlayer，用于预加载「下一首」到 prepared 状态，曲终时无缝接管（消除 reset/prepare 间隙）。
+  private nextAvPlayer?: media.AVPlayer;
+  private nextFile?: fileIo.File;
+  private nextIndex: number = -1;
+  private nextReady: boolean = false;
+  private gaplessEnabled: boolean = true;
+  // 主播放器监听句柄（具名，便于在释放旧播放器时 off 掉，避免交接后旧曲迟到的 completed 再次触发推进）
+  private avStateHandler?: (state: string) => void;
+  private avTimeHandler?: (time: number) => void;
+  private avDurationHandler?: (dur: number) => void;
 
   constructor() {
     let list: SongItem[] | undefined = AppStorage.get('songList');
@@ -107,48 +118,62 @@ export class AudioRendererController {
     }
     this.setAvSessionCallback();
 
-    this.avPlayer.on('stateChange', (state: string) => {
-      Logger.info(TAG, 'AVPlayer stateChange: ' + state);
-      if (state === 'initialized') {
-        // fdSrc 已设置，进入 prepared 状态准备播放（官方推荐：在状态回调中驱动状态机）
-        this.avPlayer?.prepare();
-      } else if (state === 'prepared') {
-        // 准备完成。投播状态下本地保持静音（由远端设备出声），不自动起播。
-        if (!this.castActive) {
-          this.applySpeed();
-          this.applySilentMode();
-          this.start();
+    // 监听句柄只创建一次，并以「先 off 再 on」方式挂载，保证每次 handoff/接管后主播放器上
+    // 仅有这一个 stateChange/timeUpdate/durationUpdate 监听（避免重复挂载导致回调多次触发）。
+    if (!this.avStateHandler) {
+      this.avStateHandler = (state: string) => {
+        Logger.info(TAG, 'AVPlayer stateChange: ' + state);
+        if (state === 'initialized') {
+          // fdSrc 已设置，进入 prepared 状态准备播放（官方推荐：在状态回调中驱动状态机）
+          this.avPlayer?.prepare();
+        } else if (state === 'prepared') {
+          // 准备完成。投播状态下本地保持静音（由远端设备出声），不自动起播。
+          if (!this.castActive) {
+            this.applySpeed();
+            this.applySilentMode();
+            this.start();
+          }
+        } else if (state === 'playing') {
+          this.updateIsPlay(true);
+        } else if (state === 'paused') {
+          this.updateIsPlay(false);
+        } else if (state === 'completed') {
+          this.onPlaybackCompleted();
+        } else if (state === 'stopped') {
+          this.updateIsPlay(false);
         }
-      } else if (state === 'playing') {
-        this.updateIsPlay(true);
-      } else if (state === 'paused') {
-        this.updateIsPlay(false);
-      } else if (state === 'completed') {
-        this.onPlaybackCompleted();
-      } else if (state === 'stopped') {
-        this.updateIsPlay(false);
-      }
-    });
+      };
+    }
+    if (!this.avTimeHandler) {
+      this.avTimeHandler = (time: number) => {
+        this.curMs = time;
+        AppStorage.setOrCreate('progress', time);
+        AppStorage.setOrCreate('currentTime', MediaTools.msToCountdownTime(time));
+        if (this.curStatSongId > 0 && this.prevTimeMs > 0 && time >= this.prevTimeMs) {
+          this.playMsAccum += (time - this.prevTimeMs);
+        }
+        this.prevTimeMs = time;
+        if (this.avSessionController) {
+          this.avSessionController.setProgressState(time);
+        }
+      };
+    }
+    if (!this.avDurationHandler) {
+      this.avDurationHandler = (dur: number) => {
+        this.duration = dur;
+        AppStorage.setOrCreate('totalTime', MediaTools.msToCountdownTime(dur));
+        AppStorage.setOrCreate('totalMsTime', dur);
+        AppStorage.setOrCreate('progressMax', dur);
+      };
+    }
 
-    this.avPlayer.on('timeUpdate', (time: number) => {
-      this.curMs = time;
-      AppStorage.setOrCreate('progress', time);
-      AppStorage.setOrCreate('currentTime', MediaTools.msToCountdownTime(time));
-      if (this.curStatSongId > 0 && this.prevTimeMs > 0 && time >= this.prevTimeMs) {
-        this.playMsAccum += (time - this.prevTimeMs);
-      }
-      this.prevTimeMs = time;
-      if (this.avSessionController) {
-        this.avSessionController.setProgressState(time);
-      }
-    });
-
-    this.avPlayer.on('durationUpdate', (dur: number) => {
-      this.duration = dur;
-      AppStorage.setOrCreate('totalTime', MediaTools.msToCountdownTime(dur));
-      AppStorage.setOrCreate('totalMsTime', dur);
-      AppStorage.setOrCreate('progressMax', dur);
-    });
+    // 先 off 再 on：幂等，确保主播放器上监听器唯一
+    this.avPlayer.off('stateChange', this.avStateHandler);
+    this.avPlayer.on('stateChange', this.avStateHandler);
+    this.avPlayer.off('timeUpdate', this.avTimeHandler);
+    this.avPlayer.on('timeUpdate', this.avTimeHandler);
+    this.avPlayer.off('durationUpdate', this.avDurationHandler);
+    this.avPlayer.on('durationUpdate', this.avDurationHandler);
 
     this.avPlayer.on('error', (err: BusinessError) => {
       Logger.error(TAG, `AVPlayer error: ${err.code} - ${err.message}`);
@@ -219,12 +244,16 @@ export class AudioRendererController {
       MusicStore.getInstance().recordPlayStart(playedSong.id);
     }
     await this.loadAndPlay();
+    // 起播后预加载下一首，为 Gapless 无缝接管做准备
+    this.preloadNext();
   }
 
   private async loadAndPlay(): Promise<void> {
     if (!this.avPlayer) {
       return;
     }
+    // 手动切歌会使已预加载的「下一首」失效，先释放，play() 末尾会重新预加载
+    this.disposeNextPlayer();
     // 关闭上一首歌曲占用的文件句柄，避免 fd 泄漏
     if (this.curFile) {
       try {
@@ -299,6 +328,7 @@ export class AudioRendererController {
       this.play(startIndex);
     } else {
       AppStorage.setOrCreate('selectIndex', startIndex);
+      this.preloadNext();
     }
   }
 
@@ -343,6 +373,7 @@ export class AudioRendererController {
       }
     }
     this.syncQueue();
+    this.preloadNext();
   }
 
   /**
@@ -366,6 +397,7 @@ export class AudioRendererController {
     const insertAt: number = this.musicIndex + 1;
     this.songList.splice(insertAt, 0, item);
     this.syncQueue();
+    this.preloadNext();
   }
 
   private syncQueue(): void {
@@ -423,6 +455,9 @@ export class AudioRendererController {
       } else {
         this.play(newIndex);
       }
+    } else {
+      // 队列顺序变化后重新预加载下一首
+      this.preloadNext();
     }
   }
 
@@ -437,6 +472,8 @@ export class AudioRendererController {
     }
     this.avSessionController.setPlayModeToAVSession();
     Logger.info(TAG, 'setPlayModel mode: ' + this.playMode);
+    // 播放模式变化会改变「下一首」是谁，重建预加载
+    this.preloadNext();
   }
 
   public getPlayMode(): MusicPlayMode {
@@ -481,6 +518,254 @@ export class AudioRendererController {
       } catch (e) {
         Logger.error(TAG, 'applySpeed failed');
       }
+    }
+  }
+
+  // ===== Gapless 无缝播放 =====
+
+  /** 同步最新无缝/交叉淡变设置（每次起播与预加载前读取，确保设置页改动即时生效）。 */
+  private refreshGaplessSettings(): void {
+    try {
+      const s: SettingsStore = SettingsStore.getInstance();
+      this.gaplessEnabled = s.getGapless();
+    } catch (e) {
+    }
+  }
+
+  /** 设置项变动回调：关闭无缝或改交叉淡变时长后立即刷新（关闭时清理已预加载缓冲）。 */
+  public onGaplessSettingChanged(): void {
+    this.refreshGaplessSettings();
+    if (!this.gaplessEnabled) {
+      this.disposeNextPlayer();
+      return;
+    }
+    this.preloadNext();
+  }
+
+  /** 计算「下一首」在队列中的下标（与 playNext 的索引推进逻辑保持一致，但不真正播放）。 */
+  private computeNextIndex(): number {
+    if (this.songList.length === 0) {
+      return -1;
+    }
+    if (this.songList.length === 1) {
+      return 0;
+    }
+    switch (this.playMode) {
+      case MusicPlayMode.SINGLE_CYCLE:
+        return this.musicIndex;
+      case MusicPlayMode.RANDOM:
+        let num: number = Math.round(Math.random() * (this.songList.length - 1));
+        if (num === this.musicIndex) {
+          num = (num + 1) % this.songList.length;
+        }
+        return num;
+      case MusicPlayMode.ORDER:
+      default:
+        return this.musicIndex === this.songList.length - 1 ? 0 : this.musicIndex + 1;
+    }
+  }
+
+  /**
+   * 预加载下一首到 prepared 状态。创建第二路 AVPlayer 并 openSync 下一首 fd，
+   * 由状态机驱动到 'prepared'；曲终时由 handoffToNext 接管。
+   * 投播态与无缝关闭时不预加载（远端设备负责切换，本地单路即可）。
+   */
+  private preloadNext(): void {
+    this.refreshGaplessSettings();
+    // 已预加载且仍有效：保留
+    if (this.nextAvPlayer && this.nextReady && this.nextIndex >= 0) {
+      return;
+    }
+    this.disposeNextPlayer();
+    if (!this.gaplessEnabled || this.castActive || !this.avPlayer) {
+      return;
+    }
+    const idx: number = this.computeNextIndex();
+    if (idx < 0 || idx === this.musicIndex) {
+      return;
+    }
+    const song: SongItem | undefined = this.songList[idx];
+    if (!song) {
+      return;
+    }
+    try {
+      const file: fileIo.File = fileIo.openSync(song.src, fileIo.OpenMode.READ_ONLY);
+      this.nextFile = file;
+      this.nextIndex = idx;
+      this.nextReady = false;
+      media.createAVPlayer().then((player: media.AVPlayer) => {
+        // 创建可能因资源紧张失败，此时放弃预加载，回退普通切歌
+        if (!this.nextFile || this.nextIndex !== idx) {
+          try {
+            fileIo.closeSync(file.fd);
+          } catch (e) {
+          }
+          player.release().catch(() => {});
+          return;
+        }
+        this.nextAvPlayer = player;
+        // 仅挂载最小状态监听：initialized→prepare 驱动到 prepared 后标记就绪。
+        // 接管后由 setAVPlayerCallbacks 挂载主回调，避免重复监听。
+        player.on('stateChange', (state: string) => {
+          if (player !== this.nextAvPlayer) {
+            return;
+          }
+          if (state === 'initialized') {
+            player.prepare();
+          } else if (state === 'prepared') {
+            this.nextReady = true;
+          }
+        });
+        player.on('error', (err: BusinessError) => {
+          Logger.error(TAG, `nextPlayer error: ${err.code} - ${err.message}`);
+        });
+        player.fdSrc = { fd: file.fd };
+      }).catch((err: Error) => {
+        Logger.error(TAG, 'create next AVPlayer failed: ' + (err as Error).message);
+        try {
+          fileIo.closeSync(file.fd);
+        } catch (e) {
+        }
+        this.nextFile = undefined;
+        this.nextIndex = -1;
+      });
+    } catch (e) {
+      Logger.error(TAG, 'preloadNext open failed');
+      this.nextFile = undefined;
+      this.nextIndex = -1;
+    }
+  }
+
+  /** 释放第二路 AVPlayer 与 fd，避免资源泄漏。 */
+  private disposeNextPlayer(): void {
+    if (this.nextAvPlayer) {
+      const p: media.AVPlayer = this.nextAvPlayer;
+      try {
+        p.stop().then(() => {
+          p.release().catch(() => {});
+        }).catch(() => {
+          p.release().catch(() => {});
+        });
+      } catch (e) {
+        try {
+          p.release().catch(() => {});
+        } catch (e2) {
+        }
+      }
+    }
+    if (this.nextFile) {
+      try {
+        fileIo.closeSync(this.nextFile.fd);
+      } catch (e) {
+      }
+    }
+    this.nextAvPlayer = undefined;
+    this.nextFile = undefined;
+    this.nextIndex = -1;
+    this.nextReady = false;
+  }
+
+  /** 释放指定（旧）播放器与 fd（handoff 后对旧路做善后）。 */
+  private disposePlayer(player?: media.AVPlayer, file?: fileIo.File): void {
+    if (player) {
+      // 关键：先摘掉旧播放器的主监听，避免交叉淡变提升新曲后，旧曲迟到（stop/release 异步）的
+      // 'completed' 事件再次进入 onPlaybackCompleted 造成「跳过下一首」的双推进。
+      try {
+        if (this.avStateHandler) {
+          player.off('stateChange', this.avStateHandler);
+        }
+        if (this.avTimeHandler) {
+          player.off('timeUpdate', this.avTimeHandler);
+        }
+        if (this.avDurationHandler) {
+          player.off('durationUpdate', this.avDurationHandler);
+        }
+      } catch (e) {
+      }
+      try {
+        player.stop().then(() => {
+          player.release().catch(() => {});
+        }).catch(() => {
+          player.release().catch(() => {});
+        });
+      } catch (e) {
+        try {
+          player.release().catch(() => {});
+        } catch (e2) {
+        }
+      }
+    }
+    if (file) {
+      try {
+        fileIo.closeSync(file.fd);
+      } catch (e) {
+      }
+    }
+  }
+
+  /**
+   * 无缝硬切接管：当前曲自然结束后，将已 prepared 的下一首提升为主播放器，
+   * 立即起播（仅含 play() 极短延迟，远小于 reset+prepare 间隙），随后预加载再下一首。
+   */
+  private handoffToNext(): void {
+    const oldPlayer: media.AVPlayer | undefined = this.avPlayer;
+    const oldFile: fileIo.File | undefined = this.curFile;
+    const promoted: media.AVPlayer | undefined = this.nextAvPlayer;
+    const promotedFile: fileIo.File | undefined = this.nextFile;
+    const nextIdx: number = this.nextIndex;
+    if (!promoted || nextIdx < 0 || nextIdx >= this.songList.length) {
+      this.disposeNextPlayer();
+      this.playNext();
+      return;
+    }
+    // 提升下一首为主播放器
+    this.avPlayer = promoted;
+    this.curFile = promotedFile;
+    this.nextAvPlayer = undefined;
+    this.nextFile = undefined;
+    this.nextIndex = -1;
+    this.nextReady = false;
+    // 挂载主回调（接管时间/进度/完成等事件）
+    this.setAVPlayerCallbacks();
+    // 更新队列索引与歌曲元数据
+    this.musicIndex = nextIdx;
+    this.updateMusicIndex(nextIdx);
+    const song: SongItem | undefined = this.songList[nextIdx];
+    if (song) {
+      MusicStore.getInstance().addToRecentlyPlayed(song);
+      this.curStatSongId = song.id;
+      this.playMsAccum = 0;
+      this.prevTimeMs = 0;
+      MusicStore.getInstance().recordPlayStart(song.id);
+    }
+    this.syncQueue();
+    // 预加载时已 prepared，durationUpdate 未挂载：手动同步总时长，避免进度条时长错乱
+    this.syncDurationFromPlayer();
+    // 应用速度与静音并起播（已 prepared）
+    this.applySpeed();
+    this.applySilentMode();
+    this.start();
+    // 预加载再下一首
+    this.preloadNext();
+    // 善后旧路
+    this.disposePlayer(oldPlayer, oldFile);
+    Logger.info(TAG, 'Gapless handoff to index: ' + nextIdx);
+  }
+
+  /** 接管后从当前播放器读取总时长并同步到 AppStorage（预加载期间 durationUpdate 未挂载）。 */
+  private syncDurationFromPlayer(): void {
+    if (!this.avPlayer) {
+      return;
+    }
+    try {
+      const dur: number = this.avPlayer.duration;
+      if (dur > 0) {
+        this.duration = dur;
+        AppStorage.setOrCreate('totalTime', MediaTools.msToCountdownTime(dur));
+        AppStorage.setOrCreate('totalMsTime', dur);
+        AppStorage.setOrCreate('progressMax', dur);
+      }
+    } catch (e) {
     }
   }
 
@@ -552,8 +837,15 @@ export class AudioRendererController {
       this.pause();
       return;
     }
+    // Gapless：若下一首已预加载就绪，直接无缝接管（消除 reset/prepare 间隙）
+    if (this.gaplessEnabled && !this.castActive && this.nextReady && this.nextAvPlayer) {
+      this.handoffToNext();
+      return;
+    }
     if (SettingsStore.getInstance().getAutoNext()) {
-      this.playNext();
+      if (this.songList.length > 0 && this.avPlayer) {
+        this.playNext();
+      }
     } else {
       this.stop();
     }
@@ -643,6 +935,7 @@ export class AudioRendererController {
   }
 
   public async stop(): Promise<void> {
+    this.disposeNextPlayer();
     if (this.avPlayer) {
       try {
         await this.avPlayer.stop();
@@ -659,6 +952,7 @@ export class AudioRendererController {
   }
 
   public async release(): Promise<void> {
+    this.disposeNextPlayer();
     if (this.avPlayer && this.context) {
       try {
         await this.avPlayer.release();

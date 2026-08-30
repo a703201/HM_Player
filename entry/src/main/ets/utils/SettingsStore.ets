@@ -18,6 +18,7 @@ import { Logger } from './Logger';
 import { preferences } from '@kit.ArkData';
 import { MusicStore } from '../services/MusicStore';
 import { AVSessionController } from './AVSessionController';
+import { AudioRendererController } from './AudioRendererController';
 
 /**
  * 设置项持久化单例。
@@ -39,6 +40,7 @@ const KEY_NOTIFICATION_LOCK: string = 'notification_lock_screen';
 const KEY_PRIVACY_STATS: string = 'privacy_stats';
 const KEY_REDUCE_MOTION: string = 'reduce_motion';
 const KEY_SLEEP_TIMER: string = 'sleep_timer';
+const KEY_GAPLESS: string = 'gapless';
 
 export class SettingsStore {
   private static instance: SettingsStore | null = null;
@@ -53,6 +55,7 @@ export class SettingsStore {
   private privacyStats: boolean = true;
   private reduceMotion: boolean = false;
   private sleepTimerMinutes: number = 0;
+  private gapless: boolean = true;
 
   private constructor() {
   }
@@ -90,6 +93,7 @@ export class SettingsStore {
       this.privacyStats = await this.pref.get(KEY_PRIVACY_STATS, true) as boolean;
       this.reduceMotion = await this.pref.get(KEY_REDUCE_MOTION, false) as boolean;
       this.sleepTimerMinutes = await this.pref.get(KEY_SLEEP_TIMER, 0) as number;
+      this.gapless = await this.pref.get(KEY_GAPLESS, true) as boolean;
       this.initialized = true;
     } catch (err) {
       Logger.error('SettingsStore init failed');
@@ -172,6 +176,22 @@ export class SettingsStore {
   async setSleepTimer(minutes: number): Promise<void> {
     this.sleepTimerMinutes = minutes;
     await this.putNumber(KEY_SLEEP_TIMER, minutes);
+  }
+
+  // ===== 无缝播放（Gapless）/ 交叉淡变 =====
+  getGapless(): boolean {
+    return this.gapless;
+  }
+
+  async setGapless(value: boolean): Promise<void> {
+    this.gapless = value;
+    await this.putBoolean(KEY_GAPLESS, value);
+    // 实时联动播放内核：关闭时清理预加载缓冲
+    try {
+      AudioRendererController.getInstance().onGaplessSettingChanged();
+    } catch (e) {
+      Logger.error('link gapless failed');
+    }
   }
 
   private async putNumber(key: string, value: number): Promise<void> {

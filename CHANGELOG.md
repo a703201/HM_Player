@@ -8,18 +8,54 @@
 
 ## v2.4.0（2026-08-30）· 体验完善与缺陷修复
 
-> 版本升版 2.3.0 → 2.4.0（`AppScope/app.json5`：`versionName 2.4.0` / `versionCode 2040000`）。本批次聚焦缺陷修复与体验打磨。
+> 版本升版 2.3.0 → 2.4.0（`AppScope/app.json5`：`versionName 2.4.0` / `versionCode 2040000`）。本批次在缺陷修复基础上，补齐本地播放器的关键能力与鸿蒙特性：文件关联、无缝播放、跨设备流转、智能歌单、文件夹浏览、响应式双栏、启动/引导页等。
+
+### 新增
+- **Want 文件关联**：`module.json5` 注册 `file://` + `audio/*` 的 `viewData` skill；`EntryAbility` 在 `onCreate`（冷启动）与 `onNewWant`（热启动）解析 `want.uri`，从文件管理器/浏览器「用 Lumio 打开」音频即直接起播（命中曲库或新建临时条目）。
+- **倍速播放（变速不变调）**：`setSpeed` 0.5×–2.0×，已联动系统媒体中心（锁屏/控制中心同步倍速）。
+- **睡眠定时**：支持「N 分钟后停止」与「播完当前曲后停止」两种模式。
+- **智能分类 / 自动歌单**：`SmartPlaylistService` 生成无损合辑、有损合辑，并按歌手聚合自动歌单，`Playlists` 页统一渲染。
+- **播放统计 / 听歌报告**：新增 `Wrapped` 苹果风年度回顾页（听歌时长、最爱歌手、昼夜分布等）。
+- **文件夹浏览**：`FolderBrowse` 按导入时解析的父目录名聚合浏览，可在文件夹或歌曲粒度起播。
+- **卡片内播控按钮**：桌面卡片支持播放/暂停/上一首/下一首控制。
+- **Gapless 无缝播放（#29）**：维护第二路 `AVPlayer` 预加载「下一首」到 `prepared`，曲终即时无缝接管，消除 `reset/prepare` 间隙；设置页可开关。
+- **后台保活与功耗**：`BackgroundUtil` 长时任务，锁屏/切后台持续播放并降低功耗。
+- **折叠屏 / 2-in-1 响应式双栏**：`BreakpointConstants` 断点 `sm/md/lg`，`md/lg` 音乐库以 `Grid` 双列呈现，桌面/折叠屏信息密度更高。
+- **逐字卡拉OK歌词**：KRC 逐字高亮渲染。
+- **分布式流转**：`continuationManager` 跨设备接力（同一华为账号、开启多设备协同的设备可在「超级终端」把当前播放接力到平板/智慧屏）；目标设备按歌曲 id 在本地库定位并恢复进度（本地文件不同步时静默放弃）。
+- **多语言 i18n**：zh / en / fr 等文案按需切换。
+- **启动页 Splash**：`Splash.ets` Logo 缩放入场，约 1.2s 淡出进入主界面。
+- **首次引导页**：半蒙面 `bindSheet` 4 张功能亮点卡，首次启动弹出；「关于」页可重新进入。
 
 ### 缺陷修复
 - **播放页显示错歌（Bug A）**：`PlayerPage.aboutToAppear` 不再用整库覆盖 `AppStorage('songList'/'selectIndex')`，改为读取 `AudioRendererController` 真实播放队列；从「我的歌单」点播放后播放页正确显示正在播放的歌曲（系统播控中心本就正确，UI 与引擎来源此前分裂）。
 - **静音/响铃按钮无功能（Bug B）**：`AudioRendererController.setSilentModeAndMixWithOthers` 真正调用 `AVPlayer.setVolume` 静音/恢复音量，并在 `prepared` 状态机重放时重新应用静音状态，修复「只变图标不静音」。
+- **我的收藏 / 播放历史页无法上下滑动（#74/#76）**：`List` 的 `height('100%')` 在 `NavDestination` 内 flex `Column` 中无法解析为确定高度而被裁剪 → 移除 `height('100%')`、保留 `layoutWeight(1)`，补 `@StorageProp('bottomHeight')` 底部留白防迷你播放条遮挡。
+- **我的歌单页重构 + 智能歌单折叠（#78）**：整页合并为单可滚动 `List`，智能歌单用 `ListItemGroup` 分组（`smartCollapsed` 切换折叠，箭头旋转 -90°），自定义歌单为普通 `ListItem`。
+- **音乐库歌曲序号移除（#75）**：`LocalLibrary.buildSongItem` 去右侧序号，保留播放中圆环指示。
+- **修复双层表头 bug #73**：薄壳页与 sheet 内嵌子页标题栏重复；给 4 个 `*Body` 加 `showHeader` 开关，sheet 内传 `false` 去重。
+- **修复「关于 → 新手引导」双 Sheet**：原同帧既弹引导 Sheet、又因关于 Sheet 关闭动画期间 `sheetKind=''` 渲染空白 large Sheet；改为关于 Sheet 真正 `onDisappear` 后再弹引导 Sheet（`Mine` 新增 `pendingOnboarding` 衔接），消除残留空白页。
 
 ### 体验完善
 - **歌词惯性滚动**：`LrcView` 松手后按末段速度做衰减动量滑动一小段，再触发原有 5 秒自动回正，符合甩动手势直觉。
 - **关于页功能特色图标**：三张功能卡片的 Emoji 替换为项目既有 `ic_hm_library` / `ic_hm_search` / `ic_hm_list` 鸿蒙风格图标。
+- **深色模式三处修复**：底部悬浮导航栏白雾 → 去白雾、统一 `cardBg` + 边框（`Layout.ets`）；`Select` 选项文字黑色不可见 → 全链主题色（`SettingsCategory.ets`）；长按歌曲菜单全黑 → `cardBg` + 边框（`LocalLibrary.ets`）。
+- **子页半模态内嵌**：设置 / 关于 / 隐私政策等子页改为半蒙面 `bindSheet` 内嵌（本地歌曲管理 / 重复清理 / 听歌报告 / 隐私政策），带转场动画、系统返回仅回退 sheet 内层；新建 `components/SettingsSubPageBodies.ets` 抽离 `ManageSongsBody` / `DuplicateSongsBody` / `WrappedBody` / `PrivacyPolicyBody` + `SubPageHeader`，同时服务「主导航栈全屏页」与「sheet 内嵌子页」双场景。
+- **Sheet 高度统一**：所有 Mine / Settings 触发的 sheet 高度统一 `LARGE`。
+- **图标统一**：引入 HarmonyOS 官方 `ic_hos_*` 图标（`ic_public_back` / `ic_hos_play` / `ic_hos_collect` / `ic_hos_add` / `ic_hos_detail` / `ic_hos_delete` / `ic_hos_rename` / `ic_hos_chevron` / `ic_hos_arrow_right`），替换子页返回、长按菜单、歌单折叠 / 圆形入口、我的页菜单导航箭头等；折叠箭头 `ic_hos_chevron` 折叠态 180° / 展开态 0°；自定义歌单加「我的歌单」分组头；「我的」页标题与音乐库页一致（去收藏 pill）。
+- **所有半模态 Sheet 背景沉浸**：`Mine` / `LocalLibrary` / `PlaylistDetail` / `PlayHistory` / `Favorites` / `ControlAreaComponent` 的 `bindSheet` 补 `backgroundColor` + `expandSafeArea`；`Settings.ets` / `About.ets` 根 `Column` 沉浸满铺。
+- **启动页 / 引导页内容居中**：`Splash.ets` 与 `OnboardingSheet.ets` 根布局 `justifyContent(FlexAlign.Center)`，logo 与文案垂直居中。
+- **导入改目录式**：音乐库导入由 `DocumentViewPicker` + `fileSuffixFilters`（flac / mp3 / m4a / wav / ogg / ape / wma / aac / m4b / mp2 / aiff / alac / opus）限定音频格式，从目录选择指定音频。
+
+### 移除
+- **交叉淡变（Crossfade）**：原 v2.4.0 引入的可配置 2/4/6/8 秒交叉淡入淡出已整体移除；曲间过渡统一由 **Gapless 无缝播放**兜底（第二路 `AVPlayer` 预加载「下一首」，曲终即时接管）。
+- **设置页「开发者」入口**：原跳转开发者简历外链（`a703201sworld.top`）的入口已移除；隐私政策同步去除第三方外链说明。
+- **设置页「关于」与我的页「关于」合并（保留我的页）**：删除设置页 `about` 项、`buildAboutGroup` / `openDeveloper`；关于与隐私政策统一由「我的」页 → 关于 sheet（`About.ets`）承载。
+- **设置页「设置分类」分组标签**：仅去掉冗余的分类小标题，分类子页（`SettingsCategory`）保留。
 
 ### 版本对齐
 - `AppScope/app.json5` → `versionName 2.4.0` / `versionCode 2040000`。
+- `route_map.json` 随功能增至 **14 条**（新增 `FolderBrowse` / `Wrapped` 等）。
 - PRD、本 CHANGELOG、app.json5 版本口径统一为 v2.4.0。
 
 ## v2.3.0（2026-08-06）· 交互打磨与 NFR 品质提升

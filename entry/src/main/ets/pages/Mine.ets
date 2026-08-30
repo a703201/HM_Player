@@ -38,8 +38,8 @@ export struct Mine {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
   }
 
-  @State menuScales: number[] = [1.0, 1.0, 1.0, 1.0, 1.0];
-  @State menuPressed: boolean[] = [false, false, false, false, false];
+  @State menuScales: number[] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+  @State menuPressed: boolean[] = [false, false, false, false, false, false];
   @State favCount: number = 0;
   @State songCount: number = 0;
   @State histCount: number = 0;
@@ -49,6 +49,8 @@ export struct Mine {
   /** 半蒙面 Sheet 调度：'' 无 / 'settings' / 'about'；sheetVisible 驱动 bindSheet 的 $$ 双向绑定。 */
   @State sheetKind: string = '';
   @State sheetVisible: boolean = false;
+  /** 关于页点「新手引导」后，先关本 Sheet 再开引导 Sheet；用此标志在 onDisappear 衔接，避免两 sheet 同帧叠加出现空白 large 页。 */
+  @State pendingOnboarding: boolean = false;
 
   aboutToAppear(): void {
     this.appVersionDisplay = getAppVersionDisplay();
@@ -98,7 +100,7 @@ export struct Mine {
       .layoutWeight(1)
 
       if (showArrow) {
-        Image($r('app.media.ic_hm_more'))
+        Image($r('app.media.ic_hos_arrow_right'))
           .width(16)
           .height(16)
           .fillColor(this.getThemeColors().secondaryText)
@@ -136,6 +138,18 @@ export struct Mine {
   build() {
     Scroll() {
       Column() {
+        // 标题栏（与音乐库页一致：左侧 24/Bold 大标题 + 右侧圆角操作入口）。
+        // 右侧放「我的收藏」收藏星快捷入口，跳到收藏页；保留与音乐库「导入」pill 同等的视觉权重。
+        Row() {
+          Text('我的')
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.getThemeColors().primaryText)
+            .layoutWeight(1)
+            .padding({ left: 16, right: 16, top: this.topHeight + 8, bottom: 12 })
+        }
+        .width('100%')
+
         // 快速统计（头像 / 用户名 / 已收藏 行已按需求移除）
         Row() {
           Column() {
@@ -175,7 +189,7 @@ export struct Mine {
           .layoutWeight(1)
         }
         .width('100%')
-        .padding({ left: 32, right: 32, top: this.topHeight + 16, bottom: 20 })
+        .padding({ left: 32, right: 32, top: 8, bottom: 20 })
         .backgroundColor(this.getThemeColors().secondaryBg)
 
         // 菜单区
@@ -215,6 +229,18 @@ export struct Mine {
               this.pathStack.pushPathByName('PlayHistory', null);
             }
           )
+
+          this.buildMenuItem(
+            $r('app.media.ic_hm_folder'),
+            '文件夹浏览',
+            '按来源目录整理',
+            true,
+            3,
+            '#007AFF',
+            () => {
+              this.pathStack.pushPathByName('FolderBrowse', null);
+            }
+          )
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8 })
@@ -233,7 +259,7 @@ export struct Mine {
             '设置',
             '',
             true,
-            3,
+            4,
             this.getThemeColors().secondaryText,
             () => {
               this.sheetKind = 'settings';
@@ -246,7 +272,7 @@ export struct Mine {
             '关于',
             this.appVersionDisplay,
             true,
-            4,
+            5,
             '#5856D6',
             () => {
               this.sheetKind = 'about';
@@ -265,32 +291,43 @@ export struct Mine {
     .backgroundColor(this.getThemeColors().bg)
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
     .bindSheet($$this.sheetVisible, this.sheetContent(), {
-      detents: ['90%'],
+      detents: [SheetSize.LARGE, SheetSize.MEDIUM],
       dragBar: true,
-      showClose: true
+      showClose: true,
+      backgroundColor: this.getThemeColors().bg,
+      onDisappear: () => {
+        // Sheet 真正消失后才复位 kind，防止关闭动画期间 sheetContent 因 kind='' 渲染空白。
+        this.sheetKind = '';
+        // 关于页「新手引导」：本 Sheet 关闭完成后，再弹出引导 Sheet（Layout 承载）。
+        if (this.pendingOnboarding) {
+          this.pendingOnboarding = false;
+          AppStorage.setOrCreate('showOnboarding', true);
+        }
+      }
     })
   }
 
-  /** 单一半蒙面 Sheet：依 sheetKind 切换设置 / 关于内容，避免在同一节点挂两个 bindSheet 互相干扰。 */
+  /** 单一半蒙面 Sheet：依 sheetKind 切换设置 / 关于内容，避免在同一节点挂两个 bindSheet 互相干扰。
+   *  - 子页跳转（ManageSongs/DuplicateSongs/Wrapped/PrivacyPolicy）由 Settings/About 内部 state 处理，
+   *    不再关闭 sheet 走主导航栈，符合「半模态 sheet 内页面切换」语义。 */
   @Builder
   private sheetContent() {
     if (this.sheetKind === 'settings') {
       Settings({
         onRequestClose: () => {
           this.sheetVisible = false;
-          this.sheetKind = '';
-        },
-        onNavigate: (name: string) => {
-          this.sheetVisible = false;
-          this.sheetKind = '';
-          this.pathStack.pushPathByName(name, null);
         }
       })
     } else if (this.sheetKind === 'about') {
       About({
         onRequestClose: () => {
           this.sheetVisible = false;
-          this.sheetKind = '';
+        },
+        onStartOnboarding: () => {
+          // 先标记待开引导，再关本 Sheet；由 bindSheet 的 onDisappear 真正关闭后再弹引导，
+          // 避免「关于 Sheet 未关 + 引导 Sheet 已开」同帧叠加出空白 large 页。
+          this.pendingOnboarding = true;
+          this.sheetVisible = false;
         }
       })
     }

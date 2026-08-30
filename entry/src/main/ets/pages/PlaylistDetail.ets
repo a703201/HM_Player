@@ -171,7 +171,7 @@ struct PlaylistDetail {
   buildSongMenu(song: SongItem, index: number) {
     Column() {
       Row() {
-        Image($r('app.media.ic_hm_play'))
+        Image($r('app.media.ic_hos_play'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -189,7 +189,7 @@ struct PlaylistDetail {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_favorite'))
+        Image($r('app.media.ic_hos_collect'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -207,7 +207,7 @@ struct PlaylistDetail {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_folder'))
+        Image($r('app.media.ic_hos_add'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -225,7 +225,7 @@ struct PlaylistDetail {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_sort_list'))
+        Image($r('app.media.ic_hos_detail'))
           .width(18)
           .fillColor(this.getThemeColors().primaryText)
           .margin({ right: 12 })
@@ -243,7 +243,7 @@ struct PlaylistDetail {
       Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
 
       Row() {
-        Image($r('app.media.ic_hm_trash'))
+        Image($r('app.media.ic_hos_delete'))
           .width(18)
           .fillColor('#FA2759')
           .margin({ right: 12 })
@@ -622,6 +622,7 @@ struct PlaylistDetail {
         detents: [SheetSize.MEDIUM, SheetSize.LARGE],
         dragBar: true,
         showClose: true,
+        backgroundColor: this.getThemeColors().bg,
         preferType: SheetType.BOTTOM
       })
     }

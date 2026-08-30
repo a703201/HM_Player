@@ -35,6 +35,7 @@ interface SongData {
   sampleRate?: number;
   bitDepth?: number;
   codec?: string;
+  folder?: string;
 }
 
 const PREF_NAME = 'music_store';
@@ -478,6 +479,7 @@ export class MusicStore {
         song.sampleRate = data.sampleRate ?? 0;
         song.bitDepth = data.bitDepth ?? 0;
         song.codec = data.codec ?? '';
+        song.folder = data.folder ?? '';
         return song;
       });
       this.playList = [...this.songs];
@@ -502,6 +504,7 @@ export class MusicStore {
         song.sampleRate = data.sampleRate ?? 0;
         song.bitDepth = data.bitDepth ?? 0;
         song.codec = data.codec ?? '';
+        song.folder = data.folder ?? '';
         return song;
       });
 
