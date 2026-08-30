@@ -206,6 +206,11 @@ export default struct shiLrcView {
    */
   private scrollIdleTimer: number = -1;
   /**
+   * 每行歌词的绘制高度缓存（与 drawLyricLine 实际推进一致），用于视口裁剪，
+   * 避免长歌词逐帧全量重绘造成的卡顿与滑动阻力。
+   */
+  private lineHeights: number[] = [];
+  /**
    * 拖拽滚动状态（PanGesture 增量累计，替代此前 .onTouch 手动累加导致的卡顿/阻力）。
    */
   private lastPanY: number = 0;
@@ -327,6 +332,42 @@ export default struct shiLrcView {
 
   private reset() {
     this.lrcY = this.initFirstLineY;
+  }
+
+  /**
+   * 预计算每个歌词行的绘制高度（与 drawLyricLine 实际推进一致），供视口裁剪使用。
+   * 在歌词变更 / 翻译开关 / 宽度变化时重算；lrcWidth 未就绪时跳过（由 drawContent 兜底全量绘制）。
+   */
+  private computeLineHeights(): void {
+    this.lineHeights = [];
+    if (!this.mLrcEntryList || this.mLrcEntryList.length === 0 || this.lrcWidth <= 0) {
+      return;
+    }
+    for (let i: number = 0; i < this.mLrcEntryList.length; i++) {
+      const lyric: LrcEntry = this.mLrcEntryList[i];
+      const isCurrent: boolean = i === this.mCurrentLine;
+      const text: string = lyric.lineWords;
+      this.context.font = (isCurrent ? this.fontWeight + ' ' + this.mCurrentTextSize
+        : this.fontWeight + ' ' + this.mNormalTextSize) + 'vp ' + this.fontFamily;
+      const textMetrics: TextMetrics = this.context.measureText(text);
+      let bodyH: number;
+      if (textMetrics.width > this.lrcWidth) {
+        // 与 drawMultipleLine 对齐：首段 +mDividerHeight，存在第二段再 +textMetrics.height
+        bodyH = textMetrics.height + this.mDividerHeight;
+        if (text.length > 1) {
+          bodyH += textMetrics.height;
+        }
+      } else {
+        bodyH = this.mDividerHeight + textMetrics.height;
+      }
+      let h: number = bodyH;
+      if (this.showTranslation && lyric.translation && lyric.translation.length > 0) {
+        this.context.font = this.fontWeight + ' ' + this.mTranslateTextSize + 'vp ' + this.fontFamily;
+        const tMetrics: TextMetrics = this.context.measureText(lyric.translation);
+        h += this.mDividerHeight * 0.5 + this.mTranslateGap + tMetrics.height;
+      }
+      this.lineHeights.push(h);
+    }
   }
 
   drawMiddle() {
@@ -703,8 +744,7 @@ export default struct shiLrcView {
    * @param desOffsetY
    */
   private drawContent(desOffsetY: number, change?: boolean) {
-    Logger.info(TAG, JSON.stringify(change))
-    this.context.clearRect(0, 0, this.viewWidth, this.lrcY + this.viewHeight);
+    this.context.clearRect(0, 0, this.viewWidth, this.viewHeight);
     this.reset();
     this.lineRectangles = [];
 
@@ -714,10 +754,31 @@ export default struct shiLrcView {
     this.curCanvasOffsetY = desOffsetY;
 
     if (this.mLrcEntryList && this.mLrcEntryList.length > 0) {
-      let index = 0;
-      for (let mLrcEntryListElement of this.mLrcEntryList) {
-        this.drawLyricLine(mLrcEntryListElement, index);
-        index++;
+      const n: number = this.mLrcEntryList.length;
+      const useCull: boolean = this.lineHeights.length === n;
+      if (useCull) {
+        // 视口裁剪：仅绘制可见行，屏外行仅前推游标，把逐帧重绘开销从 O(总歌词数) 降为 O(可见行数)，
+        // 消除长歌词下滑动卡顿 / 阻力过大的问题。
+        const band: number = this.viewHeight; // 上下各扩展一屏作缓冲，避免快速甩动时边界跳变
+        let cursor: number = this.lrcY; // 当前行顶部 Y
+        for (let i: number = 0; i < n; i++) {
+          const top: number = cursor;
+          const h: number = this.lineHeights[i];
+          const bottom: number = top + h;
+          if (bottom > -band && top < this.viewHeight + band) {
+            this.lrcY = top;
+            this.drawLyricLine(this.mLrcEntryList[i], i);
+            cursor = this.lrcY; // 同步真实推进后的位置
+          } else {
+            cursor = bottom;
+          }
+        }
+      } else {
+        let index = 0;
+        for (let mLrcEntryListElement of this.mLrcEntryList) {
+          this.drawLyricLine(mLrcEntryListElement, index);
+          index++;
+        }
       }
     } else {
       this.drawLyricLine(EMPTY_LYRIC, 0);
@@ -725,8 +786,6 @@ export default struct shiLrcView {
 
     this.updateLyricArea(this.paddingLeft, this.paddingTop, this.viewWidth - this.paddingRight,
       this.viewHeight - this.paddingBottom);
-
-    // 移除旧的 source-in 垂直渐变，改为每行独立的清晰/模糊/透明度层次。
   }
 
   /**
@@ -800,6 +859,7 @@ export default struct shiLrcView {
    */
   onLyricUpdated() {
     this.mCurrentLine = NONE_LINE;
+    this.computeLineHeights();
     this.onTimeUpdated();
   }
 
@@ -876,6 +936,7 @@ export default struct shiLrcView {
    * 翻译开关变化后重绘。
    */
   onTranslationToggled() {
+    this.computeLineHeights();
     this.drawContent(this.curCanvasOffsetY);
   }
 
@@ -892,8 +953,11 @@ export default struct shiLrcView {
     }
     // Canvas 绘制坐标与点击视图坐标 1:1 映射，无需再加滚动偏移，否则双重偏移导致命中错行（后半段点击跳回开头）
     const canvasY: number = localY;
+    // 视口裁剪后 lineRectangles 为稀疏数组：屏外行未绘制、对应槽位为 undefined，
+    // 遍历时必须跳过空洞，否则读取 isIn 会抛 TypeError 崩溃。
     for (let i = 0; i < this.lineRectangles.length; i++) {
-      if (this.lineRectangles[i].isIn(localX, canvasY)) {
+      const rect = this.lineRectangles[i];
+      if (rect && rect.isIn(localX, canvasY)) {
         this.onLineClick(i);
         break;
       }
@@ -936,21 +1000,23 @@ export default struct shiLrcView {
         this.viewHeight = Number.parseFloat(newArea.height.toLocaleString());
         if (oldArea.width.toLocaleString() !== newArea.width.toLocaleString()) {
           this.calculate();
+          this.computeLineHeights();
           let line = this.findShowLine(this.lyricMilliSecondsTime);
           let offset = this.getOffset(line);
           this.drawContent(offset);
         }
         if (oldArea.height.toLocaleString() !== newArea.height.toLocaleString()) {
           this.calculate();
+          this.computeLineHeights();
           let line = this.findShowLine(this.lyricMilliSecondsTime);
           let offset = this.getOffset(line);
           this.drawContent(-offset, true);
         }
       })
-      // 垂直方向 PanGesture：跟手增量累计，0 阈值（distance 仅用于区分 tap/pan），
+      // 垂直方向 PanGesture：跟手增量累计，1vp 阈值（distance 仅用于区分 tap/pan），
       // 滑动手感顺滑、无阻力；与 .onClick 天然分离，滑动绝不触发点击跳转。
       .gesture(
-        PanGesture({ direction: PanDirection.Vertical, distance: 4 })
+        PanGesture({ direction: PanDirection.Vertical, distance: 1 })
           .onActionStart(() => {
             this.cancelAutoReturn();
             this.isUserScrolling = true;
