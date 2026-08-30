@@ -240,3 +240,14 @@ API 24 底栏 `backgroundBlurStyle` 降级观感、一镜到底进入/退出、�
   - `Mine.ets` 的 `sheetContent()` 中 `Settings`/`About` 构造移除 `sheetStyle: true`（不再传任何强制色）。
   - 删除 `ThemeManager.sheetColors` getter（不再被引用）；`Settings.ets` 在第三轮续作中已先行回退，本轮保持一致。
 - **结果**：sheet 内页面与全应用其它页面**统一跟随系统/应用浅色或深色主题**（浅色=白底深字、深色=黑底白字）；单 sheet 不串台、LARGE 高度、封面图标两态等第三轮修复保持不变。
+
+### 7.6 启动封面预热 TODO 落地（方向B）+ 两处静态分析告警修复（2026-08-30 深夜）
+- **背景**：用户确认启动期 TODO「并行预热 CoverCache、预载高频歌单，禁止访问非 sendable 单例」此前仅占位未实现，选择**方向B（彻底 sendable-safe 的启动预热）**；并要求修复两处 DevEco 代码分析告警：① `module.json5:38`「Use a layered image for the icon」；② `MusicInfoComponent.ets`「Identifier 'GridRowContent' expected」（子内容挂在 `.breakpointConfig()` 之后，位置错误）。
+- **改动清单（最终 BUILD SUCCESSFUL 0 ERROR，签名 HAP 已出）**：
+  1. **ContainerReader 子内容位置修复**（`components/MusicInfoComponent.ets` `build()`）：原 `ContainerReader(...).breakpointConfig({width:[600,840]}) { this.GridRowContent() }` 把 builder 挂到 `breakpointConfig` 之后，违反语法 → 改为 `ContainerReader({size:this.containerSize}) { this.GridRowContent() }.onAreaChange(...).breakpointConfig({width:[600,840]})`（子内容直接挂构造之后，`breakpointConfig` 仅接配置对象）。
+  2. **分层图标**（`module.json5` + 新建 `resources/base/media/logo_layered.json`）：`EntryAbility` 的 `icon`/`startWindowIcon` 由 `$media:logo` 改为 `$media:logo_layered`（前景/背景均引用 `$media:logo`=`logo.svg`），满足 DevEco 分层图标格式，消除告警。
+  3. **方向B 启动任务重写**（`startup/LumioCoverPreloadTask.ets`）：`@Sendable` + taskPool（已在 `startup_config.json` 注册 `runOnThread:taskPool` / `waitOnMainThread:false`）。`init()` 在 worker 线程读 `dataPreferences('music_store')` 解析「收藏 > 最近播放 > 各歌单前 5 首」去重保序 src 列表，`fileIo.accessSync` 校验文件存在过滤已删歌曲，结果写 `AppStorage('highFreqCoverSrcs')`（包 try/catch：worker 线程 AppStorage 不可用时静默回退主线程）。
+  4. **共享模块抽取**（`startup/coverPreloadShared.ets`，新建）：ArkTS `arkts-sendable-imported-variables` 规则要求 `@Sendable` 类只能捕获**经 import 引入**的变量，同文件顶层 `const`/顶层函数不被视为已导入。故将 `PREF_NAME`/`KEY_*`/`APP_STORAGE_KEY`/`MAX_*` 常量、`SongDataLite`/`PlaylistLite`/`PrewarmResult` 接口、`isSeenId`/`addUniqueId` 纯函数集中到此模块并 `export`，由 task 文件 `import` —— 首轮把纯函数放 task 同文件仍报 8 处 sendable 捕获错误，抽独立模块后解决。
+  5. **主线程两段预热**（`entryability/EntryAbility.ets` `initStore()`）：优先取 `AppStorage('highFreqCoverSrcs')`（taskPool 已写好则用之，否则回退 `MusicStore.getHighFrequencySongSrcs()`）→ `CoverCache.preload(高频子集)`，命中即刷 `coverRefreshToken`；再 `CoverCache.preload(store.songs)` 全量。修复 `EntryAbility.ets:161` 对象字面量类型错误：`{src:string}[]` 内联类型 + 无类型对象字面量 `({src:s})` 违反 `arkts-no-obj-literals-as-types` / `arkts-no-untyped-obj-literals` → 加具名接口 `CoverSrcItem {src:string}` 并显式标注 `.map` 返回类型。
+- **构建验证**：`bash build_hap.sh` → **BUILD SUCCESSFUL（0 ERROR）**；11 WARN 均为 API 26 `@since` 前向兼容提示（`ContainerReader`/`breakpointConfig`/`systemMaterial`/`fill`/`media`），代码已用 `ApiCompat.isAtLeast` 守卫，不阻断。
+- **仍待办（需真机）**：① 启动封面预热是否真从 taskPool 写 AppStorage 生效（不可用则静默回退主线程，功能不崩但有损提速）；② 分层图标在桌面/启动器观感；③ ContainerReader @ API26 断点自适应；④ 播放/停止封面图标两态（见 §7.3 / 第五轮）。

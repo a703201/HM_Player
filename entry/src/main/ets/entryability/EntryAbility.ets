@@ -39,6 +39,11 @@ import { ThemeManager } from '../utils/ThemeManager';
 import { AVSessionController } from '../utils/AVSessionController';
 import { CoverCache } from '../utils/CoverCache';
 
+// 与 CoverCache.CoverSource 对齐的具名入参类型（CoverSource 在 CoverCache.ets 内未导出，这里独立声明）
+interface CoverSrcItem {
+  src: string;
+}
+
 export default class EntryAbility extends UIAbility {
   private windowObj?: window.Window;
 
@@ -150,12 +155,28 @@ export default class EntryAbility extends UIAbility {
         Logger.info('No local songs yet, import from 音乐库');
       } else {
         Logger.info(`Loaded ${store.songs.length} songs from storage`);
-        // 后台抽取内嵌封面，完成后刷新 songList 让列表/播放页自动切到真实封面
+        // 方向 B：先做"高频封面优先预热"。
+        // 优先采用 LumioCoverPreloadTask（taskPool）在后台并行预扫+文件存在校验的高频清单
+        // （AppStorage('highFreqCoverSrcs')）；若 taskPool 尚未写好，回退到主线程实时计算。
+        const prewarmed: string[] = AppStorage.get<string[]>('highFreqCoverSrcs') ?? [];
+        const prioritySrcs: string[] = prewarmed.length > 0
+          ? prewarmed
+          : store.getHighFrequencySongSrcs();
+        if (prioritySrcs.length > 0) {
+          const mapped: CoverSrcItem[] = prioritySrcs.map((s: string): CoverSrcItem => ({ src: s }));
+          CoverCache.getInstance().preload(mapped).then(() => {
+            // 高频命中即先刷一次 token，让已就绪的高频封面先切到真实图
+            AppStorage.setOrCreate('coverRefreshToken', Date.now());
+          }).catch((err: Error) => {
+            Logger.error('CoverCache high-freq preload failed: ' + err.message);
+          });
+        }
+        // 全量预热：覆盖所有歌曲；CoverCache 内部按 src 去重，高频已抽取的会直接命中缓存
         CoverCache.getInstance().preload(store.songs).then(() => {
           AppStorage.setOrCreate('songList', [...store.songs]);
           AppStorage.setOrCreate('coverRefreshToken', Date.now());
         }).catch((err: Error) => {
-          Logger.error('CoverCache preload failed', err.message);
+          Logger.error('CoverCache full preload failed: ' + err.message);
         });
       }
     } catch (err) {

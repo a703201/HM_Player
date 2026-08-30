@@ -223,6 +223,54 @@ export class MusicStore {
     return this.recentlyPlayed;
   }
 
+  /**
+   * 取「高频」歌曲 src 列表：收藏 + 最近播放 + 各歌单前 N 首，去重保序，上限 totalLimit。
+   * 主线程专用（非 sendable）——EntryAbility 启动预热的回退路径，当
+   * LumioCoverPreloadTask（taskPool 异步）尚未把 AppStorage('highFreqCoverSrcs') 写好时使用。
+   * 与 task 内同名逻辑保持一致，便于两路结果互为兜底。
+   */
+  getHighFrequencySongSrcs(perPlaylistLimit: number = 5, totalLimit: number = 200): string[] {
+    const idToSrc: Map<number, string> = new Map<number, string>();
+    for (let i = 0; i < this.songs.length; i++) {
+      const s: SongItem = this.songs[i];
+      idToSrc.set(s.id, s.src);
+    }
+    const orderedIds: number[] = [];
+    const seen: Set<number> = new Set<number>();
+    const pushId = (id: number): void => {
+      if (id === undefined || id === null) {
+        return;
+      }
+      if (seen.has(id) || !idToSrc.has(id)) {
+        return;
+      }
+      seen.add(id);
+      orderedIds.push(id);
+    };
+    const favArr: number[] = Array.from(this.favorites);
+    for (let i = 0; i < favArr.length && orderedIds.length < totalLimit; i++) {
+      pushId(favArr[i]);
+    }
+    for (let i = 0; i < this.recentlyPlayed.length && orderedIds.length < totalLimit; i++) {
+      pushId(this.recentlyPlayed[i].id);
+    }
+    for (let i = 0; i < this.playlists.length && orderedIds.length < totalLimit; i++) {
+      const pl: Playlist = this.playlists[i];
+      const ids: number[] = pl.songIds;
+      for (let j = 0; j < ids.length && j < perPlaylistLimit && orderedIds.length < totalLimit; j++) {
+        pushId(ids[j]);
+      }
+    }
+    const out: string[] = [];
+    for (let i = 0; i < orderedIds.length; i++) {
+      const src: string | undefined = idToSrc.get(orderedIds[i]);
+      if (src !== undefined) {
+        out.push(src);
+      }
+    }
+    return out;
+  }
+
   getFavoriteSongs(): SongItem[] {
     return this.songs.filter(s => this.favorites.has(s.id));
   }
