@@ -65,6 +65,7 @@ export class AudioRendererController {
   public castActive: boolean = false;
   // 播放速度（倍速），默认 1.0
   private speed: number = 1.0;
+  private isSilent: boolean = false;
   // 听歌统计：当前曲目累计播放时长（ms）与上一帧时间，避免在 timeUpdate 高频回写偏好
   private playMsAccum: number = 0;
   private prevTimeMs: number = 0;
@@ -115,6 +116,7 @@ export class AudioRendererController {
         // 准备完成。投播状态下本地保持静音（由远端设备出声），不自动起播。
         if (!this.castActive) {
           this.applySpeed();
+          this.applySilentMode();
           this.start();
         }
       } else if (state === 'playing') {
@@ -163,12 +165,30 @@ export class AudioRendererController {
       return;
     }
     // 静音（混合播放）标记走独立 Preferences 键，不再写入 formIds 桌面卡片数组，避免污染
+    this.isSilent = isSupportSilent;
     try {
       await PreferencesUtil.getInstance().setSilentMode(this.context, isSupportSilent);
     } catch (e) {
       Logger.error(TAG, 'setSilentMode failed');
     }
     AppStorage.setOrCreate('isSilentMode', isSupportSilent);
+    // 真正调节音量：非静音恢复为 1.0，静音置 0。修复"只变图标不静音"的 Bug B。
+    this.applySilentMode();
+  }
+
+  /**
+   * 应用静音状态到 AVPlayer 音量。仅在 avPlayer 就绪后调用；
+   * 切歌/重播后由 prepared 状态机再次调用，避免 reset 把音量重置为默认值。
+   */
+  private applySilentMode(): void {
+    if (!this.avPlayer) {
+      return;
+    }
+    try {
+      this.avPlayer.setVolume(this.isSilent ? 0 : 1);
+    } catch (e) {
+      Logger.error(TAG, 'applySilentMode setVolume failed');
+    }
   }
 
   public async play(musicIndex: number = this.musicIndex): Promise<void> {

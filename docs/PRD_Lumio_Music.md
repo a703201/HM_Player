@@ -3,7 +3,7 @@
 | 项 | 内容 |
 |---|---|
 | 文档名称 | Lumio Music 本地音乐播放器 产品需求文档 |
-| 当前版本 | v2.3.0（对应 `AppScope/app.json5` `versionName`） |
+| 当前版本 | v2.4.0（对应 `AppScope/app.json5` `versionName`） |
 | 文档状态 | 基于工程现状梳理（As-Is + 规划） |
 | 目标平台 | HarmonyOS 6.1.1（API 24），兼容 6.1.0（API 23），设备：phone |
 | 技术栈 | ArkTS + ArkUI（前端）、C++ NAPI（原生扩展）、HDS 设计系统 |

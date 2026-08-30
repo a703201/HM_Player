@@ -2,9 +2,25 @@
 
 本文件记录 Lumio Music（鸿蒙音乐播放器）的版本演进。
 许可证：[Apache-2.0](./LICENSE)，Copyright © 2026 何宇翔。
-代码当前 `versionName` 为 `2.3.0`（见 `AppScope/app.json5`）；应用内「关于 / 设置 / 我的」页的版本展示通过 `bundleManager` 运行时读取，**自动跟随该配置**，无需硬编码。下方里程碑按功能迭代划分。
+代码当前 `versionName` 为 `2.4.0`（见 `AppScope/app.json5`）；应用内「关于 / 设置 / 我的」页的版本展示通过 `bundleManager` 运行时读取，**自动跟随该配置**，无需硬编码。下方里程碑按功能迭代划分。
 
 ---
+
+## v2.4.0（2026-08-30）· 体验完善与缺陷修复
+
+> 版本升版 2.3.0 → 2.4.0（`AppScope/app.json5`：`versionName 2.4.0` / `versionCode 2040000`）。本批次聚焦缺陷修复与体验打磨。
+
+### 缺陷修复
+- **播放页显示错歌（Bug A）**：`PlayerPage.aboutToAppear` 不再用整库覆盖 `AppStorage('songList'/'selectIndex')`，改为读取 `AudioRendererController` 真实播放队列；从「我的歌单」点播放后播放页正确显示正在播放的歌曲（系统播控中心本就正确，UI 与引擎来源此前分裂）。
+- **静音/响铃按钮无功能（Bug B）**：`AudioRendererController.setSilentModeAndMixWithOthers` 真正调用 `AVPlayer.setVolume` 静音/恢复音量，并在 `prepared` 状态机重放时重新应用静音状态，修复「只变图标不静音」。
+
+### 体验完善
+- **歌词惯性滚动**：`LrcView` 松手后按末段速度做衰减动量滑动一小段，再触发原有 5 秒自动回正，符合甩动手势直觉。
+- **关于页功能特色图标**：三张功能卡片的 Emoji 替换为项目既有 `ic_hm_library` / `ic_hm_search` / `ic_hm_list` 鸿蒙风格图标。
+
+### 版本对齐
+- `AppScope/app.json5` → `versionName 2.4.0` / `versionCode 2040000`。
+- PRD、本 CHANGELOG、app.json5 版本口径统一为 v2.4.0。
 
 ## v2.3.0（2026-08-06）· 交互打磨与 NFR 品质提升
 

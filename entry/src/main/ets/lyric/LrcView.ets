@@ -214,6 +214,8 @@ export default struct shiLrcView {
    * 拖拽滚动状态（PanGesture 增量累计，替代此前 .onTouch 手动累加导致的卡顿/阻力）。
    */
   private lastPanY: number = 0;
+  private flingVelocity: number = 0;
+  private flingTimer: number = -1;
   /**
    * How many degrees is each angle of a star.
    */
@@ -988,6 +990,34 @@ export default struct shiLrcView {
   }
 
   /**
+   * 惯性/动量滚动：松手后按末段 velocityY 继续滑动一小段并逐帧衰减，
+   * 速度足够小后停下并交给 5 秒自动回正。符合人类甩动手势的运动直觉。
+   */
+  private startFling(): void {
+    this.cancelFling();
+    if (Math.abs(this.flingVelocity) < 30) {
+      this.scheduleAutoReturn();
+      return;
+    }
+    this.flingTimer = setInterval(() => {
+      this.flingVelocity = this.flingVelocity * 0.92;
+      this.userOffsetY = this.userOffsetY + this.flingVelocity * 0.016;
+      this.drawContent(this.curCanvasOffsetY);
+      if (Math.abs(this.flingVelocity) < 20) {
+        this.cancelFling();
+        this.scheduleAutoReturn();
+      }
+    }, 16);
+  }
+
+  private cancelFling(): void {
+    if (this.flingTimer >= 0) {
+      clearInterval(this.flingTimer);
+      this.flingTimer = -1;
+    }
+  }
+
+  /**
    * 处理 Canvas 触摸：使用 PanGesture（垂直方向）做顺滑跟手滑动，
    * 点击跳转统一交给 .onClick（PanGesture 只认拖拽，tap 不会触发，二者天然分离，
    * 不存在「滑动结束误触点击」的问题）。
@@ -1019,17 +1049,20 @@ export default struct shiLrcView {
         PanGesture({ direction: PanDirection.Vertical, distance: 1 })
           .onActionStart(() => {
             this.cancelAutoReturn();
+            this.cancelFling();
             this.isUserScrolling = true;
             this.lastPanY = 0;
           })
           .onActionUpdate((event: GestureEvent) => {
             const dy: number = event.offsetY - this.lastPanY;
             this.lastPanY = event.offsetY;
+            this.flingVelocity = event.velocityY;
             this.userOffsetY = this.userOffsetY + dy;
             this.drawContent(this.curCanvasOffsetY);
           })
           .onActionEnd(() => {
-            this.scheduleAutoReturn();
+            // 松手后按末段速度做惯性滑动（动量衰减），再触发原有 5 秒自动回正，符合手指甩动直觉。
+            this.startFling();
           })
       )
       // 点击歌词行跳转：PanGesture 只识别拖拽，纯点击不会触发它，故此处 .onClick 安全无重复。

@@ -39,14 +39,21 @@ struct PlayerPage {
   private breakpointSystem: BreakpointSystem = new BreakpointSystem();
 
   aboutToAppear(): void {
-    const store = MusicStore.getInstance();
-    const savedIndex = AppStorage.get('selectIndex') as number ?? 0;
-    if (savedIndex >= 0 && savedIndex < store.songs.length) {
-      store.currentIndex = savedIndex;
+    const ctrl = AudioRendererController.getInstance();
+    const queue: SongItem[] = ctrl.getQueue();
+    if (queue.length > 0) {
+      // 已进入播放上下文（如从我的歌单点播放）：以控制器真实队列为准，严禁覆盖成整库，
+      // 否则 UI 会显示"库第一首"而系统播控中心(AVSession)仍是正确的歌单曲——即修复 Bug A。
+      AppStorage.setOrCreate('songList', queue);
+      AppStorage.setOrCreate('selectIndex', ctrl.getCurrentIndex());
+    } else {
+      // 冷启动兜底：尚无播放队列时，用整库 + 已保存索引初始化。
+      const store = MusicStore.getInstance();
+      const savedIndex = AppStorage.get('selectIndex') as number ?? 0;
+      const safeIndex = (savedIndex >= 0 && savedIndex < store.songs.length) ? savedIndex : 0;
+      AppStorage.setOrCreate('songList', store.songs);
+      AppStorage.setOrCreate('selectIndex', safeIndex);
     }
-    AppStorage.setOrCreate('songList', store.songs);
-    AppStorage.setOrCreate('selectIndex', store.currentIndex);
-    AudioRendererController.getInstance();
     this.breakpointSystem.register();
   }
 

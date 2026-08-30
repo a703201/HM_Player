@@ -122,9 +122,11 @@ export struct About {
 
         Row() {
           Column() {
-            Text('🎵')
-              .fontSize(28)
+            Image($r('app.media.ic_hm_library'))
+              .width(30)
+              .height(30)
               .margin({ bottom: 8 })
+              .fillColor(this.getThemeColors().primaryText)
             Text('本地播放')
               .fontSize(13)
               .fontWeight(FontWeight.Medium)
@@ -136,9 +138,11 @@ export struct About {
           .animation({ duration: 400, curve: Curve.EaseOut })
 
           Column() {
-            Text('🔍')
-              .fontSize(28)
+            Image($r('app.media.ic_hm_search'))
+              .width(30)
+              .height(30)
               .margin({ bottom: 8 })
+              .fillColor(this.getThemeColors().primaryText)
             Text('文件扫描')
               .fontSize(13)
               .fontWeight(FontWeight.Medium)
@@ -150,9 +154,11 @@ export struct About {
           .animation({ duration: 400, curve: Curve.EaseOut })
 
           Column() {
-            Text('📝')
-              .fontSize(28)
+            Image($r('app.media.ic_hm_list'))
+              .width(30)
+              .height(30)
               .margin({ bottom: 8 })
+              .fillColor(this.getThemeColors().primaryText)
             Text('歌词显示')
               .fontSize(13)
               .fontWeight(FontWeight.Medium)

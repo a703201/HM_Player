@@ -4,7 +4,7 @@
 |---|---|
 | 产品名称 | Lumio Music（灯屿音乐） |
 | 应用包名 | `com.Lumio.music`（`AppScope/app.json5` 实际值）⚠️ 与文档常用写法 `com.lumio.music` 大小写不一致，见 **OQ-01** |
-| 当前版本 | `versionName 2.3.0` / `versionCode 2030000` |
+| 当前版本 | `versionName 2.4.0` / `versionCode 2040000` |
 | 许可证 | Apache-2.0（版权主体：何宇翔） |
 | 目标平台 | HarmonyOS NEXT，API 24 / HarmonyOS 6.1.1（compile = compatible = target） |
 | 技术栈 | ArkTS（Stage 模型）+ C++ NAPI（BiSheng）+ MediaKit / AVSessionKit |
