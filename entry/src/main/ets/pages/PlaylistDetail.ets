@@ -25,6 +25,7 @@ import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
 import { semanticOf } from '../tokens/LumioColor';
+import { SongRow, SongMenuEntry } from '../components/SongRow';
 
 const TAG: string = 'PlaylistDetail';
 
@@ -168,102 +169,15 @@ struct PlaylistDetail {
     this.sheetOpen = true;
   }
 
-  @Builder
-  buildSongMenu(song: SongItem, index: number) {
-    Column() {
-      Row() {
-        Image($r('app.media.ic_hos_play'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('播放')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.playAt(index);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_collect'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text(this.store.isFavorite(song.id) ? '取消收藏' : '收藏')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.toggleFavoriteSong(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_add'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('添加到歌单')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.openAddToPlaylist(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_detail'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('详细')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.openSongDetail(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_delete'))
-          .width(18)
-          .fillColor(this.getThemeColors().accent)
-          .margin({ right: 12 })
-        Text('移出歌单')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().accent)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.confirmRemove(song);
-      })
-    }
-    .width(176)
-    .backgroundColor(this.getThemeColors().bg)
-    .borderRadius(12)
-    .shadow({ radius: 8, color: this.getThemeColors().separator, offsetX: 0, offsetY: 2 })
+    private buildMenuItems(song: SongItem, index: number): SongMenuEntry[] {
+    return [
+      { text: '播放', icon: $r('app.media.ic_hos_play'), action: () => { this.playAt(index); } },
+      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_hos_collect'), action: () => { this.toggleFavoriteSong(song); } },
+      { text: '添加到歌单', icon: $r('app.media.ic_hos_add'), action: () => { this.openAddToPlaylist(song); } },
+      { text: '详细', icon: $r('app.media.ic_hos_detail'), action: () => { this.openSongDetail(song); } }
+    ];
   }
+
 
   /**
    * 打开「添加歌曲」面板：候选集为本地库中尚未加入本歌单的歌曲。
@@ -407,77 +321,7 @@ struct PlaylistDetail {
     .backgroundColor(this.getThemeColors().bg)
   }
 
-  @Builder
-  buildSongItem(song: SongItem, index: number) {
-    Row() {
-      Text(`${index + 1}`)
-        .fontSize(13)
-        .fontColor(this.getThemeColors().secondaryText)
-        .width(28)
-        .textAlign(TextAlign.Center)
-
-      CoverImageView({ src: this.getCoverSrc(song), coverSize: 48, coverRadius: 8 })
-
-      Column() {
-        Row() {
-          Text(song.title)
-            .fontSize(15)
-            .fontColor(this.getThemeColors().primaryText)
-            .fontWeight(FontWeight.Medium)
-            .layoutWeight(1)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-          QualityBadge({ quality: song.getQuality() })
-            .margin({ left: 6 })
-        }
-        .alignItems(VerticalAlign.Center)
-        .margin({ bottom: 4 })
-
-        Text(song.singer)
-          .fontSize(13)
-          .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 4 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12, right: 8 })
-
-      Image($r('app.media.ic_close'))
-        .width(18)
-        .height(18)
-        .fillColor(this.getThemeColors().secondaryText)
-        .onClick(() => {
-          this.confirmRemove(song);
-        })
-    }
-    .width('100%')
-    .height(64)
-    .padding({ left: 8, right: 16 })
-    .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(12)
-    .margin({ left: 8, right: 8, bottom: 8 })
-    .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
-    .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: 300, curve: Curve.EaseOut, delay: this.entryDelay(index) })
-    .onClick(() => {
-      this.playAt(index);
-    })
-    .bindContextMenu(this.buildSongMenu(song, index), ResponseType.LongPress)
-    .onTouch((event: TouchEvent) => {
-      if (event.type === TouchType.Down) {
-        const scales: number[] = [...this.itemScales];
-        scales[index] = 0.96;
-        this.itemScales = scales;
-      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-        const scales: number[] = [...this.itemScales];
-        scales[index] = 1.0;
-        this.itemScales = scales;
-      }
-    })
-  }
+  
 
   build() {
     NavDestination() {
@@ -603,7 +447,27 @@ struct PlaylistDetail {
           List() {
             ForEach(this.songs, (song: SongItem, index: number) => {
               ListItem() {
-                this.buildSongItem(song, index)
+                SongRow({
+              song: song,
+              index: index,
+              playing: false,
+              showIndex: true,
+              showQuality: true,
+              showRemove: true,
+              coverSize: 48,
+              titleFontSize: 15,
+              rowHeight: 64,
+              leftPadding: 8,
+              animateEntry: true,
+              entryDelayMs: this.entryDelay(index),
+              menuItems: this.buildMenuItems(song, index),
+              onPlay: () => {
+                this.playAt(index);
+              },
+              onRemove: () => {
+                this.confirmRemove(song);
+              }
+            })
               }
             }, (song: SongItem): string => `${song.id}`)
               .onMove((from: number, to: number): void => {

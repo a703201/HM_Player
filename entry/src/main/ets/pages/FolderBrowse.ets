@@ -22,6 +22,7 @@ import { CoverImageView } from '../components/CoverImageView';
 import { Logger } from '../utils/Logger';
 import { common } from '@kit.AbilityKit';
 import { semanticOf } from '../tokens/LumioColor';
+import { SongRow } from '../components/SongRow';
 
 const TAG: string = 'FolderBrowse';
 
@@ -150,39 +151,7 @@ export struct FolderBrowse {
     })
   }
 
-  @Builder
-  private songRow(song: SongItem) {
-    Row() {
-      CoverImageView({ src: song.src, coverSize: 48, coverRadius: 8 })
-
-      Column() {
-        Text(song.title)
-          .fontSize(15)
-          .fontColor(this.getThemeColors().primaryText)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-        Text(song.singer)
-          .fontSize(12)
-          .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 3 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12 })
-    }
-    .width('100%')
-    .height(64)
-    .padding({ left: 16, right: 16 })
-    .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(12)
-    .margin({ left: 8, right: 8, bottom: 8 })
-    .onClick(() => {
-      this.playSong(song);
-    })
-  }
+  
 
   build() {
     NavDestination() {
@@ -259,7 +228,19 @@ export struct FolderBrowse {
           List() {
             ForEach(this.currentFolderSongs(), (song: SongItem) => {
               ListItem() {
-                this.songRow(song)
+                SongRow({
+              song: song,
+              playing: false,
+              coverSize: 48,
+              titleFontSize: 15,
+              rowHeight: 64,
+              leftPadding: 16,
+              animateEntry: false,
+              menuItems: [],
+              onPlay: () => {
+                this.playSong(song);
+              }
+            })
               }
             }, (song: SongItem): string => song.id.toString())
           }

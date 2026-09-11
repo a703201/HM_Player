@@ -24,6 +24,7 @@ import { CoverCache } from '../utils/CoverCache';
 import { AudioMetaReader } from '../utils/AudioMeta';
 import { CoverImageView } from '../components/CoverImageView';
 import { QualityBadge } from '../components/QualityBadge';
+import { SongRow, SongMenuEntry } from '../components/SongRow';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { picker } from '@kit.CoreFileKit';
@@ -362,185 +363,18 @@ export struct LocalLibrary {
     .margin({ bottom: 10 })
   }
 
-  @Builder
-  buildSongItem(song: SongItem, index: number) {
-    Row() {
-      Row() {
-        Stack() {
-          CoverImageView({ src: song.src, coverSize: 56, coverRadius: this.playingIndex === index ? 28 : 8 })
+  
 
-          if (this.store.currentIndex === index && this.store.isPlaying) {
-            Stack() {
-              Circle()
-                .width(24)
-                .height(24)
-                .fill(semanticOf(this.isDark).fillAccentMuted)
-                .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-
-              Image($r('app.media.ic_playing'))
-                .width(16)
-                .height(16)
-            }
-            .position({ x: 38, y: 38 })
-          }
-        }
-
-        Column() {
-          Row() {
-            Text(song.title)
-              .fontSize(16)
-              .fontColor(this.store.currentIndex === index ? this.getThemeColors().accent : this.getThemeColors().primaryText)
-              .fontWeight(FontWeight.Medium)
-              .layoutWeight(1)
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .animation({ duration: 200, curve: Curve.EaseOut })
-
-            QualityBadge({ quality: song.getQuality() })
-              .margin({ left: 6 })
-          }
-          .alignItems(VerticalAlign.Center)
-          .margin({ bottom: 4 })
-
-          Text(song.singer)
-            .fontSize(13)
-            .fontColor(this.getThemeColors().secondaryText)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-        }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
-        .padding({ left: 12 })
-      }
-      .layoutWeight(1)
-      .height('100%')
-      .onClick(() => {
-        this.playSong(song);
-      })
-
-    }
-    .width('100%')
-    .height(72)
-    .padding({ left: 16, right: 16 })
-    .backgroundColor(this.store.currentIndex === index ? semanticOf(this.isDark).fillAccentSubtle : this.getThemeColors().cardBg)
-    .borderRadius(12)
-    .margin({ bottom: 8 })
-    .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
-    .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: 300, curve: Curve.EaseOut, delay: this.entryDelay(index) })
-    .bindContextMenu(this.buildSongMenu(song), ResponseType.LongPress)
-    .onTouch((event: TouchEvent) => {
-      if (event.type === TouchType.Down) {
-        let scales = [...this.itemScales];
-        scales[index] = 0.96;
-        this.itemScales = scales;
-      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-        let scales = [...this.itemScales];
-        scales[index] = 1.0;
-        this.itemScales = scales;
-      }
-    })
+    private buildMenuItems(song: SongItem): SongMenuEntry[] {
+    return [
+      { text: '播放', icon: $r('app.media.ic_hos_play'), action: () => { this.playSong(song); } },
+      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_hos_collect'), action: () => { this.toggleFavoriteSong(song); } },
+      { text: '添加到歌单', icon: $r('app.media.ic_hos_add'), action: () => { this.openAddToPlaylist(song); } },
+      { text: '详细', icon: $r('app.media.ic_hos_detail'), action: () => { this.openSongDetail(song); } },
+      { text: '删除', icon: $r('app.media.ic_hos_delete'), action: () => { this.deleteSong(song); } }
+    ];
   }
 
-  @Builder
-  buildSongMenu(song: SongItem) {
-    Column() {
-      Row() {
-        Image($r('app.media.ic_hos_play'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('播放')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.playSong(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_collect'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text(this.store.isFavorite(song.id) ? '取消收藏' : '收藏')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.toggleFavoriteSong(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_add'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('添加到歌单')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.openAddToPlaylist(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_detail'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('详细')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.openSongDetail(song);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_delete'))
-          .width(18)
-          .fillColor(this.getThemeColors().accent)
-          .margin({ right: 12 })
-        Text('删除')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().accent)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.deleteSong(song);
-      })
-    }
-    .width(176)
-    // 卡片色（cardBg）在深色模式为 #1C1C1E（深灰），避免用 `bg` (#000000 纯黑) 使菜单呈现
-    // "墨底亮字" 难以辨认；浅色模式亦保持卡片灰，确保双模式下背景统一。
-    .backgroundColor(this.getThemeColors().cardBg)
-    .border({ width: 0.5, color: this.getThemeColors().separator })
-    .borderRadius(12)
-    .shadow({ radius: 12, color: this.getThemeColors().separator, offsetX: 0, offsetY: 4 })
-  }
 
   @Builder
   sheetContent() {
@@ -707,7 +541,26 @@ export struct LocalLibrary {
           List() {
             ForEach(this.filteredSongs, (song: SongItem, index: number) => {
               ListItem() {
-                this.buildSongItem(song, index)
+                SongRow({
+              song: song,
+              index: index,
+              playing: this.store.currentIndex === index && this.store.isPlaying,
+              playingColor: this.getThemeColors().accent,
+              showQuality: true,
+              circularCoverWhenPlaying: true,
+              showPlayingIcon: true,
+              playingBg: semanticOf(this.isDark).fillAccentSubtle,
+              coverSize: 56,
+              titleFontSize: 16,
+              rowHeight: 72,
+              leftPadding: 16,
+              animateEntry: true,
+              entryDelayMs: this.entryDelay(index),
+              menuItems: this.buildMenuItems(song),
+              onPlay: () => {
+                this.playSong(song);
+              }
+            })
               }
             })
           }
@@ -720,7 +573,26 @@ export struct LocalLibrary {
           Grid() {
             ForEach(this.filteredSongs, (song: SongItem, index: number) => {
               GridItem() {
-                this.buildSongItem(song, index)
+                SongRow({
+              song: song,
+              index: index,
+              playing: this.store.currentIndex === index && this.store.isPlaying,
+              playingColor: this.getThemeColors().accent,
+              showQuality: true,
+              circularCoverWhenPlaying: true,
+              showPlayingIcon: true,
+              playingBg: semanticOf(this.isDark).fillAccentSubtle,
+              coverSize: 56,
+              titleFontSize: 16,
+              rowHeight: 72,
+              leftPadding: 16,
+              animateEntry: true,
+              entryDelayMs: this.entryDelay(index),
+              menuItems: this.buildMenuItems(song),
+              onPlay: () => {
+                this.playSong(song);
+              }
+            })
               }
             }, (song: SongItem): string => song.id.toString())
           }

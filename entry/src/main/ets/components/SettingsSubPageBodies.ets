@@ -22,6 +22,7 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf } from '../tokens/LumioColor';
 import { CoverImageView } from '../components/CoverImageView';
 import { QualityBadge } from '../components/QualityBadge';
+import { SongRow } from '../components/SongRow';
 import { DuplicateDetector, DuplicateGroup } from '../utils/DuplicateDetector';
 
 interface YearStat {
@@ -141,72 +142,7 @@ export struct ManageSongsBody {
     }
   }
 
-  @Builder
-  buildSongItem(song: SongItem, index: number) {
-    Row() {
-      Stack() {
-        CoverImageView({ src: song.src, coverSize: 48, coverRadius: 8 })
-      }
-
-      Column() {
-        Row() {
-          Text(song.title)
-            .fontSize(15)
-            .fontColor(this.getThemeColors().primaryText)
-            .fontWeight(FontWeight.Medium)
-            .layoutWeight(1)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-          QualityBadge({ quality: song.getQuality() })
-            .margin({ left: 6 })
-        }
-        .alignItems(VerticalAlign.Center)
-        .margin({ bottom: 4 })
-
-        Text(song.singer)
-          .fontSize(13)
-          .fontColor(this.getThemeColors().secondaryText)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12 })
-
-      Image($r('app.media.ic_hm_more'))
-        .width(20)
-        .height(20)
-        .fillColor(this.getThemeColors().secondaryText)
-        .padding(8)
-        .bindMenu([
-          {
-            value: '移除',
-            action: () => {
-              this.confirmDelete(song);
-            }
-          }
-        ])
-    }
-    .width('100%')
-    .height(64)
-    .padding({ left: 16, right: 8 })
-    .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(12)
-    .margin({ left: 8, right: 8, bottom: 8 })
-    .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
-    .onTouch((event: TouchEvent) => {
-      if (event.type === TouchType.Down) {
-        let scales = [...this.itemScales];
-        scales[index] = 0.96;
-        this.itemScales = scales;
-      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-        let scales = [...this.itemScales];
-        scales[index] = 1.0;
-        this.itemScales = scales;
-      }
-    })
-  }
+  
 
   build() {
     Column() {
@@ -247,7 +183,22 @@ export struct ManageSongsBody {
         List() {
           ForEach(this.songs, (song: SongItem, index: number) => {
             ListItem() {
-              this.buildSongItem(song, index)
+              SongRow({
+              song: song,
+              playing: false,
+              showQuality: true,
+              coverSize: 48,
+              titleFontSize: 15,
+              rowHeight: 64,
+              leftPadding: 16,
+              showRemove: true,
+              animateEntry: false,
+              menuItems: [],
+              onPlay: () => {},
+              onRemove: () => {
+                this.confirmDelete(song);
+              }
+            })
             }
           })
         }
