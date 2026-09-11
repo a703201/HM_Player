@@ -131,10 +131,14 @@ export struct PlayerInfoComponent {
         .hitTestBehavior(HitTestMode.None)
 
       // 自适应明暗蒙层：保证文字可读
+      // 0.454 = 原 0.35 叠加 0.16 的等效单层值（0.65 × 0.84 = 0.546）。
+      // 用途：把纯白封面的合成底色从 #7D7D7D 压到 #696969，使歌词对比度达标。
+      // M3 将替换为 artworkScrim(liftedBgLuma): number 自适应函数（返回区间不变），本轮为常量占位。
+      // 注意：本轮"不是无蒙层"，而是沿用固定蒙层、不做自适应 —— M3 的人别误以为总蒙层只有 0.16。
       Column()
         .width(StyleConstants.FULL_WIDTH)
         .height(StyleConstants.FULL_HEIGHT)
-        .backgroundColor(this.lyricBgDark ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.20)')
+        .backgroundColor(this.lyricBgDark ? 'rgba(0,0,0,0.454)' : 'rgba(255,255,255,0.20)')
         .hitTestBehavior(HitTestMode.None)
 
       Row() {

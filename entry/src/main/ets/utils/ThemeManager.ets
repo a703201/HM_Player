@@ -18,6 +18,8 @@ import { Logger } from './Logger';
 import { window } from '@kit.ArkUI';
 import { SettingsStore, ThemeMode } from './SettingsStore';
 import { AppleTokens, appleColors } from '../common/utils/DesignSystem';
+import { resolveIsDark } from '../common/utils/ThemeResolver';
+import { AVSessionController } from './AVSessionController';
 
 /**
  * 全应用主题管理器。
@@ -71,14 +73,9 @@ export class ThemeManager {
   /** 当前是否深色：system 模式读系统 ColorMode。 */
   static isDark(): boolean {
     const mode: ThemeMode = (AppStorage.get<string>('themeMode') ?? 'system') as ThemeMode;
-    if (mode === 'light') {
-      return false;
-    }
-    if (mode === 'dark') {
-      return true;
-    }
+    // 判定统一委托给 resolveIsDark()，与桌面卡片（FormAbility）同源，避免两处独立判定产生值漂移。
     // system：读取 EntryAbility 在 onConfigurationUpdated 中写入的 systemIsDark
-    return AppStorage.get<boolean>('systemIsDark') ?? false;
+    return resolveIsDark(mode, AppStorage.get<boolean>('systemIsDark') ?? false);
   }
 
   /** 取当前语义色令牌（页面据此着色）。 */
@@ -111,12 +108,33 @@ export class ThemeManager {
     AppStorage.setOrCreate('themeMode', mode);
     AppStorage.setOrCreate('isDark', ThemeManager.isDark());
     ThemeManager.applyToWindow();
+    ThemeManager.pushCardThemeUpdate();
   }
 
-  /** 系统主题变更时刷新（仅 themeMode==='system' 时由 EntryAbility 调用生效）。 */
+  /**
+   * 系统主题变更时刷新（仅 themeMode==='system' 时由 EntryAbility 调用生效）。
+   *
+   * ⚠️ 这是卡片主题更新的**主要**路径，不是可选优化：SettingsStore 里 themeMode 默认值就是
+   * 'system'，绝大多数用户处于跟随系统模式，他们切换系统深色的唯一触发点就是这里。
+   * 若此处不推卡片，这些用户的桌面卡片会一直停在浅色，缺陷 1 对他们等于没修。
+   */
   static refreshSystemTheme(): void {
     AppStorage.setOrCreate('isDark', ThemeManager.isDark());
     ThemeManager.applyToWindow();
+    ThemeManager.pushCardThemeUpdate();
+  }
+
+  /**
+   * 主题变化后向已添加的桌面卡片推送一次新的 isDark。
+   * 卡片运行在独立进程，不会跟随主应用重绘，必须由主应用显式推送。
+   * 卡片可能尚未创建 / 主应用 context 未就绪，失败仅记日志，绝不打断主题切换流程。
+   */
+  private static pushCardThemeUpdate(): void {
+    try {
+      AVSessionController.getInstance().pushFormUpdate();
+    } catch (e) {
+      Logger.error('pushFormUpdate on theme change failed');
+    }
   }
 
   /** 同步状态栏/导航栏内容色（深色用白色，浅色用深色）。 */

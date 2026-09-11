@@ -32,6 +32,9 @@
 import { preferences } from '@kit.ArkData';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { Logger } from './Logger';
+// 仅类型引用（import type 编译期擦除），避免与 SettingsStore 形成运行时循环依赖
+// （SettingsStore -> AVSessionController -> PreferencesUtil）。
+import type { ThemeMode } from './SettingsStore';
 
 const TAG = 'PreferencesUtil';
 const MY_STORE = 'myStore';
@@ -39,6 +42,12 @@ const FORM_ID = 'formIds';
 const PERM_GUIDE_SHOWN = 'permGuideShown';
 const SILENT_MODE = 'silentMode';
 const ONBOARDING_SHOWN = 'onboardingShown';
+// 主题模式由 SettingsStore 持久化在**独立**库 'app_settings' 的 'theme_mode' 键下，
+// 与上面 MY_STORE('myStore') 不是同一个 Preferences 库。
+// 两个常量必须与 SettingsStore 中的 PREF_NAME / KEY_THEME_MODE 保持一致，
+// 此处不能从 SettingsStore 导入（会形成运行时循环依赖），故显式镜像。
+const APP_SETTINGS_STORE = 'app_settings';
+const THEME_MODE = 'theme_mode';
 
 export class PreferencesUtil {
   private static preferencesUtil: PreferencesUtil;
@@ -164,6 +173,34 @@ export class PreferencesUtil {
     } catch (error) {
       let err = error as BusinessError;
       Logger.error(TAG, `Failed to check the key 'formIds'. message:${err.message}`);
+    }
+  }
+
+  /**
+   * 同步读取主题模式（'system' | 'light' | 'dark'）。
+   *
+   * 存在原因：FormAbility.onAddForm 是同步签名，不能 await，
+   * 而 SettingsStore 只有内存态 getThemeMode()（卡片进程内从未 init 过，恒为默认值），
+   * 故需要一条同步、直接读盘的入口，让主应用未运行时卡片也能拿到正确主题。
+   *
+   * 注意：themeMode 存在 'app_settings' 库而非本类默认的 'myStore'，
+   * 此处必须显式指定库名，否则读到的永远是默认 'system'。
+   *
+   * @returns 解析后的 ThemeMode；读取失败或值非法时回落到 'system'
+   */
+  getThemeModeSync(context: Context): ThemeMode {
+    try {
+      const pref: preferences.Preferences =
+        preferences.getPreferencesSync(context, { name: APP_SETTINGS_STORE });
+      const value: string = pref.getSync(THEME_MODE, 'system') as string;
+      if (value === 'light' || value === 'dark') {
+        return value as ThemeMode;
+      }
+      return 'system';
+    } catch (error) {
+      const err: BusinessError = error as BusinessError;
+      Logger.error(TAG, `getThemeModeSync failed. message:${err.message}`);
+      return 'system';
     }
   }
 

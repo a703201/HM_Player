@@ -682,6 +682,13 @@ export class AVSessionController {
     let duration: number = this.getDuration() ?? 0;
     let position: number = this.audioRendererController?.getCurrentPosition() ?? 0;
     let lyric: string = (AppStorage.get('cardLyric') as string) ?? '';
+    // 主题深浅：此前从未下发过，卡片侧 isDark 恒为 false，深色模式用户的桌面卡片一直是浅色。
+    // 这里每次推送都带上，主题切换后（ThemeManager 的 setThemeMode / refreshSystemTheme
+    // 亦会各主动推一次）已存在的卡片即可刷新。
+    // TODO(技术债)：可加「仅当本次载荷与上次不同才 updateForm」的差分守卫省掉冗余 IPC。
+    // 本次未做：播放中 position 每秒都在变，守卫实际拦不下任何一次推送（收益≈0），
+    // 却要给全部字段做快照比对，属于对已稳定逻辑的行为改动，风险大于收益。
+    let isDark: boolean = (AppStorage.get('isDark') as boolean) ?? false;
     PreferencesUtil.getInstance().getFormIds(this.context)
       .then((formIds: Array<string>) => {
         formIds.forEach((formId: string) => {
@@ -696,7 +703,8 @@ export class AVSessionController {
             duration: duration,
             position: position,
             lyric: lyric,
-            isPlaying: isPlaying
+            isPlaying: isPlaying,
+            isDark: isDark
           }))
             .catch((err: BusinessError) => {
               Logger.error(TAG, `pushFormUpdate updateForm failed: ${err.message}`);
