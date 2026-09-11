@@ -37,11 +37,12 @@
  * 由 FormAbility.onFormEvent 转发给主 EntryAbility 实现回控。
  *
  * 主题跟随：卡片运行在独立渲染进程，无法共享主应用 AppStorage，亦不可 import 完整
- * ThemeManager（其依赖 window/Preferences）。故卡片内自建轻量 cardColors(isDark) 取色集，
- * 色值与《Lumio 设计 Token 规范》(docs/design_tokens.md §1) 的
- * ThemeManager.lightColors/darkColors 保持一致，作为权威来源的单点镜像。
- * isDark 由 FormAbility 经 createFormBindingData 写入（M2 G-4 闭环；当前默认 false=浅色）。
+ * ThemeManager（其依赖 window/Preferences）。故卡片内自建轻量 getCardColors(isDark) 取色集，
+ * 色值直接来自 tokens/LumioColor 的 semanticOf（与主应用 ThemeManager 同源，零 import，Form 进程安全）。
+ * isDark 由 FormAbility.onAddForm 写入，并随主应用主题切换经 pushFormUpdate() 自愈重推（缺陷 1 已修复）。
  */
+import { semanticOf, CARD_CONTROL_BG_LIGHT, CARD_CONTROL_BG_DARK } from '../../tokens/LumioColor';
+
 interface CardColors {
   cardBg: string;
   titleText: string;
@@ -81,30 +82,21 @@ struct WidgetCard {
   }
 
   /**
-   * 卡片取色集：镜像 design_tokens.md §1 语义令牌（accent 恒为品牌粉红 #FA2759）。
+   * 卡片取色集：直接引用 tokens/LumioColor 的 semanticOf（与主应用 ThemeManager 同源）。
    * 背景/文字/图标一律经此取色，禁止硬编码 Color.White / #1A1A2E 等字面量。
+   * Form 卡片进程仅可 import 零 import 的 LumioColor。
    */
   private getCardColors(): CardColors {
-    if (this.isDark) {
-      return {
-        cardBg: '#1C1C1E',        // cardBg(dark)
-        titleText: '#FFFFFF',     // primaryText(dark)
-        artistText: '#98989F',    // secondaryText(dark)
-        iconColor: '#FFFFFF',     // primaryText(dark)
-        secondaryBtnBg: '#33FFFFFF',
-        playBtnBg: '#FA2759',      // accent（恒值）
-        playIconColor: '#FFFFFF'
-      };
-    }
+    const s = semanticOf(this.isDark);
     return {
-      cardBg: '#F2F2F7',          // cardBg(light)
-      titleText: '#1C1C1E',       // primaryText(light)
-      artistText: '#8E8E93',      // secondaryText(light)
-        iconColor: '#1C1C1E',       // primaryText(light)
-        secondaryBtnBg: '#33000000',
-        playBtnBg: '#FA2759',        // accent（恒值）
-        playIconColor: '#FFFFFF'
-      };
+      cardBg: s.surfaceRaised,
+      titleText: s.label,
+      artistText: s.labelSecondary,
+      iconColor: s.label,
+      secondaryBtnBg: this.isDark ? CARD_CONTROL_BG_DARK : CARD_CONTROL_BG_LIGHT,
+      playBtnBg: s.accent,
+      playIconColor: s.labelOnAccent
+    };
   }
 
   build() {

@@ -20,6 +20,7 @@ import { SettingsStore, ThemeMode } from './SettingsStore';
 import { AppleTokens, appleColors } from '../common/utils/DesignSystem';
 import { resolveIsDark } from '../common/utils/ThemeResolver';
 import { AVSessionController } from './AVSessionController';
+import { LIGHT_SEMANTIC, DARK_SEMANTIC } from '../tokens/LumioColor';
 
 /**
  * 全应用主题管理器。
@@ -42,24 +43,27 @@ export interface ColorTokens {
   accent: string;        // 品牌强调色
 }
 
+// 收敛到 tokens/LumioColor 语义令牌（单一权威来源）。
+// 仅映射 ColorTokens 的 7 个字段；其余语义色经 LumioTheme 取用。
+// 注意：secondaryText(light) 由 #8E8E93 收敛为 labelSecondary 的 #6E6E73（对比度 3.26→5.07:1，达 WCAG AA）。
 const LIGHT_TOKENS: ColorTokens = {
-  bg: '#FFFFFF',
-  secondaryBg: '#FAFAFA',
-  cardBg: '#F2F2F7',
-  primaryText: '#1C1C1E',
-  secondaryText: '#8E8E93',
-  separator: '#E5E5EA',
-  accent: '#FA2759'
+  bg: LIGHT_SEMANTIC.background,
+  secondaryBg: LIGHT_SEMANTIC.backgroundSecondary,
+  cardBg: LIGHT_SEMANTIC.surfaceRaised,
+  primaryText: LIGHT_SEMANTIC.label,
+  secondaryText: LIGHT_SEMANTIC.labelSecondary,
+  separator: LIGHT_SEMANTIC.separator,
+  accent: LIGHT_SEMANTIC.accent
 };
 
 const DARK_TOKENS: ColorTokens = {
-  bg: '#000000',
-  secondaryBg: '#1C1C1E',
-  cardBg: '#1C1C1E',
-  primaryText: '#FFFFFF',
-  secondaryText: '#98989F',
-  separator: '#2C2C2E',
-  accent: '#FA2759'
+  bg: DARK_SEMANTIC.background,
+  secondaryBg: DARK_SEMANTIC.backgroundSecondary,
+  cardBg: DARK_SEMANTIC.surfaceRaised,
+  primaryText: DARK_SEMANTIC.label,
+  secondaryText: DARK_SEMANTIC.labelSecondary,
+  separator: DARK_SEMANTIC.separator,
+  accent: DARK_SEMANTIC.accent
 };
 
 export class ThemeManager {
