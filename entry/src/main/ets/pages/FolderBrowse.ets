@@ -110,7 +110,7 @@ export struct FolderBrowse {
       }
       .width(56)
       .height(56)
-      .borderRadius(10)
+      .borderRadius(12)
       .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
 
       Column() {
@@ -143,7 +143,7 @@ export struct FolderBrowse {
     .height(76)
     .padding({ left: 12, right: 14 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ left: 8, right: 8, bottom: 8 })
     .onClick(() => {
       this.selectedFolder = f.name;

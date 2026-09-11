@@ -297,7 +297,7 @@ export struct SettingsCategoryDetail {
     .height(60)
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ bottom: 2 })
   }
 
@@ -340,7 +340,7 @@ export struct SettingsCategoryDetail {
     .height(60)
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ bottom: 2 })
   }
 
@@ -377,7 +377,7 @@ export struct SettingsCategoryDetail {
     .height(60)
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ bottom: 2 })
     .onClick(() => {
       onClick();

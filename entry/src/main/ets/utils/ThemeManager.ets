@@ -47,9 +47,11 @@ export interface ColorTokens {
 // 仅映射 ColorTokens 的 7 个字段；其余语义色经 LumioTheme 取用。
 // 注意：secondaryText(light) 由 #8E8E93 收敛为 labelSecondary 的 #6E6E73（对比度 3.26→5.07:1，达 WCAG AA）。
 const LIGHT_TOKENS: ColorTokens = {
-  bg: LIGHT_SEMANTIC.background,
+  // P3 表面层级翻转：浅色模式页面底改为分组灰(surfaceGrouped)，卡片改为白(surfaceGroupedContent)，
+  // 形成 iOS「灰底白卡」分组层级。深色模式 surfaceGrouped/surfaceGroupedContent 与原值一致，无回归。
+  bg: LIGHT_SEMANTIC.surfaceGrouped,
   secondaryBg: LIGHT_SEMANTIC.backgroundSecondary,
-  cardBg: LIGHT_SEMANTIC.surfaceRaised,
+  cardBg: LIGHT_SEMANTIC.surfaceGroupedContent,
   primaryText: LIGHT_SEMANTIC.label,
   secondaryText: LIGHT_SEMANTIC.labelSecondary,
   separator: LIGHT_SEMANTIC.separator,
@@ -57,9 +59,9 @@ const LIGHT_TOKENS: ColorTokens = {
 };
 
 const DARK_TOKENS: ColorTokens = {
-  bg: DARK_SEMANTIC.background,
+  bg: DARK_SEMANTIC.surfaceGrouped,
   secondaryBg: DARK_SEMANTIC.backgroundSecondary,
-  cardBg: DARK_SEMANTIC.surfaceRaised,
+  cardBg: DARK_SEMANTIC.surfaceGroupedContent,
   primaryText: DARK_SEMANTIC.label,
   secondaryText: DARK_SEMANTIC.labelSecondary,
   separator: DARK_SEMANTIC.separator,

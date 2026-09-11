@@ -334,7 +334,7 @@ export struct DuplicateSongsBody {
           .fontSize(12)
           .fontColor(this.getThemeColors().accent)
           .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
-          .borderRadius(10)
+          .borderRadius(12)
           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
       }
       .width('100%')
@@ -366,7 +366,7 @@ export struct DuplicateSongsBody {
               .fontSize(12)
               .fontColor(this.getThemeColors().secondaryText)
               .backgroundColor(this.getThemeColors().secondaryBg)
-              .borderRadius(10)
+              .borderRadius(12)
               .padding({ left: 10, right: 10, top: 4, bottom: 4 })
           } else {
             Text('移除')
@@ -385,7 +385,7 @@ export struct DuplicateSongsBody {
     .width('100%')
     .margin({ left: 8, right: 8, bottom: 12 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
   }
 
   build() {
@@ -576,7 +576,7 @@ export struct WrappedBody {
     .width('100%')
     .padding(24)
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(20)
+    .borderRadius(24)
     .margin({ left: 8, right: 8, bottom: 16 })
   }
 
@@ -667,7 +667,7 @@ export struct WrappedBody {
     .width('100%')
     .padding({ top: 16, left: 16, right: 16, bottom: 16 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(20)
+    .borderRadius(24)
     .margin({ left: 8, right: 8, bottom: 16 })
   }
 

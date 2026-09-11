@@ -536,7 +536,7 @@ struct PlaylistDetail {
           .height(40)
           .justifyContent(FlexAlign.Center)
           .backgroundColor(this.getThemeColors().accent)
-          .borderRadius(20)
+          .borderRadius(24)
           .scale({ x: this.playAllScale, y: this.playAllScale })
           .animation({ duration: 150, curve: Curve.EaseOut })
           .onClick(() => {
@@ -563,7 +563,7 @@ struct PlaylistDetail {
           .height(40)
           .justifyContent(FlexAlign.Center)
           .backgroundColor(this.getThemeColors().cardBg)
-          .borderRadius(20)
+          .borderRadius(24)
           .margin({ left: 12 })
           .onClick(() => {
             this.openPicker();

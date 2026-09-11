@@ -532,7 +532,7 @@ export struct ControlAreaComponent {
           .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
           .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-          .borderRadius(14)
+          .borderRadius(16)
           .margin({ right: 8 })
           .onClick(() => {
             this.applySort(mode);

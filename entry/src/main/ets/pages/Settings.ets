@@ -262,7 +262,7 @@ export struct Settings {
     .height(64)
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ bottom: 2 })
     .onClick(() => {
       this.getUIContext().animateTo(

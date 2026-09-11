@@ -348,7 +348,7 @@ export struct LocalLibrary {
             .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
             .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
             .padding({ left: 14, right: 14, top: 6, bottom: 6 })
-            .borderRadius(14)
+            .borderRadius(16)
             .onClick(() => {
               this.applyLibrarySort(mode);
             })
@@ -671,7 +671,7 @@ export struct LocalLibrary {
             .fontSize(14)
             .fontColor(Color.White)
             .backgroundColor(this.getThemeColors().accent)
-            .borderRadius(20)
+            .borderRadius(24)
             .padding({ left: 24, right: 24, top: 8, bottom: 8 })
             .onClick(() => {
               this.retryLoad();

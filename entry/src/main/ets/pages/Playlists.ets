@@ -336,7 +336,7 @@ struct Playlists {
     .height(76)
     .padding({ left: 12, right: 14 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
@@ -369,7 +369,7 @@ struct Playlists {
       }
       .width(56)
       .height(56)
-      .borderRadius(10)
+      .borderRadius(12)
       .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
 
       Column() {
@@ -401,7 +401,7 @@ struct Playlists {
     .height(76)
     .padding({ left: 12, right: 14 })
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ left: 8, right: 8, bottom: 8 })
     .onClick(() => {
       this.playSmart(pl);
@@ -565,7 +565,7 @@ struct Playlists {
                     .fontSize(14)
                     .fontColor(semanticOf(this.isDark).onAccent)
                     .backgroundColor(semanticOf(this.isDark).accent)
-                    .borderRadius(20)
+                    .borderRadius(24)
                     .height(36)
                     .margin({ top: 20 })
                     .onClick(() => {
@@ -644,7 +644,7 @@ struct PlaylistNameDialog {
         .maxLength(30)
         .fontColor(this.getThemeColors().primaryText)
         .backgroundColor(this.getThemeColors().secondaryBg)
-        .borderRadius(10)
+        .borderRadius(12)
         .onChange((value: string) => {
           this.inputName = value;
         })
@@ -656,7 +656,7 @@ struct PlaylistNameDialog {
           .fontSize(15)
           .fontColor(this.getThemeColors().secondaryText)
           .backgroundColor(this.getThemeColors().secondaryBg)
-          .borderRadius(20)
+          .borderRadius(24)
           .onClick(() => {
             this.controller.close();
           })
@@ -667,7 +667,7 @@ struct PlaylistNameDialog {
           .fontSize(15)
           .fontColor(semanticOf(this.isDark).onAccent)
           .backgroundColor(semanticOf(this.isDark).accent)
-          .borderRadius(20)
+          .borderRadius(24)
           .margin({ left: 12 })
           .onClick(() => {
             this.onConfirm(this.inputName);

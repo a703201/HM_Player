@@ -42,7 +42,6 @@ export struct Mine {
   @State menuScales: number[] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
   @State menuPressed: boolean[] = [false, false, false, false, false, false];
   @State favCount: number = 0;
-  @State songCount: number = 0;
   @State histCount: number = 0;
   @State playlistCount: number = 0;
   private countIntervalId: number = -1;
@@ -69,7 +68,6 @@ export struct Mine {
 
   private refreshCounts(): void {
     this.favCount = this.store.getFavoriteSongs().length;
-    this.songCount = this.store.songs.length;
     this.histCount = this.store.recentlyPlayed.length;
     this.playlistCount = this.store.playlists.length;
   }
@@ -111,7 +109,7 @@ export struct Mine {
     .height(60)
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.menuPressed[index] ? semanticOf(this.isDark).fillTertiary : this.getThemeColors().cardBg)
-    .borderRadius(14)
+    .borderRadius(16)
     .margin({ bottom: 8 })
     .scale({ x: this.menuScales[index] ?? 1.0, y: this.menuScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 20 })))
@@ -150,48 +148,6 @@ export struct Mine {
             .padding({ left: 16, right: 16, top: this.topHeight + 8, bottom: 12 })
         }
         .width('100%')
-
-        // 快速统计（头像 / 用户名 / 已收藏 行已按需求移除）
-        Row() {
-          Column() {
-            Text(`${SettingsStore.getInstance().getPrivacyStats() ? this.songCount : '—'}`)
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.getThemeColors().primaryText)
-            Text('歌曲')
-              .fontSize(11)
-              .fontColor(this.getThemeColors().secondaryText)
-              .margin({ top: 2 })
-          }
-          .layoutWeight(1)
-
-          Column() {
-            Text(`${SettingsStore.getInstance().getPrivacyStats() ? this.favCount : '—'}`)
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.getThemeColors().primaryText)
-            Text('收藏')
-              .fontSize(11)
-              .fontColor(this.getThemeColors().secondaryText)
-              .margin({ top: 2 })
-          }
-          .layoutWeight(1)
-
-          Column() {
-            Text(`${SettingsStore.getInstance().getPrivacyStats() ? this.histCount : '—'}`)
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.getThemeColors().primaryText)
-            Text('历史')
-              .fontSize(11)
-              .fontColor(this.getThemeColors().secondaryText)
-              .margin({ top: 2 })
-          }
-          .layoutWeight(1)
-        }
-        .width('100%')
-        .padding({ left: 32, right: 32, top: 8, bottom: 20 })
-        .backgroundColor(this.getThemeColors().secondaryBg)
 
         // 菜单区
         Column() {

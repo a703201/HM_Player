@@ -252,7 +252,7 @@ struct Layout {
         Image(this.playerCover)
           .width(48)
           .height(48)
-          .borderRadius(14)
+          .borderRadius(16)
           .clip(true)
           .shadow({
             radius: 6,
@@ -314,7 +314,7 @@ struct Layout {
     }
     .width(48)
     .height(48)
-    .borderRadius(14)
+    .borderRadius(16)
     .backgroundColor(onMediaOf(true).scrim)
     .justifyContent(FlexAlign.Center)
     .hitTestBehavior(HitTestMode.None)

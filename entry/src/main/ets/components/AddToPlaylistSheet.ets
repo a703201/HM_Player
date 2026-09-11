@@ -112,7 +112,7 @@ export struct AddToPlaylistSheet {
         .maxLength(30)
         .fontColor(this.getThemeColors().primaryText)
         .backgroundColor(this.getThemeColors().secondaryBg)
-        .borderRadius(10)
+        .borderRadius(12)
         .onChange((value: string) => {
           this.newName = value;
         })
@@ -124,7 +124,7 @@ export struct AddToPlaylistSheet {
           .fontSize(15)
           .fontColor(this.getThemeColors().secondaryText)
           .backgroundColor(this.getThemeColors().secondaryBg)
-          .borderRadius(20)
+          .borderRadius(24)
           .onClick(() => {
             this.nameDialogController.close();
           })
@@ -135,7 +135,7 @@ export struct AddToPlaylistSheet {
           .fontSize(15)
           .fontColor(semanticOf(this.isDark).onAccent)
           .backgroundColor(this.getThemeColors().accent)
-          .borderRadius(20)
+          .borderRadius(24)
           .margin({ left: 12 })
           .onClick(() => {
             this.onNewConfirm(this.newName);

@@ -71,7 +71,7 @@ export struct OnboardingSheet {
       }
       .width(46)
       .height(46)
-      .borderRadius(14)
+      .borderRadius(16)
       .backgroundColor(f.color)
       .align(Alignment.Center)
 
