@@ -27,9 +27,9 @@ import { LumioSemantic, semanticOf } from './LumioColor';
 import { LumioSpace, LumioRadius, LumioType, SPACE_SM, SPACE_MD, SPACE_LG, TYPE_SM, TYPE_LG, LUMIO_RADIUS } from './LumioScale';
 import { LumioElevation, LumioGlass, LumioGlassSet, ELEVATION_LIGHT, ELEVATION_DARK, GLASS_LIGHT, GLASS_DARK } from './LumioEffect';
 import { LumioMotion, SpringKind } from './LumioMotion';
-import type { ICurve } from '@kit.ArkUI';
 import { SettingsStore } from '../utils/SettingsStore';
 import { BreakpointConstants } from '../common/constants/BreakpointConstants';
+export { SpringKind };
 
 export class LumioTheme {
   static semantic(isDark: boolean): LumioSemantic {

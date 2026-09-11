@@ -24,6 +24,7 @@ import { CoverImageView } from '../components/CoverImageView';
 import { QualityBadge } from '../components/QualityBadge';
 import { SongRow } from '../components/SongRow';
 import { DuplicateDetector, DuplicateGroup } from '../utils/DuplicateDetector';
+import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 
 interface YearStat {
   year: string;
@@ -167,7 +168,7 @@ export struct ManageSongsBody {
             .fillColor(this.getThemeColors().secondaryText)
             .margin({ bottom: 16 })
             .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-            .animation({ duration: 2000, curve: Curve.EaseInOut })
+            .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
           Text('暂无本地歌曲')
             .fontSize(16)
             .fontColor(this.getThemeColors().secondaryText)

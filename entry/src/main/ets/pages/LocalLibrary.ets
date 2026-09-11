@@ -33,6 +33,7 @@ import { common } from '@kit.AbilityKit';
 import { SettingsStore } from '../utils/SettingsStore';
 import { sortSongs } from '../common/utils/SortUtil';
 import { semanticOf } from '../tokens/LumioColor';
+import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 
 const PLAYER_COVER_ID: string = 'player_cover';
 
@@ -416,7 +417,7 @@ export struct LocalLibrary {
         .borderRadius(16)
         .margin({ right: 16, top: this.topHeight + 8 })
         .scale({ x: this.importScale, y: this.importScale })
-        .animation({ duration: 150, curve: Curve.EaseOut })
+        .animation({ duration: 150, curve: LumioTheme.curve(SpringKind.Crisp) })
         .onClick(() => {
           this.onPickMusic();
         })
@@ -521,7 +522,7 @@ export struct LocalLibrary {
             .fillColor(this.getThemeColors().secondaryText)
             .margin({ bottom: 16 })
             .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-            .animation({ duration: 2000, curve: Curve.EaseInOut })
+            .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
 
           Text('音乐库还是空的')
             .fontSize(16)

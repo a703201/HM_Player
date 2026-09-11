@@ -18,6 +18,8 @@ import { CoverImageView } from './CoverImageView';
 import { QualityBadge } from './QualityBadge';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf } from '../tokens/LumioColor';
+import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { SettingsStore } from '../utils/SettingsStore';
 
 /**
  * 长按菜单项（数据驱动，规避 @BuilderParam 无法捕获 per-row song 的限制）。
@@ -128,7 +130,7 @@ export struct SongRow {
           .layoutWeight(1)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .animation({ duration: 200, curve: Curve.EaseOut })
+          .animation({ duration: 200, curve: LumioTheme.curve(SpringKind.Crisp) })
 
         if (this.showQuality) {
           QualityBadge({ quality: this.song.getQuality() })
@@ -154,7 +156,7 @@ export struct SongRow {
         .height(22)
         .fillColor(this.getThemeColors().accent)
         .scale({ x: this.heartPulse, y: this.heartPulse })
-        .animation({ duration: 200, curve: Curve.EaseOut })
+        .animation({ duration: 200, curve: LumioTheme.curve(SpringKind.Crisp) })
     } else if (this.showRemove) {
       Image($r('app.media.ic_close'))
         .width(18)
@@ -179,7 +181,7 @@ export struct SongRow {
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.pressedScale, y: this.pressedScale })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: this.animateEntry ? 300 : 0, curve: Curve.EaseOut, delay: this.animateEntry ? this.entryDelayMs : 0 })
+    .animation({ duration: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? 300 : 0, curve: LumioTheme.curve(SpringKind.Crisp), delay: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? this.entryDelayMs : 0 })
     .onClick(() => {
       this.onPlay();
     })
@@ -210,7 +212,7 @@ export struct SongRow {
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.pressedScale, y: this.pressedScale })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
-    .animation({ duration: this.animateEntry ? 300 : 0, curve: Curve.EaseOut, delay: this.animateEntry ? this.entryDelayMs : 0 })
+    .animation({ duration: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? 300 : 0, curve: LumioTheme.curve(SpringKind.Crisp), delay: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? this.entryDelayMs : 0 })
     .onClick(() => {
       this.onPlay();
     })

@@ -26,6 +26,7 @@ import { SettingsStore } from '../utils/SettingsStore';
 import { Logger } from '../utils/Logger';
 import { semanticOf } from '../tokens/LumioColor';
 import { SongRow, SongMenuEntry } from '../components/SongRow';
+import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 
 @Builder
 export function FavoritesBuilder() {
@@ -131,7 +132,7 @@ struct Favorites {
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
             .scale({ x: this.backScale, y: this.backScale })
-            .animation({ duration: 150, curve: Curve.EaseOut })
+            .animation({ duration: 150, curve: LumioTheme.curve(SpringKind.Crisp) })
             .onClick(() => {
               this.pathStack.pop();
             })
@@ -169,7 +170,7 @@ struct Favorites {
               .fillColor(this.getThemeColors().secondaryText)
               .margin({ bottom: 16 })
               .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-              .animation({ duration: 2000, curve: Curve.EaseInOut })
+              .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
 
             Text('暂无收藏歌曲')
               .fontSize(16)

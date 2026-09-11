@@ -22,7 +22,6 @@
  * 以便 Form 卡片进程也能安全复用 LumioMotionSpec 的数值。
  */
 import { curves } from '@kit.ArkUI';
-import type { ICurve } from '@kit.ArkUI';
 import { LumioDurations, LumioSpringSpec, LumioSpringSpecs } from './LumioMotionSpec';
 
 export enum SpringKind {
@@ -38,7 +37,7 @@ export class LumioMotion {
   static spring(kind: SpringKind, reduce: boolean): ICurve {
     if (reduce) {
       // 降级：无过冲的缓出，等价于「临界阻尼但更快」
-      return curves.cubicBezier(0.2, 0.0, 0.2, 1.0);
+      return curves.cubicBezierCurve(0.2, 0.0, 0.2, 1.0);
     }
     const spec: LumioSpringSpec = LumioMotion.specOf(kind);
     return curves.interpolatingSpring(spec.velocity, spec.mass, spec.stiffness, spec.damping);

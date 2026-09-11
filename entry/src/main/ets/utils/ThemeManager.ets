@@ -17,7 +17,6 @@
 import { Logger } from './Logger';
 import { window } from '@kit.ArkUI';
 import { SettingsStore, ThemeMode } from './SettingsStore';
-import { AppleTokens, appleColors } from '../common/utils/DesignSystem';
 import { resolveIsDark } from '../common/utils/ThemeResolver';
 import { AVSessionController } from './AVSessionController';
 import { LIGHT_SEMANTIC, DARK_SEMANTIC } from '../tokens/LumioColor';
@@ -98,14 +97,6 @@ export class ThemeManager {
   /** 深色令牌（静态访问，供组件响应式 getter 使用）。 */
   static get darkColors(): ColorTokens {
     return DARK_TOKENS;
-  }
-
-  /**
-   * 取当前主题的 Apple 语义色令牌（iOS 风格分层背景/填充/标签/系统色）。
-   * 组件通过 @StorageProp('isDark') 已具备响应性，直接调用即可随主题刷新。
-   */
-  static apple(): AppleTokens {
-    return appleColors(ThemeManager.isDark());
   }
 
   /** 用户手动切换主题模式：持久化 + 刷新 AppStorage + 同步系统栏。 */

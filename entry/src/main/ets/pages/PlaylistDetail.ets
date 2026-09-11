@@ -26,6 +26,7 @@ import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
 import { semanticOf } from '../tokens/LumioColor';
 import { SongRow, SongMenuEntry } from '../components/SongRow';
+import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 
 const TAG: string = 'PlaylistDetail';
 
@@ -333,7 +334,7 @@ struct PlaylistDetail {
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
             .scale({ x: this.backScale, y: this.backScale })
-            .animation({ duration: 150, curve: Curve.EaseOut })
+            .animation({ duration: 150, curve: LumioTheme.curve(SpringKind.Crisp) })
             .onClick(() => {
               this.pathStack.pop();
             })
@@ -382,7 +383,7 @@ struct PlaylistDetail {
           .backgroundColor(this.getThemeColors().accent)
           .borderRadius(24)
           .scale({ x: this.playAllScale, y: this.playAllScale })
-          .animation({ duration: 150, curve: Curve.EaseOut })
+          .animation({ duration: 150, curve: LumioTheme.curve(SpringKind.Crisp) })
           .onClick(() => {
             this.playAll();
           })

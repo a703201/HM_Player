@@ -16,6 +16,7 @@
 
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf, LUMIO_PALETTE } from '../tokens/LumioColor';
+import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 
 interface OnboardFeature {
   icon: ResourceStr;
@@ -95,7 +96,7 @@ export struct OnboardingSheet {
     .padding({ left: 20, right: 20, top: 12, bottom: 12 })
     .opacity(this.itemOpacities[index])
     .scale({ x: this.itemScales[index], y: this.itemScales[index] })
-    .animation({ duration: 400, curve: Curve.EaseOut })
+    .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
   }
 
   build() {
