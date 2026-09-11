@@ -22,6 +22,7 @@
 import { MusicStore } from '../services/MusicStore';
 import { SongItem, Playlist } from '../models/music';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { semanticOf } from '../tokens/LumioColor';
 import { Logger } from '../utils/Logger';
 import { CoverImageView } from './CoverImageView';
 
@@ -132,8 +133,8 @@ export struct AddToPlaylistSheet {
           .layoutWeight(1)
           .height(40)
           .fontSize(15)
-          .fontColor('#FFFFFF')
-          .backgroundColor('#FA2759')
+          .fontColor(semanticOf(this.isDark).onAccent)
+          .backgroundColor(this.getThemeColors().accent)
           .borderRadius(20)
           .margin({ left: 12 })
           .onClick(() => {
@@ -203,10 +204,10 @@ export struct AddToPlaylistSheet {
         Image($r('app.media.ic_hm_folder'))
           .width(18)
           .height(18)
-          .fillColor('#FA2759')
+          .fillColor(this.getThemeColors().accent)
         Text('新建歌单')
           .fontSize(15)
-          .fontColor('#FA2759')
+          .fontColor(this.getThemeColors().accent)
           .margin({ left: 8 })
       }
       .width('100%')

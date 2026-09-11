@@ -15,6 +15,7 @@
  */
 
 import { AudioQuality } from '../models/music';
+import { semanticOf } from '../tokens/LumioColor';
 
 /**
  * 音质徽标：仅对无损(flac/wav/alac)与 Hi-Res(位深≥24 或 采样率≥96k)显示，
@@ -23,14 +24,15 @@ import { AudioQuality } from '../models/music';
 @Component
 export struct QualityBadge {
   @Prop quality: AudioQuality = 'unknown';
+  @StorageProp('isDark') isDark: boolean = false;
 
   build() {
     if (this.quality === 'lossless' || this.quality === 'hires') {
       Text(this.quality === 'hires' ? 'Hi-Res' : '无损')
         .fontSize(10)
         .fontWeight(FontWeight.Medium)
-        .fontColor('#FA2759')
-        .border({ width: 1, color: 'rgba(250, 39, 89, 0.5)' })
+        .fontColor(semanticOf(this.isDark).accent)
+        .border({ width: 1, color: semanticOf(this.isDark).borderAccent })
         .borderRadius(4)
         .padding({ left: 5, right: 5, top: 1, bottom: 1 })
     } else {

@@ -44,6 +44,7 @@ import { LyricsComponent } from './LyricsComponent';
 import { TopAreaComponent } from './TopAreaComponent';
 import { MusicInfoComponent } from './MusicInfoComponent';
 import { ControlAreaComponent } from './ControlAreaComponent';
+import { semanticOf } from '../tokens/LumioColor';
 
 @Component
 export struct PlayerInfoComponent {
@@ -138,7 +139,7 @@ export struct PlayerInfoComponent {
       Column()
         .width(StyleConstants.FULL_WIDTH)
         .height(StyleConstants.FULL_HEIGHT)
-        .backgroundColor(this.lyricBgDark ? 'rgba(0,0,0,0.454)' : 'rgba(255,255,255,0.20)')
+        .backgroundColor(semanticOf(this.lyricBgDark).scrim)
         .hitTestBehavior(HitTestMode.None)
 
       Row() {

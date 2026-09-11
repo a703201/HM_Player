@@ -15,6 +15,7 @@
  */
 
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { semanticOf, LUMIO_PALETTE } from '../tokens/LumioColor';
 
 interface OnboardFeature {
   icon: ResourceStr;
@@ -40,10 +41,10 @@ export struct OnboardingSheet {
   }
 
   private features: OnboardFeature[] = [
-    { icon: $r('app.media.ic_hm_library'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先', color: '#FA2759' },
-    { icon: $r('app.media.ic_hm_favorite'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现', color: '#FF9500' },
-    { icon: $r('app.media.ic_hm_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合', color: '#5856D6' },
-    { icon: $r('app.media.ic_hm_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: '#34C759' }
+    { icon: $r('app.media.ic_hm_library'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先', color: semanticOf(this.isDark).accent },
+    { icon: $r('app.media.ic_hm_favorite'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现', color: semanticOf(this.isDark).warning },
+    { icon: $r('app.media.ic_hm_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合', color: LUMIO_PALETTE.purple },
+    { icon: $r('app.media.ic_hm_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: semanticOf(this.isDark).success }
   ];
 
   aboutToAppear(): void {
@@ -66,7 +67,7 @@ export struct OnboardingSheet {
         Image(f.icon)
           .width(24)
           .height(24)
-          .fillColor('#FFFFFF')
+          .fillColor(semanticOf(this.isDark).onAccent)
       }
       .width(46)
       .height(46)
@@ -129,8 +130,8 @@ export struct OnboardingSheet {
         .width('86%')
         .height(48)
         .fontSize(16)
-        .fontColor('#FFFFFF')
-        .backgroundColor('#FA2759')
+        .fontColor(semanticOf(this.isDark).onAccent)
+        .backgroundColor(this.getThemeColors().accent)
         .borderRadius(24)
         .onClick(() => {
           this.onClose();

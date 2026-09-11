@@ -21,6 +21,7 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { CoverImageView } from '../components/CoverImageView';
 import { Logger } from '../utils/Logger';
 import { common } from '@kit.AbilityKit';
+import { semanticOf } from '../tokens/LumioColor';
 
 const TAG: string = 'FolderBrowse';
 
@@ -105,12 +106,12 @@ export struct FolderBrowse {
         Image($r('app.media.ic_hm_folder'))
           .width(26)
           .height(26)
-          .fillColor('#FA2759')
+          .fillColor(this.getThemeColors().accent)
       }
       .width(56)
       .height(56)
       .borderRadius(10)
-      .backgroundColor('rgba(250, 39, 89, 0.1)')
+      .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
 
       Column() {
         Text(f.name)
@@ -132,7 +133,7 @@ export struct FolderBrowse {
       Image($r('app.media.ic_play_all'))
         .width(22)
         .height(22)
-        .fillColor('#FA2759')
+        .fillColor(this.getThemeColors().accent)
         .margin({ right: 14 })
         .onClick(() => {
           this.playFolder(f.name);

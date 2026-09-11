@@ -15,6 +15,7 @@
  */
 
 import { ThemeManager } from '../utils/ThemeManager';
+import { semanticOf } from '../tokens/LumioColor';
 
 @Builder
 export function SplashViewBuilder() {
@@ -50,7 +51,7 @@ export struct SplashView {
           .animation({ duration: 700, curve: Curve.EaseOut })
           .shadow({
             radius: 18,
-            color: 'rgba(250, 39, 89, 0.25)',
+            color: semanticOf(this.isDark).fillAccentMuted,
             offsetX: 0,
             offsetY: 8
           })
@@ -58,7 +59,7 @@ export struct SplashView {
         Text('Lumio Music')
           .fontSize(34)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.isDark ? '#FFFFFF' : '#1C1C1E')
+          .fontColor(semanticOf(this.isDark).label)
           .margin({ top: 24 })
           .opacity(this.logoOpacity)
           .animation({ duration: 700, curve: Curve.EaseOut, delay: 150 })
@@ -68,7 +69,7 @@ export struct SplashView {
     .width('100%')
     .height('100%')
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.isDark ? '#000000' : '#FFFFFF')
+    .backgroundColor(semanticOf(this.isDark).background)
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 }

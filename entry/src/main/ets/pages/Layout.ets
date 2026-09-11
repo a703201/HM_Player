@@ -28,8 +28,8 @@ import { SettingsStore } from '../utils/SettingsStore';
 import { ApiCompat } from '../common/utils/ApiCompat';
 import { OnboardingSheet } from '../components/OnboardingSheet';
 import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { semanticOf, onMediaOf } from '../tokens/LumioColor';
 
-const ACCENT: string = '#FA2759';
 const PLAYER_COVER_ID: string = 'player_cover';
 
 interface TabItem {
@@ -214,12 +214,12 @@ struct Layout {
     Column({ space: 4 }) {
       SymbolGlyph(item.icon)
         .fontSize(22)
-        .fontColor([index === this.currentIndex ? ACCENT : this.getThemeColors().secondaryText])
+        .fontColor([index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText])
         .animation({ duration: 160, curve: Curve.EaseOut })
 
       Text(item.title)
         .fontSize(11)
-        .fontColor(index === this.currentIndex ? ACCENT : this.getThemeColors().secondaryText)
+        .fontColor(index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
         .fontWeight(index === this.currentIndex ? FontWeight.Medium : FontWeight.Regular)
         .animation({ duration: 160, curve: Curve.EaseOut })
     }
@@ -256,7 +256,7 @@ struct Layout {
           .clip(true)
           .shadow({
             radius: 6,
-            color: 'rgba(0, 0, 0, 0.20)',
+            color: this.getThemeColors().separator,
             offsetX: 0,
             offsetY: 2
           })
@@ -275,16 +275,16 @@ struct Layout {
         Image($r('app.media.ic_hm_play'))
           .width(24)
           .height(24)
-          .fillColor('#FFFFFF')
+          .fillColor(semanticOf(this.isDark).onAccent)
       }
     }
     .width(56)
     .height(56)
-    .backgroundColor(ACCENT)
+    .backgroundColor(this.getThemeColors().accent)
     .borderRadius(16)
     .shadow({
       radius: 12,
-      color: 'rgba(250, 39, 89, 0.35)',
+      color: semanticOf(this.isDark).fillAccentMuted,
       offsetX: 0,
       offsetY: 4
     })
@@ -309,13 +309,13 @@ struct Layout {
       Image(icon)
         .width(22)
         .height(22)
-        .fillColor('#FFFFFF')
+        .fillColor(onMediaOf(true).primary)
         .hitTestBehavior(HitTestMode.None)
     }
     .width(48)
     .height(48)
     .borderRadius(14)
-    .backgroundColor('rgba(0, 0, 0, 0.35)')
+    .backgroundColor(onMediaOf(true).scrim)
     .justifyContent(FlexAlign.Center)
     .hitTestBehavior(HitTestMode.None)
   }
@@ -358,13 +358,13 @@ struct Layout {
       .systemMaterial(this.miniBarMaterial as uiMaterial.Material)
       .shadow({
         radius: 22,
-        color: this.isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.18)',
+        color: this.getThemeColors().separator,
         offsetX: 0,
         offsetY: 8
       })
       .border({
         width: this.isDark ? 0.5 : 0,
-        color: 'rgba(255, 255, 255, 0.08)'
+        color: semanticOf(this.isDark).borderSubtle
       })
       .borderRadius(30)
       .margin({ bottom: this.bottomHeight + 12 })
@@ -377,13 +377,13 @@ struct Layout {
       .backgroundColor(this.getThemeColors().cardBg)
       .shadow({
         radius: 22,
-        color: this.isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.18)',
+        color: this.getThemeColors().separator,
         offsetX: 0,
         offsetY: 8
       })
       .border({
         width: 0.5,
-        color: this.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+        color: semanticOf(this.isDark).borderSubtle
       })
       .borderRadius(30)
       .margin({ bottom: this.bottomHeight + 12 })

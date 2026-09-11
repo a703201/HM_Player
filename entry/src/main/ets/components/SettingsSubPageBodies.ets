@@ -19,6 +19,7 @@ import { SongItem } from '../models/music';
 import { MusicStore } from '../services/MusicStore';
 import { AudioRendererController } from '../utils/AudioRendererController';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { semanticOf } from '../tokens/LumioColor';
 import { CoverImageView } from '../components/CoverImageView';
 import { QualityBadge } from '../components/QualityBadge';
 import { DuplicateDetector, DuplicateGroup } from '../utils/DuplicateDetector';
@@ -216,7 +217,7 @@ export struct ManageSongsBody {
       Text(`${this.songs.length} 首`)
         .fontSize(13)
         .fontColor(this.getThemeColors().accent)
-        .backgroundColor('rgba(250, 39, 89, 0.10)')
+        .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
         .borderRadius(12)
         .padding({ left: 10, right: 10, top: 4, bottom: 4 })
         .margin({ left: 16, bottom: 12 })
@@ -331,8 +332,8 @@ export struct DuplicateSongsBody {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
         Text(`${group.songs.length} 个文件`)
           .fontSize(12)
-          .fontColor('#FA2759')
-          .backgroundColor('rgba(250, 39, 89, 0.1)')
+          .fontColor(this.getThemeColors().accent)
+          .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
           .borderRadius(10)
           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
       }
@@ -370,7 +371,7 @@ export struct DuplicateSongsBody {
           } else {
             Text('移除')
               .fontSize(13)
-              .fontColor('#FA2759')
+              .fontColor(this.getThemeColors().accent)
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
                 this.removeOne(song);
@@ -405,7 +406,7 @@ export struct DuplicateSongsBody {
           if (this.duplicateCount() > 0) {
             Text('清理全部')
               .fontSize(14)
-              .fontColor('#FA2759')
+              .fontColor(this.getThemeColors().accent)
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
                 this.removeAllDuplicates();
@@ -534,7 +535,7 @@ export struct WrappedBody {
     Column() {
       Text('听歌报告')
         .fontSize(13)
-        .fontColor('#FA2759')
+        .fontColor(this.getThemeColors().accent)
         .fontWeight(FontWeight.Medium)
         .letterSpacing(1)
         .margin({ bottom: 10 })
@@ -593,7 +594,7 @@ export struct WrappedBody {
           Text(`${index + 1}`)
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor(index < 3 ? '#FA2759' : this.getThemeColors().secondaryText)
+            .fontColor(index < 3 ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
             .width(28)
             .textAlign(TextAlign.Center)
           Stack() {
@@ -649,7 +650,7 @@ export struct WrappedBody {
             Row()
               .width(`${Math.max(8, (y.plays / this.maxYearPlays()) * 100)}%`)
               .height(14)
-              .backgroundColor('#FA2759')
+              .backgroundColor(this.getThemeColors().accent)
               .borderRadius(7)
           }
           .width('100%')

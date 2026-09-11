@@ -22,6 +22,7 @@ import { AudioRendererController } from '../utils/AudioRendererController';
 import { Logger } from '../utils/Logger';
 import { SettingsStore } from '../utils/SettingsStore';
 import { SmartPlaylistService, SmartPlaylist } from '../services/SmartPlaylistService';
+import { semanticOf } from '../tokens/LumioColor';
 
 const TAG: string = 'Playlists';
 
@@ -256,11 +257,11 @@ struct Playlists {
       Row() {
         Image($r('app.media.ic_hos_delete'))
           .width(18)
-          .fillColor('#FA2759')
+          .fillColor(semanticOf(this.isDark).accent)
           .margin({ right: 12 })
         Text('删除歌单')
           .fontSize(14)
-          .fontColor('#FA2759')
+          .fontColor(semanticOf(this.isDark).accent)
       }
       .width('100%')
       .height(44)
@@ -272,7 +273,7 @@ struct Playlists {
     .width(160)
     .backgroundColor(this.getThemeColors().bg)
     .borderRadius(12)
-    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
+    .shadow({ radius: 8, color: this.getThemeColors().separator, offsetX: 0, offsetY: 2 })
   }
 
   @Builder
@@ -298,7 +299,7 @@ struct Playlists {
           Image($r('app.media.ic_song_list'))
             .width(22)
             .height(22)
-            .fillColor('#FFFFFF')
+            .fillColor(semanticOf(this.isDark).onAccent)
             .opacity(0.9)
         }
       }
@@ -325,7 +326,7 @@ struct Playlists {
       Image($r('app.media.ic_hos_play'))
         .width(22)
         .height(22)
-        .fillColor('#FA2759')
+        .fillColor(semanticOf(this.isDark).accent)
         .margin({ right: 14 })
         .onClick(() => {
           this.playPlaylist(playlist);
@@ -364,12 +365,12 @@ struct Playlists {
         Image($r('app.media.ic_music_list'))
           .width(26)
           .height(26)
-          .fillColor('#FA2759')
+          .fillColor(semanticOf(this.isDark).accent)
       }
       .width(56)
       .height(56)
       .borderRadius(10)
-      .backgroundColor('rgba(250, 39, 89, 0.1)')
+      .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
 
       Column() {
         Text(pl.name)
@@ -390,7 +391,7 @@ struct Playlists {
       Image($r('app.media.ic_hos_play'))
         .width(22)
         .height(22)
-        .fillColor('#FA2759')
+        .fillColor(semanticOf(this.isDark).accent)
         .margin({ right: 14 })
         .onClick(() => {
           this.playSmart(pl);
@@ -494,8 +495,8 @@ struct Playlists {
 
           Text(`${this.playlists.length} 个`)
             .fontSize(13)
-            .fontColor('#FA2759')
-            .backgroundColor('rgba(250, 39, 89, 0.1)')
+            .fontColor(semanticOf(this.isDark).accent)
+            .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
             .margin({ right: 12 })
@@ -504,12 +505,12 @@ struct Playlists {
             Text('+')
               .fontSize(22)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
+              .fontColor(semanticOf(this.isDark).onAccent)
           }
           .width(30)
           .height(30)
           .borderRadius(15)
-          .backgroundColor('#FA2759')
+          .backgroundColor(semanticOf(this.isDark).accent)
           .scale({ x: this.addScale, y: this.addScale })
           .animation({ duration: 150, curve: Curve.EaseOut })
           .onClick(() => {
@@ -557,13 +558,13 @@ struct Playlists {
 
                   Text('点击右上角「+」创建第一个歌单')
                     .fontSize(13)
-                    .fontColor('#636366')
+                    .fontColor(semanticOf(this.isDark).labelSecondary)
                     .margin({ top: 8 })
 
                   Button('新建歌单')
                     .fontSize(14)
-                    .fontColor('#FFFFFF')
-                    .backgroundColor('#FA2759')
+                    .fontColor(semanticOf(this.isDark).onAccent)
+                    .backgroundColor(semanticOf(this.isDark).accent)
                     .borderRadius(20)
                     .height(36)
                     .margin({ top: 20 })
@@ -664,8 +665,8 @@ struct PlaylistNameDialog {
           .layoutWeight(1)
           .height(40)
           .fontSize(15)
-          .fontColor('#FFFFFF')
-          .backgroundColor('#FA2759')
+          .fontColor(semanticOf(this.isDark).onAccent)
+          .backgroundColor(semanticOf(this.isDark).accent)
           .borderRadius(20)
           .margin({ left: 12 })
           .onClick(() => {

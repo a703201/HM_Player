@@ -24,6 +24,7 @@ import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
 import { Logger } from '../utils/Logger';
+import { semanticOf } from '../tokens/LumioColor';
 
 @Builder
 export function FavoritesBuilder() {
@@ -183,7 +184,7 @@ struct Favorites {
     .width(176)
     .backgroundColor(this.getThemeColors().bg)
     .borderRadius(12)
-    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
+    .shadow({ radius: 8, color: this.getThemeColors().separator, offsetX: 0, offsetY: 2 })
   }
 
   @Builder
@@ -192,7 +193,7 @@ struct Favorites {
       // Index number
       Text(`${index + 1}`)
         .fontSize(13)
-        .fontColor(this.playingIndex === song.id ? '#FA2759' : this.getThemeColors().secondaryText)
+        .fontColor(this.playingIndex === song.id ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
         .width(28)
         .textAlign(TextAlign.Center)
 
@@ -204,7 +205,7 @@ struct Favorites {
         Row() {
           Text(song.title)
             .fontSize(15)
-            .fontColor(this.playingIndex === song.id ? '#FA2759' : this.getThemeColors().primaryText)
+            .fontColor(this.playingIndex === song.id ? this.getThemeColors().accent : this.getThemeColors().primaryText)
             .fontWeight(FontWeight.Medium)
             .layoutWeight(1)
             .maxLines(1)
@@ -231,14 +232,14 @@ struct Favorites {
       Image($r('app.media.ic_favorite'))
         .width(22)
         .height(22)
-        .fillColor('#FA2759')
+        .fillColor(this.getThemeColors().accent)
         .scale({ x: this.favScales[index] ?? 1.0, y: this.favScales[index] ?? 1.0 })
         .animation({ duration: 200, curve: Curve.EaseOut })
     }
     .width('100%')
     .height(64)
     .padding({ left: 8, right: 16 })
-    .backgroundColor(this.playingIndex === song.id ? 'rgba(250, 39, 89, 0.05)' : this.getThemeColors().cardBg)
+    .backgroundColor(this.playingIndex === song.id ? semanticOf(this.isDark).fillAccentSubtle : this.getThemeColors().cardBg)
     .borderRadius(12)
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
@@ -305,8 +306,8 @@ struct Favorites {
           // Count badge
           Text(`${this.favoriteSongs.length} 首`)
             .fontSize(13)
-            .fontColor('#FA2759')
-            .backgroundColor('rgba(250, 39, 89, 0.1)')
+            .fontColor(this.getThemeColors().accent)
+            .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
         }
@@ -330,7 +331,7 @@ struct Favorites {
 
             Text('在播放页面点击收藏按钮添加')
               .fontSize(13)
-              .fontColor('#636366')
+              .fontColor(semanticOf(this.isDark).labelSecondary)
               .margin({ top: 8 })
           }
           .layoutWeight(1)

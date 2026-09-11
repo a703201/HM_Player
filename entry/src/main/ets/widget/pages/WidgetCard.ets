@@ -83,7 +83,7 @@ struct WidgetCard {
 
   /**
    * 卡片取色集：直接引用 tokens/LumioColor 的 semanticOf（与主应用 ThemeManager 同源）。
-   * 背景/文字/图标一律经此取色，禁止硬编码 Color.White / #1A1A2E 等字面量。
+   * 背景/文字/图标一律经此取色，禁止硬编码 Color.White 等字面量（取色见 tokens/LumioColor）。
    * Form 卡片进程仅可 import 零 import 的 LumioColor。
    */
   private getCardColors(): CardColors {
@@ -199,7 +199,7 @@ struct WidgetCard {
         }
         .width(56)
         .height(56)
-        .backgroundColor(this.getCardColors().playBtnBg) // 品牌粉红 #FA2759（替代 Material 蓝 #1E88E5）
+        .backgroundColor(this.getCardColors().playBtnBg) // 品牌粉红（替代 Material 蓝）
         .margin({ left: 16, right: 16 })
         .accessibilityText(this.isPlaying ? '暂停' : '播放')
         .onClick(() => {
@@ -226,6 +226,6 @@ struct WidgetCard {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(this.getCardColors().cardBg) // 随主题：dark=cardBg(dark) / light=cardBg(light)，替代硬编码 #1A1A2E
+    .backgroundColor(this.getCardColors().cardBg) // 随主题切换 cardBg
   }
 }

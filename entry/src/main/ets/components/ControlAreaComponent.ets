@@ -43,6 +43,7 @@ import { ResourceConversion } from '../common/utils/ResourceConversion';
 import { MusicStore } from '../services/MusicStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { sortSongs } from '../common/utils/SortUtil';
+import { onMediaOf } from '../tokens/LumioColor';
 import { Motion, springSnappy } from '../common/utils/DesignSystem';
 import { SleepTimer } from '../utils/SleepTimer';
 import { SettingsStore } from '../utils/SettingsStore';
@@ -176,7 +177,7 @@ export struct ControlAreaComponent {
           .fontWeight(FontWeight.Medium)
           .fontColor(Color.White)
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('rgba(255, 255, 255, 0.16)')
+          .backgroundColor(onMediaOf(this.isDark).controlBg)
           .borderRadius(12)
           .onClick(() => {
             this.isShowSpeed = true;
@@ -429,7 +430,7 @@ export struct ControlAreaComponent {
       Row() {
         Text('关闭定时')
           .fontSize(16)
-          .fontColor('#FA2759')
+          .fontColor(this.getThemeColors().accent)
           .layoutWeight(1)
       }
       .width('100%')

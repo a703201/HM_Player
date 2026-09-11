@@ -35,6 +35,8 @@ import { LrcEntry } from './LrcEntry';
 import { angleToRadian } from './LrcUtils';
 import { Rectangle, LyricTopPosition, LyricScrollEffect } from './LyricConst';
 import { SettingsStore } from '../utils/SettingsStore';
+import { ArtworkLyricColors, defaultLyricScheme } from '../utils/ArtworkTint';
+import { semanticOf } from '../tokens/LumioColor';
 
 const TAG: string = 'LrcView';
 
@@ -69,30 +71,13 @@ const GRADIENT_PROGRESS_SPACE = 0.0000001;
 const GRADIENT_PROGRESS_MAX = 1 - GRADIENT_PROGRESS_SPACE;
 
 /**
- * 歌词弱化档位（context.globalAlpha）。
- *
- * 档位只此两档，弱化**只**通过 globalAlpha 表达，颜色本身必须不透明（见 applyColorScheme 的 alpha 禁令）。
- *
- * 反解基准：最坏底色 = 纯白封面经播放页蒙层合成后的 **#696969**
- * （蒙层为 rgba(0,0,0,0.454)，见 PlayerInfoComponent 的「自适应明暗蒙层」）。
- * 歌词对比度必须**连同该蒙层一起**计算：只按无蒙层或按 0.16 蒙层算都会得出偏乐观的错误结论。
- * 比它更暗的封面只会更宽裕，故以该最坏值定档：
- *
- *   ALPHA_DIM_PLAYBACK 0.65 -> 3.37:1（≥ WCAG 大字/图形下限 3:1）
- *   ALPHA_DIM_BROWSING 0.85 -> 4.50:1（≥ WCAG 正文下限 4.5:1）
- *   当前行 1.0              -> 5.49:1
- *
- * 浏览态取 0.85：它是「用户停下来读歌词」的状态，正是本次缺陷最该救的场景，必须达到 4.5:1。
- * 播放态取 0.65 而非更高：有蒙层后 0.65 已守住 3:1，再高会削弱「当前行 vs 其他行」的聚焦层次。
- *
- * M3 计划把固定蒙层换成 artworkScrim(liftedBgLuma): number 自适应函数，
- * 届时蒙层不再是常量，本组 alpha 需随之重新复核（不要假设本表仍然成立）。
- *
- * ⚠️ 复核口径：以上为**理论计算值，未计 blur 损耗**，会高估实际对比度。
- * 按 R-24 强制口径，最终验收必须真机截图取样实测，不能只采信本表。
+ * M3 歌词弱化：globalAlpha 恒为 1.0（杜绝双重透明度乘法），弱化**只**由 mScheme 内的预合成不透明色表达：
+ *   - 播放态非当前行：mScheme.playingDim（≥3:1，叠加 BLUR_PLAYED/UNPLAYED 表达进度）
+ *   - 浏览态非当前行：mScheme.browsingPlayed / browsingUnplayed（均 ≥4.5:1，全清晰）
+ *   - 当前行 / 翻译当前行：mScheme.current / translateCurrent（≥4.5:1）
+ * 配色由 ArtworkTint.defaultLyricScheme(backgroundIsDark) 预合成，对比度已按播放页蒙层底色反解。
+ * 真机验收必须按 R-24 截图取样实测，不能只采信理论值。
  */
-const ALPHA_DIM_BROWSING: number = 0.85;
-const ALPHA_DIM_PLAYBACK: number = 0.65;
 
 /**
  * 非当前行的高斯模糊半径。**本轮冻结，不要再改。**
@@ -130,9 +115,10 @@ export default struct shiLrcView {
    */
   private lineRectangles: Rectangle[] = [];
   /**
-   * 正文 / 当前行文字颜色：**必须完全不透明**，弱化只由 globalAlpha 表达（见 applyColorScheme）。
+   * 歌词配色方案（M3：预合成不透明色，由 ArtworkTint.defaultLyricScheme 提供）。
+   * globalAlpha 恒为 1.0，弱化只由 mScheme 内 playingDim / browsing* 表达，杜绝双重透明度乘法。
    */
-  private mNormalTextColor = '#FFFFFF';
+  private mScheme: ArtworkLyricColors = defaultLyricScheme(true);
   private viewWidth: number = 360;
   private viewHeight: number = 500;
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
@@ -178,16 +164,8 @@ export default struct shiLrcView {
    * Lyrics font.
    */
   private fontFamily = 'HarmonyHeiTi';
-  /**
-   * The text color of the currently displayed lyrics（不透明，见 applyColorScheme）
-   */
-  private mCurrentTextColor = '#FFFFFF';
-  /**
-   * 逐字高亮渐变的「未唱」端颜色（见 progressGrad）。
-   * 这是全文件唯一允许带 alpha 的歌词颜色：它是同一次绘制内的两段色，
-   * 不会被 globalAlpha 再乘一次，且是当前行唯一的进度表达方式。
-   */
-  private mProgressUnsungColor: string = '#80FFFFFF';
+  // (M3: 由 mScheme.current 取代，不再单独持有)
+  // (M3: 由 mScheme.playingDim 取代，见 progressGrad，不再带 alpha)
   /**
    * Lyrics font weight.
    */
@@ -196,11 +174,7 @@ export default struct shiLrcView {
    * 翻译文字字号（小于正文）。
    */
   private mTranslateTextSize: number = 14;
-  /**
-   * 翻译文字颜色：非当前行 / 当前行。两者**均为不透明**，弱化同样只由 globalAlpha 表达。
-   */
-  private mTranslateColorNormal: string = '#FFFFFF';
-  private mTranslateColorCurrent: string = '#FFFFFF';
+  // (M3: 由 mScheme.translateBrowsing / translateCurrent / translateDim 取代)
   /**
    * Distance between the lyrics and the left border.
    */
@@ -279,7 +253,7 @@ export default struct shiLrcView {
   /**
    * Star Color
    */
-  private starsColor: string = '#18BBFC';
+  private starsColor: string = semanticOf(true).accent;
 
   startAnimator(desOffsetY: number) {
     // R-18/F-13：降低动态效果开启时跳过滚动动画，直接绘制目标行（无流光/滚动过渡）
@@ -476,11 +450,9 @@ export default struct shiLrcView {
    */
   private progressGrad(startX: number, startY: number, endX: number, endY: number, progress: number) {
     let grad = this.context.createLinearGradient(startX, startY, endX, endY);
-    grad.addColorStop(progress, this.mCurrentTextColor);
-    // 「未唱」端必须用 mProgressUnsungColor（带 alpha）而非 mNormalTextColor：
-    // 后者已被改为完全不透明，若沿用则渐变两端同色、逐字高亮效果整体消失。
-    // 端点 alpha 是本路径上唯一的 alpha（不再与 globalAlpha 相乘），安全。
-    grad.addColorStop(progress + GRADIENT_PROGRESS_SPACE, this.mProgressUnsungColor);
+    // 逐字高亮渐变：已唱端 mScheme.current（当前行色），未唱端 mScheme.playingDim（预合成弱化色），均不透明。
+    grad.addColorStop(progress, this.mScheme.current);
+    grad.addColorStop(progress + GRADIENT_PROGRESS_SPACE, this.mScheme.playingDim);
     return grad;
   }
 
@@ -694,24 +666,19 @@ export default struct shiLrcView {
       this.context.globalAlpha = 1.0;
       this.context.filter = 'none';
       this.context.font = this.fontWeight + ' ' + this.mCurrentTextSize + 'vp ' + this.fontFamily;
-      this.context.fillStyle = this.mCurrentTextColor;
+      this.context.fillStyle = this.mScheme.current;
     } else if (this.isUserScrolling) {
-      // 手动浏览模式（用户拖拽找词）：所有非当前行**同色同透明度**，不再区分已播放/未播放。
-      // 理由：对齐 Apple Music 原生（只有「当前行 vs 其他行」两档），且拖拽时用户意图是「读」，
-      // 不是追踪播放进度。旧实现此处区分 0.72/0.55，叠加颜色自身 alpha 后未播放行仅约 1.94:1，
-      // 与注释所声称的「全部清晰」不符。α = 0.85（见 ALPHA_DIM_BROWSING 的对比度表）。
-      this.context.globalAlpha = ALPHA_DIM_BROWSING;
+      // 浏览态（用户拖拽读词）：全清晰，已播放/未播放由预合成色区分（均 ≥4.5:1）。
+      this.context.globalAlpha = 1.0;
       this.context.filter = 'none';
       this.context.font = this.fontWeight + ' ' + this.mNormalTextSize + 'vp ' + this.fontFamily;
-      this.context.fillStyle = this.mNormalTextColor;
+      this.context.fillStyle = isPlayedLine ? this.mScheme.browsingPlayed : this.mScheme.browsingUnplayed;
     } else {
-      // 播放态非当前行：α 统一取 0.65，最坏底色（蒙层后 #696969）下 3.37:1（见 ALPHA_DIM_PLAYBACK 的对比度表）。
-      // 已播放/未播放的区分改由模糊强度表达（未播放更模糊），
-      // 不再拉开透明度——两档都必须守住 ≥3:1，已无可用余量。
-      this.context.globalAlpha = ALPHA_DIM_PLAYBACK;
+      // 播放态非当前行：预合成弱化色（≥3:1），已播放/未播放由模糊强度表达（未播放更模糊）。
+      this.context.globalAlpha = 1.0;
       this.context.filter = isPlayedLine ? BLUR_PLAYED : BLUR_UNPLAYED;
       this.context.font = this.fontWeight + ' ' + this.mNormalTextSize + 'vp ' + this.fontFamily;
-      this.context.fillStyle = this.mNormalTextColor;
+      this.context.fillStyle = this.mScheme.playingDim;
     }
     this.context.textBaseline = 'bottom';
     let textMetrics: TextMetrics = this.context.measureText(lyric.lineWords);
@@ -725,20 +692,20 @@ export default struct shiLrcView {
     // 翻译：字号更小，跟随当前/非当前状态
     if (this.showTranslation && lyric.translation && lyric.translation.length > 0) {
       if (isCurrentLine) {
-        // 翻译行比正文次要，但仍需可读：α = 0.85（与浏览态同档）
-        this.context.globalAlpha = ALPHA_DIM_BROWSING;
+        // 翻译当前行：≥4.5:1，完全不透明
+        this.context.globalAlpha = 1.0;
         this.context.filter = 'none';
-        this.context.fillStyle = this.mTranslateColorCurrent;
+        this.context.fillStyle = this.mScheme.translateCurrent;
       } else if (this.isUserScrolling) {
-        // 浏览态：与正文一致，不区分已播放/未播放，α = 0.85
-        this.context.globalAlpha = ALPHA_DIM_BROWSING;
+        // 浏览态：全清晰（≥4.5:1）
+        this.context.globalAlpha = 1.0;
         this.context.filter = 'none';
-        this.context.fillStyle = this.mTranslateColorNormal;
+        this.context.fillStyle = this.mScheme.translateBrowsing;
       } else {
-        // 播放态：α = 0.65 -> 最坏底色下 3.37:1，已播放/未播放由模糊强度区分
-        this.context.globalAlpha = ALPHA_DIM_PLAYBACK;
+        // 播放态：≥3:1 预合成弱化色，模糊表达进度
+        this.context.globalAlpha = 1.0;
         this.context.filter = isPlayedLine ? BLUR_PLAYED : BLUR_UNPLAYED;
-        this.context.fillStyle = this.mTranslateColorNormal;
+        this.context.fillStyle = this.mScheme.translateDim;
       }
       this.context.font = this.fontWeight + ' ' + this.mTranslateTextSize + 'vp ' + this.fontFamily;
       this.context.textBaseline = 'bottom';
@@ -963,32 +930,12 @@ export default struct shiLrcView {
   }
 
   /**
-   * 根据背景明暗切换歌词配色方案。
+   * 根据背景明暗切换歌词配色方案（M3：预合成不透明色，由 ArtworkTint 提供）。
+   * globalAlpha 恒为 1.0，弱化只由 mScheme 内的 playingDim / browsing* 表达，杜绝双重透明度乘法。
    */
   private applyColorScheme(): void {
-    // ⚠️ alpha 禁令：下面这些颜色**必须完全不透明（α = 1.0）**。
-    // 歌词的弱化只由 drawLyricLine() 里的 context.globalAlpha 一处表达。
-    // 若颜色自身再带 alpha，有效透明度 = 颜色 alpha × globalAlpha，两者**相乘**：
-    // 历史缺陷即由此而来——#80ffffff(0.502) × 0.38 ≈ 0.19，实测非当前行对比度仅 1.4~1.9:1，
-    // 观感上等于文字消失。禁止在 fillStyle 上再加 alpha。
-    if (this.backgroundIsDark) {
-      // 深色背景：当前行清晰高亮，非当前行（未播放/已播放）模糊弱化
-      this.mNormalTextColor = '#FFFFFF';
-      this.mCurrentTextColor = '#FFFFFF';
-      this.mTranslateColorNormal = '#FFFFFF';
-      this.mTranslateColorCurrent = '#FFFFFF';
-      // 唯一例外：逐字高亮渐变的「未唱」端（见 progressGrad）。
-      // 它是同一次绘制内的两段色，不会被 globalAlpha 再乘一次，
-      // 且是当前行唯一的进度表达方式，故保留 alpha 是必要且安全的。
-      this.mProgressUnsungColor = '#80FFFFFF';
-    } else {
-      // 浅色背景：深色文字
-      this.mNormalTextColor = '#000000';
-      this.mCurrentTextColor = '#000000';
-      this.mTranslateColorNormal = '#000000';
-      this.mTranslateColorCurrent = '#000000';
-      this.mProgressUnsungColor = '#4D000000';
-    }
+    this.mScheme = defaultLyricScheme(this.backgroundIsDark);
+    this.starsColor = semanticOf(this.backgroundIsDark).accent;
   }
 
   /**

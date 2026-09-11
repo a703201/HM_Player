@@ -18,6 +18,7 @@ import { MusicStore } from '../services/MusicStore';
 import { getAppVersionDisplay } from '../utils/AppInfoUtil';
 import { SettingsStore } from '../utils/SettingsStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
+import { semanticOf } from '../tokens/LumioColor';
 import { Settings } from './Settings';
 import { About } from './About';
 
@@ -109,7 +110,7 @@ export struct Mine {
     .width('100%')
     .height(60)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(this.menuPressed[index] ? 'rgba(120, 120, 128, 0.12)' : this.getThemeColors().cardBg)
+    .backgroundColor(this.menuPressed[index] ? semanticOf(this.isDark).fillTertiary : this.getThemeColors().cardBg)
     .borderRadius(14)
     .margin({ bottom: 8 })
     .scale({ x: this.menuScales[index] ?? 1.0, y: this.menuScales[index] ?? 1.0 })
@@ -156,7 +157,7 @@ export struct Mine {
             Text(`${SettingsStore.getInstance().getPrivacyStats() ? this.songCount : '—'}`)
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#FA2759')
+              .fontColor(this.getThemeColors().primaryText)
             Text('歌曲')
               .fontSize(11)
               .fontColor(this.getThemeColors().secondaryText)
@@ -168,7 +169,7 @@ export struct Mine {
             Text(`${SettingsStore.getInstance().getPrivacyStats() ? this.favCount : '—'}`)
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#34C759')
+              .fontColor(this.getThemeColors().primaryText)
             Text('收藏')
               .fontSize(11)
               .fontColor(this.getThemeColors().secondaryText)
@@ -180,7 +181,7 @@ export struct Mine {
             Text(`${SettingsStore.getInstance().getPrivacyStats() ? this.histCount : '—'}`)
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#FF9500')
+              .fontColor(this.getThemeColors().primaryText)
             Text('历史')
               .fontSize(11)
               .fontColor(this.getThemeColors().secondaryText)
@@ -200,7 +201,7 @@ export struct Mine {
             `${this.favCount} 首歌曲`,
             true,
             0,
-            '#FA2759',
+            this.getThemeColors().secondaryText,
             () => {
               this.pathStack.pushPathByName('Favorites', null);
             }
@@ -212,7 +213,7 @@ export struct Mine {
             `${this.playlistCount} 个歌单`,
             true,
             1,
-            '#5856D6',
+            this.getThemeColors().secondaryText,
             () => {
               this.pathStack.pushPathByName('Playlists', null);
             }
@@ -224,7 +225,7 @@ export struct Mine {
             `${this.histCount} 首歌曲`,
             true,
             2,
-            '#FF9500',
+            this.getThemeColors().secondaryText,
             () => {
               this.pathStack.pushPathByName('PlayHistory', null);
             }
@@ -236,7 +237,7 @@ export struct Mine {
             '按来源目录整理',
             true,
             3,
-            '#007AFF',
+            this.getThemeColors().secondaryText,
             () => {
               this.pathStack.pushPathByName('FolderBrowse', null);
             }
@@ -273,7 +274,7 @@ export struct Mine {
             this.appVersionDisplay,
             true,
             5,
-            '#5856D6',
+            this.getThemeColors().secondaryText,
             () => {
               this.sheetKind = 'about';
               this.sheetVisible = true;

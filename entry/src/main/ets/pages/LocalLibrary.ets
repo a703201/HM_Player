@@ -31,8 +31,8 @@ import { fileIo as fs } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { SettingsStore } from '../utils/SettingsStore';
 import { sortSongs } from '../common/utils/SortUtil';
+import { semanticOf } from '../tokens/LumioColor';
 
-const ACCENT: string = '#FA2759';
 const PLAYER_COVER_ID: string = 'player_cover';
 
 @Builder
@@ -346,7 +346,7 @@ export struct LocalLibrary {
           Text(this.librarySortLabel(mode))
             .fontSize(13)
             .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
-            .backgroundColor(this.sortMode === mode ? ACCENT : this.getThemeColors().secondaryBg)
+            .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
             .padding({ left: 14, right: 14, top: 6, bottom: 6 })
             .borderRadius(14)
             .onClick(() => {
@@ -374,7 +374,7 @@ export struct LocalLibrary {
               Circle()
                 .width(24)
                 .height(24)
-                .fill('rgba(250, 39, 89, 0.3)')
+                .fill(semanticOf(this.isDark).fillAccentMuted)
                 .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
 
               Image($r('app.media.ic_playing'))
@@ -389,7 +389,7 @@ export struct LocalLibrary {
           Row() {
             Text(song.title)
               .fontSize(16)
-              .fontColor(this.store.currentIndex === index ? '#FA2759' : this.getThemeColors().primaryText)
+              .fontColor(this.store.currentIndex === index ? this.getThemeColors().accent : this.getThemeColors().primaryText)
               .fontWeight(FontWeight.Medium)
               .layoutWeight(1)
               .maxLines(1)
@@ -422,7 +422,7 @@ export struct LocalLibrary {
     .width('100%')
     .height(72)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(this.store.currentIndex === index ? 'rgba(250, 39, 89, 0.05)' : this.getThemeColors().cardBg)
+    .backgroundColor(this.store.currentIndex === index ? semanticOf(this.isDark).fillAccentSubtle : this.getThemeColors().cardBg)
     .borderRadius(12)
     .margin({ bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
@@ -520,11 +520,11 @@ export struct LocalLibrary {
       Row() {
         Image($r('app.media.ic_hos_delete'))
           .width(18)
-          .fillColor('#FA2759')
+          .fillColor(this.getThemeColors().accent)
           .margin({ right: 12 })
         Text('删除')
           .fontSize(14)
-          .fontColor('#FA2759')
+          .fontColor(this.getThemeColors().accent)
       }
       .width('100%')
       .height(44)
@@ -539,7 +539,7 @@ export struct LocalLibrary {
     .backgroundColor(this.getThemeColors().cardBg)
     .border({ width: 0.5, color: this.getThemeColors().separator })
     .borderRadius(12)
-    .shadow({ radius: 12, color: this.isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 4 })
+    .shadow({ radius: 12, color: this.getThemeColors().separator, offsetX: 0, offsetY: 4 })
   }
 
   @Builder
@@ -571,14 +571,14 @@ export struct LocalLibrary {
           Image($r('app.media.ic_hm_download'))
             .width(16)
             .height(16)
-            .fillColor(ACCENT)
+            .fillColor(this.getThemeColors().accent)
           Text('导入')
             .fontSize(13)
-            .fontColor(ACCENT)
+            .fontColor(this.getThemeColors().accent)
             .fontWeight(FontWeight.Medium)
         }
         .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-        .backgroundColor('rgba(250, 39, 89, 0.08)')
+        .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
         .borderRadius(16)
         .margin({ right: 16, top: this.topHeight + 8 })
         .scale({ x: this.importScale, y: this.importScale })
@@ -641,7 +641,7 @@ export struct LocalLibrary {
           LoadingProgress()
             .width(36)
             .height(36)
-            .color(ACCENT)
+            .color(this.getThemeColors().accent)
             .margin({ bottom: 16 })
           Text('正在导入...')
             .fontSize(14)
@@ -670,7 +670,7 @@ export struct LocalLibrary {
           Button('重试')
             .fontSize(14)
             .fontColor(Color.White)
-            .backgroundColor(ACCENT)
+            .backgroundColor(this.getThemeColors().accent)
             .borderRadius(20)
             .padding({ left: 24, right: 24, top: 8, bottom: 8 })
             .onClick(() => {

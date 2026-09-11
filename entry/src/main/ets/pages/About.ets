@@ -18,6 +18,7 @@ import { getAppVersionName } from '../utils/AppInfoUtil';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { curves } from '@kit.ArkUI';
 import { PrivacyPolicyBody } from '../components/SettingsSubPageBodies';
+import { semanticOf } from '../tokens/LumioColor';
 
 @Builder
 export function AboutBuilder() {
@@ -149,7 +150,7 @@ export struct About {
             .borderRadius(24)
             .shadow({
               radius: 16,
-              color: 'rgba(250, 39, 89, 0.2)',
+              color: semanticOf(this.isDark).fillAccentMuted,
               offsetX: 0,
               offsetY: 8
             })

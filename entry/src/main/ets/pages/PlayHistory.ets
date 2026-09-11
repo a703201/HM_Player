@@ -23,6 +23,7 @@ import { QualityBadge } from '../components/QualityBadge';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { Logger } from '../utils/Logger';
+import { semanticOf } from '../tokens/LumioColor';
 
 @Builder
 export function PlayHistoryBuilder() {
@@ -176,7 +177,7 @@ struct PlayHistory {
     .width(176)
     .backgroundColor(this.getThemeColors().bg)
     .borderRadius(12)
-    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
+    .shadow({ radius: 8, color: this.getThemeColors().separator, offsetX: 0, offsetY: 2 })
   }
 
   @Builder
@@ -185,7 +186,7 @@ struct PlayHistory {
       // Index number
       Text(`${index + 1}`)
         .fontSize(13)
-        .fontColor(this.playingIndex === song.id ? '#FF9500' : this.getThemeColors().secondaryText)
+        .fontColor(this.playingIndex === song.id ? semanticOf(this.isDark).warning : this.getThemeColors().secondaryText)
         .width(28)
         .textAlign(TextAlign.Center)
 
@@ -197,7 +198,7 @@ struct PlayHistory {
         Row() {
           Text(song.title)
             .fontSize(15)
-            .fontColor(this.playingIndex === song.id ? '#FF9500' : this.getThemeColors().primaryText)
+            .fontColor(this.playingIndex === song.id ? semanticOf(this.isDark).warning : this.getThemeColors().primaryText)
             .fontWeight(FontWeight.Medium)
             .layoutWeight(1)
             .margin({ bottom: 4 })
@@ -228,7 +229,7 @@ struct PlayHistory {
     .width('100%')
     .height(64)
     .padding({ left: 8, right: 16 })
-    .backgroundColor(this.playingIndex === song.id ? 'rgba(255, 149, 0, 0.05)' : this.getThemeColors().cardBg)
+    .backgroundColor(this.playingIndex === song.id ? semanticOf(this.isDark).fillWarningSoft : this.getThemeColors().cardBg)
     .borderRadius(12)
     .margin({ left: 8, right: 8, bottom: 8 })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
@@ -288,8 +289,8 @@ struct PlayHistory {
           // Count badge
           Text(`${this.recentSongs.length} 首`)
             .fontSize(13)
-            .fontColor('#FF9500')
-            .backgroundColor('rgba(255, 149, 0, 0.1)')
+            .fontColor(semanticOf(this.isDark).warning)
+            .backgroundColor(semanticOf(this.isDark).fillWarningSoft)
             .borderRadius(12)
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
         }

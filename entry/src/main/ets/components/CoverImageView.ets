@@ -18,6 +18,7 @@ import { image } from '@kit.ImageKit';
 import { CoverCache } from '../utils/CoverCache';
 import { Logger } from '../utils/Logger';
 import { Motion, springSnappy } from '../common/utils/DesignSystem';
+import { semanticOf } from '../tokens/LumioColor';
 
 const TAG = 'CoverImageView';
 
@@ -35,6 +36,7 @@ const TAG = 'CoverImageView';
 @Component
 export struct CoverImageView {
   @StorageProp('coverRefreshToken') @Watch('refresh') coverToken: number = 0;
+  @StorageProp('isDark') isDark: boolean = false;
   @Prop @Watch('refresh') src: string = '';
   // 注意：属性名不可用 size / width / height 等，会与 CustomComponent 内置属性方法冲突
   // （ArkTS 报 "Property 'size' ... is not assignable to the same property in base type"）。
@@ -86,7 +88,7 @@ export struct CoverImageView {
       .objectFit(ImageFit.Cover)
       .clip(true)
       .scale({ x: this.pressScale, y: this.pressScale })
-      .shadow({ radius: 6, color: 'rgba(0, 0, 0, 0.18)', offsetX: 0, offsetY: 2 })
+      .shadow({ radius: 6, color: semanticOf(this.isDark).scrim, offsetX: 0, offsetY: 2 })
       .animation({ duration: Motion.tap, curve: springSnappy() })
       .onTouch((event: TouchEvent) => {
         if (event.type === TouchType.Down) {

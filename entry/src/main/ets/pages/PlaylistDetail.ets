@@ -24,6 +24,7 @@ import { QualityBadge } from '../components/QualityBadge';
 import { SongDetailSheet } from '../components/SongDetailSheet';
 import { AddToPlaylistSheet } from '../components/AddToPlaylistSheet';
 import { SettingsStore } from '../utils/SettingsStore';
+import { semanticOf } from '../tokens/LumioColor';
 
 const TAG: string = 'PlaylistDetail';
 
@@ -245,11 +246,11 @@ struct PlaylistDetail {
       Row() {
         Image($r('app.media.ic_hos_delete'))
           .width(18)
-          .fillColor('#FA2759')
+          .fillColor(this.getThemeColors().accent)
           .margin({ right: 12 })
         Text('移出歌单')
           .fontSize(14)
-          .fontColor('#FA2759')
+          .fontColor(this.getThemeColors().accent)
       }
       .width('100%')
       .height(44)
@@ -261,7 +262,7 @@ struct PlaylistDetail {
     .width(176)
     .backgroundColor(this.getThemeColors().bg)
     .borderRadius(12)
-    .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.1)', offsetX: 0, offsetY: 2 })
+    .shadow({ radius: 8, color: this.getThemeColors().separator, offsetX: 0, offsetY: 2 })
   }
 
   /**
@@ -359,7 +360,7 @@ struct PlaylistDetail {
 
               Checkbox()
                 .select(this.selectedIds.includes(song.id))
-                .selectedColor('#FA2759')
+                .selectedColor(this.getThemeColors().accent)
                 .hitTestBehavior(HitTestMode.None) // P1-8：勾选框只做视觉呈现，统一由父 Row 点击驱动，避免事件冒泡双触发
             }
             .width('100%')
@@ -390,8 +391,8 @@ struct PlaylistDetail {
           .layoutWeight(1)
           .height(42)
           .fontSize(15)
-          .fontColor('#FFFFFF')
-          .backgroundColor('#FA2759')
+          .fontColor(semanticOf(this.isDark).onAccent)
+          .backgroundColor(this.getThemeColors().accent)
           .borderRadius(21)
           .margin({ left: 12 })
           .onClick(() => {
@@ -511,8 +512,8 @@ struct PlaylistDetail {
 
           Text(`${this.songs.length} 首`)
             .fontSize(13)
-            .fontColor('#FA2759')
-            .backgroundColor('rgba(250, 39, 89, 0.1)')
+            .fontColor(this.getThemeColors().accent)
+            .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
         }
@@ -525,16 +526,16 @@ struct PlaylistDetail {
             Image($r('app.media.ic_play_all'))
               .width(18)
               .height(18)
-              .fillColor('#FFFFFF')
+              .fillColor(semanticOf(this.isDark).onAccent)
             Text('播放全部')
               .fontSize(14)
-              .fontColor('#FFFFFF')
+              .fontColor(semanticOf(this.isDark).onAccent)
               .margin({ left: 6 })
           }
           .layoutWeight(1)
           .height(40)
           .justifyContent(FlexAlign.Center)
-          .backgroundColor('#FA2759')
+          .backgroundColor(this.getThemeColors().accent)
           .borderRadius(20)
           .scale({ x: this.playAllScale, y: this.playAllScale })
           .animation({ duration: 150, curve: Curve.EaseOut })
@@ -593,7 +594,7 @@ struct PlaylistDetail {
 
             Text('点击「添加歌曲」从本地库挑选')
               .fontSize(13)
-              .fontColor('#636366')
+              .fontColor(semanticOf(this.isDark).labelSecondary)
               .margin({ top: 8 })
           }
           .layoutWeight(1)
