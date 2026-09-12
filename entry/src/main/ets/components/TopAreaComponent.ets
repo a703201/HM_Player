@@ -47,7 +47,7 @@ export struct TopAreaComponent {
   getIsDark() {
     const song = this.songList.length > 0 ? this.songList[this.selectIndex] : undefined;
     this.isDark = song ? song.isDarkBackground : true;
-    this.color = onMediaOf(this.isDark).primary;
+    this.color = onMediaOf(true).primary;
   }
 
   build() {

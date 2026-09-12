@@ -76,6 +76,9 @@ export struct ControlAreaComponent {
   @StorageLink('selectIndex') selectIndex: number = 0;
   @StorageLink('isFavorite') isFavorite: boolean = false;
   @StorageLink('isSilentMode') isSilentMode: boolean = false;
+  // 应用主题标志（供 getThemeColors()/semanticOf() 使用）。
+  // ⚠️ 它不是「播放页背景明暗」——播放页背景恒压暗（见 PlayerInfoComponent「背景始终压暗」），
+  // 故叠在封面之上的控件/文字一律用 onMediaOf(true)，**不可**传 this.isDark。
   @StorageProp('isDark') isDark: boolean = false;
   private scroller: Scroller = new Scroller();
   private resourceConversion: ResourceConversion = new ResourceConversion();
@@ -109,7 +112,7 @@ export struct ControlAreaComponent {
       Row() {
         Image(this.playMode === MusicPlayMode.ORDER ? $r('app.media.order_play') :
           this.playMode === MusicPlayMode.RANDOM ? $r('app.media.shuffle') : $r('app.media.repeat_1'))
-          .fillColor(onMediaOf(this.isDark).primary)
+          .fillColor(onMediaOf(true).primary)
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.twenty_four'),
@@ -120,7 +123,7 @@ export struct ControlAreaComponent {
             this.switchPlayMode()
           })
         Image($r('app.media.ic_music_list'))
-          .fillColor(onMediaOf(this.isDark).primary)
+          .fillColor(onMediaOf(true).primary)
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.twenty_four'),
@@ -154,7 +157,7 @@ export struct ControlAreaComponent {
             AudioRendererController.getInstance().setSilentModeAndMixWithOthers(this.isSilentMode)
           })
         Image(this.isFavorite ? $r('app.media.heart_fill') : $r('app.media.heart'))
-          .fillColor(this.isFavorite ? semanticOf(this.isDark).accent : onMediaOf(this.isDark).primary)
+          .fillColor(this.isFavorite ? semanticOf(this.isDark).accent : onMediaOf(true).primary)
           .controlImageBuilder()
           .animation({
             duration: Motion.fade,
@@ -176,9 +179,9 @@ export struct ControlAreaComponent {
         Text(this.speedLabel())
           .fontSize(TYPE_SM.caption1.size)
           .fontWeight(FontWeight.Medium)
-          .fontColor(onMediaOf(this.isDark).primary)
+          .fontColor(onMediaOf(true).primary)
           .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
-          .backgroundColor(onMediaOf(this.isDark).controlBg)
+          .backgroundColor(onMediaOf(true).controlBg)
           .borderRadius(12)
           .onClick(() => {
             this.isShowSpeed = true;
@@ -192,7 +195,7 @@ export struct ControlAreaComponent {
           })
 
         Image($r('app.media.ic_sleep'))
-          .fillColor(onMediaOf(this.isDark).primary)
+          .fillColor(onMediaOf(true).primary)
           .controlImageBuilder()
           .width(24)
           .onClick(() => {
