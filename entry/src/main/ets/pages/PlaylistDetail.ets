@@ -370,8 +370,8 @@ struct PlaylistDetail {
         Row() {
           Row() {
             Image($r('app.media.ic_public_play_norm'))
-              .width(18)
-              .height(18)
+              .width(20)
+              .height(20)
               .fillColor(semanticOf(this.isDark).onAccent)
             Text('播放全部')
               .fontSize(TYPE_SM.subhead.size)

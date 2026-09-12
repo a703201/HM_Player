@@ -203,8 +203,8 @@ export struct AddToPlaylistSheet {
 
       Row() {
         Image($r('app.media.ic_public_folder'))
-          .width(18)
-          .height(18)
+          .width(20)
+          .height(20)
           .fillColor(this.getThemeColors().accent)
         Text('新建歌单')
           .fontSize(TYPE_SM.body.size)

@@ -153,15 +153,15 @@ export struct SongRow {
 
     if (this.showHeart && this.favorite) {
       Image($r('app.media.ic_public_favor_filled'))
-        .width(22)
-        .height(22)
+        .width(24)
+        .height(24)
         .fillColor(this.getThemeColors().accent)
         .scale({ x: this.heartPulse, y: this.heartPulse })
         .animation({ duration: 200, curve: LumioTheme.curve(SpringKind.Crisp) })
     } else if (this.showRemove) {
       Image($r('app.media.ic_public_close'))
-        .width(18)
-        .height(18)
+        .width(20)
+        .height(20)
         .fillColor(this.getThemeColors().secondaryText)
         .onClick(() => {
           this.onRemove();

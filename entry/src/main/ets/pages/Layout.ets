@@ -223,8 +223,8 @@ struct Layout {
     Column({ space: 4 }) {
       // 选中用 Filled、未选中用 Linear（iOS 导航习惯），并沿用 accent 着色
       Image(index === this.currentIndex ? item.iconActive : item.icon)
-        .width(26)
-        .height(26)
+        .width(24)
+        .height(24)
         .fillColor(index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
         .animation({ duration: 160, curve: LumioTheme.curve(SpringKind.Crisp) })
 

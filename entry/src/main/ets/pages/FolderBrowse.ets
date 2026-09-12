@@ -107,8 +107,8 @@ export struct FolderBrowse {
     Row() {
       Stack() {
         Image($r('app.media.ic_public_folder'))
-          .width(26)
-          .height(26)
+          .width(24)
+          .height(24)
           .fillColor(this.getThemeColors().accent)
       }
       .width(56)
@@ -134,8 +134,8 @@ export struct FolderBrowse {
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
       Image($r('app.media.ic_public_play_norm'))
-        .width(22)
-        .height(22)
+        .width(24)
+        .height(24)
         .fillColor(this.getThemeColors().accent)
         .margin({ right: SPACE_SM.base })
         .onClick(() => {

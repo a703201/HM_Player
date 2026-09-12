@@ -435,8 +435,8 @@ export struct LocalLibrary {
       // Search bar
       Row() {
         Image($r('app.media.ic_public_search'))
-          .width(18)
-          .height(18)
+          .width(20)
+          .height(20)
           .fillColor(this.getThemeColors().secondaryText)
 
         TextInput({ placeholder: '搜索歌曲、艺术家' })

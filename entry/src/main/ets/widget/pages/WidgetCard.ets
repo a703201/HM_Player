@@ -180,8 +180,8 @@ struct WidgetCard {
       Row() {
         Button({ type: ButtonType.Circle }) {
           Image($r('app.media.ic_public_play_last'))
-            .width(22)
-            .height(22)
+            .width(24)
+            .height(24)
             .fillColor(this.getCardColors().iconColor)
         }
         .width(40)
@@ -209,8 +209,8 @@ struct WidgetCard {
 
         Button({ type: ButtonType.Circle }) {
           Image($r('app.media.ic_public_play_next'))
-            .width(22)
-            .height(22)
+            .width(24)
+            .height(24)
             .fillColor(this.getCardColors().iconColor)
         }
         .width(40)

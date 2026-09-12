@@ -257,8 +257,8 @@ struct Playlists {
         // 空歌单在封面上叠一层列表图标做区分
         if (playlist.songIds.length === 0) {
           Image($r('app.media.ic_public_view_list'))
-            .width(22)
-            .height(22)
+            .width(24)
+            .height(24)
             .fillColor(semanticOf(this.isDark).onAccent)
             .opacity(0.9)
         }
@@ -284,8 +284,8 @@ struct Playlists {
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
       Image($r('app.media.ic_public_play_norm'))
-        .width(22)
-        .height(22)
+        .width(24)
+        .height(24)
         .fillColor(semanticOf(this.isDark).accent)
         .margin({ right: SPACE_SM.base })
         .onClick(() => {
@@ -323,8 +323,8 @@ struct Playlists {
     Row() {
       Stack() {
         Image($r('app.media.ic_public_view_list'))
-          .width(26)
-          .height(26)
+          .width(24)
+          .height(24)
           .fillColor(semanticOf(this.isDark).accent)
       }
       .width(56)
@@ -349,8 +349,8 @@ struct Playlists {
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
       Image($r('app.media.ic_public_play_norm'))
-        .width(22)
-        .height(22)
+        .width(24)
+        .height(24)
         .fillColor(semanticOf(this.isDark).accent)
         .margin({ right: SPACE_SM.base })
         .onClick(() => {
@@ -392,8 +392,8 @@ struct Playlists {
         .margin({ left: SPACE_SM.base, top: SPACE_SM.cozy, bottom: SPACE_SM.compact })
 
       Image($r('app.media.ic_public_arrow_right'))
-        .width(18)
-        .height(18)
+        .width(20)
+        .height(20)
         .objectFit(ImageFit.Contain)
         .fillColor(this.getThemeColors().secondaryText)
         .margin({ right: SPACE_SM.base, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
