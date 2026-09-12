@@ -47,6 +47,7 @@ import { onMediaOf } from '../tokens/LumioColor';
 import { Motion, springSnappy } from '../common/utils/DesignSystem';
 import { SleepTimer } from '../utils/SleepTimer';
 import { SettingsStore } from '../utils/SettingsStore';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const TAG = 'ControlAreaComponent'
 
@@ -173,7 +174,7 @@ export struct ControlAreaComponent {
           })
 
         Text(this.speedLabel())
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontWeight(FontWeight.Medium)
           .fontColor(Color.White)
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
@@ -363,17 +364,17 @@ export struct ControlAreaComponent {
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: 16, bottom: 8 })
+        .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
       ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], (rate: number) => {
         Row() {
           Text(this.rateLabel(rate))
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontColor(this.currentSpeed === rate ? this.getThemeColors().accent : this.getThemeColors().primaryText)
             .layoutWeight(1)
         }
         .width('100%')
         .height(52)
-        .padding({ left: 20, right: 20 })
+        .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy })
         .backgroundColor(this.currentSpeed === rate ? this.getThemeColors().secondaryBg : Color.Transparent)
         .borderRadius(12)
         .onClick(() => {
@@ -393,17 +394,17 @@ export struct ControlAreaComponent {
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: 16, bottom: 8 })
+        .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
       ForEach([15, 30, 45, 60, 90], (min: number) => {
         Row() {
           Text(min + ' 分钟')
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontColor(this.getThemeColors().primaryText)
             .layoutWeight(1)
         }
         .width('100%')
         .height(52)
-        .padding({ left: 20, right: 20 })
+        .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy })
         .onClick(() => {
           SleepTimer.getInstance().start(min);
           SettingsStore.getInstance().setSleepTimer(min);
@@ -414,13 +415,13 @@ export struct ControlAreaComponent {
       // 播完当前曲后停止
       Row() {
         Text('播完当前曲后停止')
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .layoutWeight(1)
       }
       .width('100%')
       .height(52)
-      .padding({ left: 20, right: 20 })
+      .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy })
       .onClick(() => {
         SleepTimer.getInstance().startEndOfSong();
         SettingsStore.getInstance().setSleepTimer(-1);
@@ -429,13 +430,13 @@ export struct ControlAreaComponent {
       })
       Row() {
         Text('关闭定时')
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().accent)
           .layoutWeight(1)
       }
       .width('100%')
       .height(52)
-      .padding({ left: 20, right: 20 })
+      .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy })
       .onClick(() => {
         SleepTimer.getInstance().cancel();
         SettingsStore.getInstance().setSleepTimer(0);
@@ -461,7 +462,7 @@ export struct ControlAreaComponent {
           .width(StyleConstants.FULL_WIDTH)
           .textAlign(TextAlign.Center)
           .fontColor(this.getThemeColors().secondaryText)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .layoutWeight(1)
       } else {
         List({ scroller: this.scroller }) {
@@ -528,12 +529,12 @@ export struct ControlAreaComponent {
     Row() {
       ForEach([0, 1, 2, 3, 4], (mode: number) => {
         Text(this.sortLabel(mode))
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
           .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
-          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: 6, bottom: 6 })
           .borderRadius(16)
-          .margin({ right: 8 })
+          .margin({ right: SPACE_SM.compact })
           .onClick(() => {
             this.applySort(mode);
           })
@@ -543,8 +544,8 @@ export struct ControlAreaComponent {
     .padding({
       left: $r('app.float.play_all_area_padding'),
       right: $r('app.float.play_all_area_padding'),
-      top: 8,
-      bottom: 8
+      top: SPACE_SM.compact,
+      bottom: SPACE_SM.compact
     })
     .backgroundColor(this.getThemeColors().cardBg)
   }

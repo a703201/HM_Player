@@ -25,6 +25,7 @@ import {
   WrappedBody,
   PrivacyPolicyBody
 } from '../components/SettingsSubPageBodies';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 interface SettingsCategoryParam {
   category: string;
@@ -152,14 +153,14 @@ export struct Settings {
             .onClick(() => this.goBackInSheet())
         }
         Text(this.currentTitle())
-          .fontSize(20)
+          .fontSize(TYPE_SM.title2.size)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
           .margin({ left: (this.subPage !== '' || this.selectedCategory !== '') ? 12 : 0 })
           .layoutWeight(1)
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.base })
 
       // 渲染优先级：subPage > selectedCategory > 根列表
       if (this.subPage === 'manage') {
@@ -186,15 +187,15 @@ export struct Settings {
                 this.buildCategoryItem(cat);
               }, (cat: CategoryItem): string => cat.id)
             }
-            .margin({ bottom: 8 })
+            .margin({ bottom: SPACE_SM.compact })
 
             Text('Made with HarmonyOS SDK')
-              .fontSize(12)
+              .fontSize(TYPE_SM.caption1.size)
               .fontColor(this.getThemeColors().secondaryText)
-              .margin({ top: 24, bottom: 20 })
+              .margin({ top: SPACE_SM.loose, bottom: SPACE_SM.roomy })
           }
           .width('100%')
-          .padding({ left: 16, right: 16, bottom: 40 })
+          .padding({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.block })
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
@@ -239,16 +240,16 @@ export struct Settings {
         .width(24)
         .height(24)
         .fillColor(cat.iconColor)
-        .margin({ right: 16 })
+        .margin({ right: SPACE_SM.base })
 
       Column() {
         Text(cat.title)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
-          .margin({ bottom: 4 })
+          .margin({ bottom: SPACE_SM.tight })
         Text(cat.subtitle)
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
       }
       .alignItems(HorizontalAlign.Start)
@@ -260,10 +261,10 @@ export struct Settings {
     }
     .width('100%')
     .height(64)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ bottom: 2 })
+    .margin({ bottom: SPACE_SM.hair })
     .onClick(() => {
       this.getUIContext().animateTo(
         { curve: curves.interpolatingSpring(0, 1, 360, 36), duration: 240 },

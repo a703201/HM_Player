@@ -17,6 +17,7 @@
 import { ThemeManager } from '../utils/ThemeManager';
 import { semanticOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { SPACE_SM } from '../tokens/LumioScale';
 
 @Builder
 export function SplashViewBuilder() {
@@ -61,7 +62,7 @@ export struct SplashView {
           .fontSize(34)
           .fontWeight(FontWeight.Bold)
           .fontColor(semanticOf(this.isDark).label)
-          .margin({ top: 24 })
+          .margin({ top: SPACE_SM.loose })
           .opacity(this.logoOpacity)
           .animation({ duration: 700, curve: LumioTheme.curve(SpringKind.Crisp), delay: 150 })
       }

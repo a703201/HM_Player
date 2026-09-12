@@ -22,6 +22,7 @@ import { semanticOf } from '../tokens/LumioColor';
 import { Settings } from './Settings';
 import { About } from './About';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 @Builder
 export function MineBuilder() {
@@ -81,19 +82,19 @@ export struct Mine {
         .width(24)
         .height(24)
         .fillColor(iconColor)
-        .margin({ right: 16 })
+        .margin({ right: SPACE_SM.base })
 
       Column() {
         Text(title)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
 
         if (subtitle) {
           Text(subtitle)
-            .fontSize(12)
+            .fontSize(TYPE_SM.caption1.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ top: 2 })
+            .margin({ top: SPACE_SM.hair })
         }
       }
       .alignItems(HorizontalAlign.Start)
@@ -108,10 +109,10 @@ export struct Mine {
     }
     .width('100%')
     .height(60)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     .backgroundColor(this.menuPressed[index] ? semanticOf(this.isDark).fillTertiary : this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
     .scale({ x: this.menuScales[index] ?? 1.0, y: this.menuScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 20 })))
     .animation({ duration: 300, curve: LumioTheme.curve(SpringKind.Crisp), delay: 200 + index * 60 })
@@ -146,7 +147,7 @@ export struct Mine {
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
             .layoutWeight(1)
-            .padding({ left: 16, right: 16, top: this.topHeight + 8, bottom: 12 })
+            .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 8, bottom: SPACE_SM.cozy })
         }
         .width('100%')
 
@@ -201,13 +202,13 @@ export struct Mine {
           )
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: 8 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: SPACE_SM.compact })
 
         // 分区标题
         Text('更多')
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 16, bottom: 12, left: 16 })
+          .margin({ top: SPACE_SM.base, bottom: SPACE_SM.cozy, left: SPACE_SM.base })
           .textAlign(TextAlign.Start)
           .width('100%')
 
@@ -239,7 +240,7 @@ export struct Mine {
           )
         }
         .width('100%')
-        .padding({ left: 16, right: 16 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
       }
       .width('100%')
     }

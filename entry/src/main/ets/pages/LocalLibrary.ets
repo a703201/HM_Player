@@ -34,6 +34,7 @@ import { SettingsStore } from '../utils/SettingsStore';
 import { sortSongs } from '../common/utils/SortUtil';
 import { semanticOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const PLAYER_COVER_ID: string = 'player_cover';
 
@@ -346,7 +347,7 @@ export struct LocalLibrary {
       Row({ space: 8 }) {
         ForEach([0, 1, 2, 5, 3, 4], (mode: number) => {
           Text(this.librarySortLabel(mode))
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
             .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
             .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -356,7 +357,7 @@ export struct LocalLibrary {
             })
         }, (mode: number) => 'lib_sort_' + mode.toString())
       }
-      .padding({ left: 16, right: 16 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     }
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
@@ -400,7 +401,7 @@ export struct LocalLibrary {
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
           .layoutWeight(1)
-          .padding({ left: 16, right: 16, top: this.topHeight + 8, bottom: 12 })
+          .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 8, bottom: SPACE_SM.cozy })
 
         Row({ space: 4 }) {
           Image($r('app.media.ic_hm_download'))
@@ -408,14 +409,14 @@ export struct LocalLibrary {
             .height(16)
             .fillColor(this.getThemeColors().accent)
           Text('导入')
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().accent)
             .fontWeight(FontWeight.Medium)
         }
-        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+        .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: 6, bottom: 6 })
         .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
         .borderRadius(16)
-        .margin({ right: 16, top: this.topHeight + 8 })
+        .margin({ right: SPACE_SM.base, top: this.topHeight + 8 })
         .scale({ x: this.importScale, y: this.importScale })
         .animation({ duration: 150, curve: LumioTheme.curve(SpringKind.Crisp) })
         .onClick(() => {
@@ -442,9 +443,9 @@ export struct LocalLibrary {
           .placeholderColor(this.getThemeColors().secondaryText)
           .backgroundColor(Color.Transparent)
           .fontColor(this.getThemeColors().primaryText)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .layoutWeight(1)
-          .margin({ left: 8 })
+          .margin({ left: SPACE_SM.compact })
           .onChange((value: string) => {
             this.onSearchChange(value);
           })
@@ -454,17 +455,17 @@ export struct LocalLibrary {
       .padding({ left: 14, right: 14 })
       .backgroundColor(this.getThemeColors().cardBg)
       .borderRadius(22)
-      .margin({ left: 16, right: 16, bottom: 12 })
+      .margin({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.cozy })
 
       // Stats row
       Row() {
         Text(`共 ${this.filteredSongs.length} 首歌曲`)
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
           .layoutWeight(1)
       }
       .width('100%')
-      .padding({ left: 16, right: 16, bottom: 12 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.cozy })
 
       // 曲库排序入口（B3）：仅在有歌曲时展示
       if (this.filteredSongs.length > 0 && this.errorMessage === '' && !this.isLoading) {
@@ -477,9 +478,9 @@ export struct LocalLibrary {
             .width(36)
             .height(36)
             .color(this.getThemeColors().accent)
-            .margin({ bottom: 16 })
+            .margin({ bottom: SPACE_SM.base })
           Text('正在导入...')
-            .fontSize(14)
+            .fontSize(TYPE_SM.subhead.size)
             .fontColor(this.getThemeColors().secondaryText)
         }
         .layoutWeight(1)
@@ -490,24 +491,24 @@ export struct LocalLibrary {
             .width(72)
             .height(72)
             .fillColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 16 })
+            .margin({ bottom: SPACE_SM.base })
             .opacity(0.5)
 
           Text(this.errorMessage)
-            .fontSize(15)
+            .fontSize(TYPE_SM.body.size)
             .fontColor(this.getThemeColors().secondaryText)
             .fontWeight(FontWeight.Medium)
             .textAlign(TextAlign.Center)
             .maxLines(3)
-            .padding({ left: 32, right: 32 })
-            .margin({ bottom: 20 })
+            .padding({ left: SPACE_SM.section, right: SPACE_SM.section })
+            .margin({ bottom: SPACE_SM.roomy })
 
           Button('重试')
-            .fontSize(14)
+            .fontSize(TYPE_SM.subhead.size)
             .fontColor(Color.White)
             .backgroundColor(this.getThemeColors().accent)
             .borderRadius(24)
-            .padding({ left: 24, right: 24, top: 8, bottom: 8 })
+            .padding({ left: SPACE_SM.loose, right: SPACE_SM.loose, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
             .onClick(() => {
               this.retryLoad();
             })
@@ -520,19 +521,19 @@ export struct LocalLibrary {
             .width(72)
             .height(72)
             .fillColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 16 })
+            .margin({ bottom: SPACE_SM.base })
             .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
             .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
 
           Text('音乐库还是空的')
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontColor(this.getThemeColors().secondaryText)
             .fontWeight(FontWeight.Medium)
 
           Text('点击右上角"导入"添加本地音频')
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ top: 8 })
+            .margin({ top: SPACE_SM.compact })
             .textAlign(TextAlign.Center)
         }
         .layoutWeight(1)
@@ -602,7 +603,7 @@ export struct LocalLibrary {
           .width('100%')
           .layoutWeight(1)
           .scrollBar(BarState.Off)
-          .padding({ left: 8, right: 8 })
+          .padding({ left: SPACE_SM.compact, right: SPACE_SM.compact })
         }
       }
     }

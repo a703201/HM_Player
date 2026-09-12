@@ -25,6 +25,7 @@ import { QualityBadge } from '../components/QualityBadge';
 import { SongRow } from '../components/SongRow';
 import { DuplicateDetector, DuplicateGroup } from '../utils/DuplicateDetector';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 interface YearStat {
   year: string;
@@ -55,10 +56,10 @@ export struct SubPageHeader {
         .fillColor(this.getThemeColors().primaryText)
         .onClick(() => this.onBack())
       Text(this.title)
-        .fontSize(20)
+        .fontSize(TYPE_SM.title2.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
-        .margin({ left: 12 })
+        .margin({ left: SPACE_SM.cozy })
         .layoutWeight(1)
       // 右侧占位（由调用方决定是否提供）
       Row() {
@@ -67,7 +68,7 @@ export struct SubPageHeader {
       .height(24)
     }
     .width('100%')
-    .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 12 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.cozy })
   }
 }
 
@@ -152,12 +153,12 @@ export struct ManageSongsBody {
       }
 
       Text(`${this.songs.length} 首`)
-        .fontSize(13)
+        .fontSize(TYPE_SM.footnote.size)
         .fontColor(this.getThemeColors().accent)
         .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
         .borderRadius(12)
-        .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-        .margin({ left: 16, bottom: 12 })
+        .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+        .margin({ left: SPACE_SM.base, bottom: SPACE_SM.cozy })
         .visibility(this.songs.length > 0 ? Visibility.Visible : Visibility.Hidden)
 
       if (this.songs.length === 0) {
@@ -166,17 +167,17 @@ export struct ManageSongsBody {
             .width(72)
             .height(72)
             .fillColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 16 })
+            .margin({ bottom: SPACE_SM.base })
             .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
             .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
           Text('暂无本地歌曲')
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontColor(this.getThemeColors().secondaryText)
             .fontWeight(FontWeight.Medium)
           Text('在「音乐库」导入本地音频后会显示在这里')
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ top: 8 })
+            .margin({ top: SPACE_SM.compact })
         }
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
@@ -276,21 +277,21 @@ export struct DuplicateSongsBody {
     Column() {
       Row() {
         Text(group.key)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
           .layoutWeight(1)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
         Text(`${group.songs.length} 个文件`)
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontColor(this.getThemeColors().accent)
           .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
           .borderRadius(12)
-          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .padding({ left: SPACE_SM.compact, right: SPACE_SM.compact, top: 3, bottom: 3 })
       }
       .width('100%')
-      .padding({ left: 14, right: 14, top: 12, bottom: 8 })
+      .padding({ left: 14, right: 14, top: SPACE_SM.cozy, bottom: SPACE_SM.compact })
 
       ForEach(group.songs, (song: SongItem, i: number) => {
         Row() {
@@ -299,13 +300,13 @@ export struct DuplicateSongsBody {
           }
           Column() {
             Text(song.title)
-              .fontSize(14)
+              .fontSize(TYPE_SM.subhead.size)
               .fontColor(this.getThemeColors().primaryText)
               .fontWeight(FontWeight.Medium)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
             Text(song.singer)
-              .fontSize(12)
+              .fontSize(TYPE_SM.caption1.size)
               .fontColor(this.getThemeColors().secondaryText)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -315,14 +316,14 @@ export struct DuplicateSongsBody {
           .padding({ left: 10 })
           if (i === 0) {
             Text('保留')
-              .fontSize(12)
+              .fontSize(TYPE_SM.caption1.size)
               .fontColor(this.getThemeColors().secondaryText)
               .backgroundColor(this.getThemeColors().secondaryBg)
               .borderRadius(12)
-              .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+              .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
           } else {
             Text('移除')
-              .fontSize(13)
+              .fontSize(TYPE_SM.footnote.size)
               .fontColor(this.getThemeColors().accent)
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
@@ -331,11 +332,11 @@ export struct DuplicateSongsBody {
           }
         }
         .width('100%')
-        .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+        .padding({ left: 14, right: 14, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
       }, (song: SongItem) => 'dup_' + song.id.toString())
     }
     .width('100%')
-    .margin({ left: 8, right: 8, bottom: 12 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.cozy })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
   }
@@ -350,14 +351,14 @@ export struct DuplicateSongsBody {
             .fillColor(this.getThemeColors().primaryText)
             .onClick(() => this.onBack())
           Text('重复歌曲')
-            .fontSize(20)
+            .fontSize(TYPE_SM.title2.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
+            .margin({ left: SPACE_SM.cozy })
             .layoutWeight(1)
           if (this.duplicateCount() > 0) {
             Text('清理全部')
-              .fontSize(14)
+              .fontSize(TYPE_SM.subhead.size)
               .fontColor(this.getThemeColors().accent)
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
@@ -366,7 +367,7 @@ export struct DuplicateSongsBody {
           }
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 12 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.cozy })
       }
 
       if (this.groups.length === 0) {
@@ -375,15 +376,15 @@ export struct DuplicateSongsBody {
             .width(64)
             .height(64)
             .fillColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 16 })
+            .margin({ bottom: SPACE_SM.base })
           Text('没有发现重复歌曲')
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontColor(this.getThemeColors().secondaryText)
             .fontWeight(FontWeight.Medium)
           Text('基于标题与歌手相似度比对，跨歌手同名不会被误判')
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ top: 8 })
+            .margin({ top: SPACE_SM.compact })
             .width('70%')
             .textAlign(TextAlign.Center)
         }
@@ -486,7 +487,7 @@ export struct WrappedBody {
   buildHero() {
     Column() {
       Text('听歌报告')
-        .fontSize(13)
+        .fontSize(TYPE_SM.footnote.size)
         .fontColor(this.getThemeColors().accent)
         .fontWeight(FontWeight.Medium)
         .letterSpacing(1)
@@ -496,28 +497,28 @@ export struct WrappedBody {
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
       Text('次播放')
-        .fontSize(15)
+        .fontSize(TYPE_SM.body.size)
         .fontColor(this.getThemeColors().secondaryText)
-        .margin({ top: 2, bottom: 18 })
+        .margin({ top: SPACE_SM.hair, bottom: 18 })
       Row() {
         Column() {
           Text('总收听时长')
-            .fontSize(12)
+            .fontSize(TYPE_SM.caption1.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 4 })
+            .margin({ bottom: SPACE_SM.tight })
           Text(this.formatDuration(this.totalMs))
-            .fontSize(18)
+            .fontSize(TYPE_SM.title3.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
         }
         .layoutWeight(1)
         Column() {
           Text('歌曲总数')
-            .fontSize(12)
+            .fontSize(TYPE_SM.caption1.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 4 })
+            .margin({ bottom: SPACE_SM.tight })
           Text(`${this.store.songs.length}`)
-            .fontSize(18)
+            .fontSize(TYPE_SM.title3.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
         }
@@ -529,22 +530,22 @@ export struct WrappedBody {
     .padding(24)
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(24)
-    .margin({ left: 8, right: 8, bottom: 16 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.base })
   }
 
   @Builder
   buildTopSongs() {
     Column() {
       Text('最常播放')
-        .fontSize(18)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .width('100%')
-        .padding({ left: 12, bottom: 10 })
+        .padding({ left: SPACE_SM.cozy, bottom: 10 })
       ForEach(this.topSongs, (song: SongItem, index: number) => {
         Row() {
           Text(`${index + 1}`)
-            .fontSize(15)
+            .fontSize(TYPE_SM.body.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(index < 3 ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
             .width(28)
@@ -554,13 +555,13 @@ export struct WrappedBody {
           }
           Column() {
             Text(song.title)
-              .fontSize(15)
+              .fontSize(TYPE_SM.body.size)
               .fontColor(this.getThemeColors().primaryText)
               .fontWeight(FontWeight.Medium)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
             Text(song.singer)
-              .fontSize(12)
+              .fontSize(TYPE_SM.caption1.size)
               .fontColor(this.getThemeColors().secondaryText)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -569,33 +570,33 @@ export struct WrappedBody {
           .alignItems(HorizontalAlign.Start)
           .padding({ left: 10 })
           Text(`${this.store.getPlayCount(song.id)} 次`)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
         }
         .width('100%')
         .height(58)
-        .padding({ left: 12, right: 14 })
+        .padding({ left: SPACE_SM.cozy, right: 14 })
         .backgroundColor(this.getThemeColors().cardBg)
         .borderRadius(12)
-        .margin({ left: 8, right: 8, bottom: 6 })
+        .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: 6 })
       }, (song: SongItem) => 'top_' + song.id.toString())
     }
-    .margin({ bottom: 16 })
+    .margin({ bottom: SPACE_SM.base })
   }
 
   @Builder
   buildYearChart() {
     Column() {
       Text('按发行年份')
-        .fontSize(18)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .width('100%')
-        .padding({ left: 12, bottom: 12 })
+        .padding({ left: SPACE_SM.cozy, bottom: SPACE_SM.cozy })
       ForEach(this.yearStats, (y: YearStat) => {
         Row() {
           Text(y.year)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
             .width(64)
           Stack() {
@@ -609,7 +610,7 @@ export struct WrappedBody {
           .height(14)
           .backgroundColor(this.getThemeColors().secondaryBg)
           .borderRadius(7)
-          .margin({ left: 8 })
+          .margin({ left: SPACE_SM.compact })
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
@@ -617,10 +618,10 @@ export struct WrappedBody {
       }, (y: YearStat) => 'year_' + y.year)
     }
     .width('100%')
-    .padding({ top: 16, left: 16, right: 16, bottom: 16 })
+    .padding({ top: SPACE_SM.base, left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(24)
-    .margin({ left: 8, right: 8, bottom: 16 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.base })
   }
 
   build() {
@@ -635,15 +636,15 @@ export struct WrappedBody {
             .width(64)
             .height(64)
             .fillColor(this.getThemeColors().secondaryText)
-            .margin({ bottom: 16 })
+            .margin({ bottom: SPACE_SM.base })
           Text('还没有足够的数据')
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontColor(this.getThemeColors().secondaryText)
             .fontWeight(FontWeight.Medium)
           Text('多听几首歌，这里会生成你的听歌报告')
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ top: 8 })
+            .margin({ top: SPACE_SM.compact })
         }
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
@@ -656,12 +657,12 @@ export struct WrappedBody {
               this.buildYearChart()
             }
             Text('数据仅在本地统计，不上传任何服务器')
-              .fontSize(12)
+              .fontSize(TYPE_SM.caption1.size)
               .fontColor(this.getThemeColors().secondaryText)
-              .margin({ top: 8, bottom: 24 })
+              .margin({ top: SPACE_SM.compact, bottom: SPACE_SM.loose })
           }
           .width('100%')
-          .padding({ bottom: 24 })
+          .padding({ bottom: SPACE_SM.loose })
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
@@ -697,15 +698,15 @@ export struct PrivacyPolicyBody {
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .width('100%')
-        .margin({ bottom: 8 })
+        .margin({ bottom: SPACE_SM.compact })
       Text(body)
-        .fontSize(14)
+        .fontSize(TYPE_SM.subhead.size)
         .fontColor(this.getThemeColors().secondaryText)
         .width('100%')
         .lineHeight(22)
     }
     .width('100%')
-    .margin({ bottom: 24 })
+    .margin({ bottom: SPACE_SM.loose })
   }
 
   build() {
@@ -759,7 +760,7 @@ export struct PrivacyPolicyBody {
           )
         }
         .width('100%')
-        .padding({ left: 16, right: 16, bottom: 40 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.block })
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)

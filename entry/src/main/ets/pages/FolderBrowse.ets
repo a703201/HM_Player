@@ -24,6 +24,7 @@ import { common } from '@kit.AbilityKit';
 import { semanticOf } from '../tokens/LumioColor';
 import { SongRow } from '../components/SongRow';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const TAG: string = 'FolderBrowse';
 
@@ -117,20 +118,20 @@ export struct FolderBrowse {
 
       Column() {
         Text(f.name)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(`${f.songs.length} 首歌曲`)
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 4 })
+          .margin({ top: SPACE_SM.tight })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12, right: 8 })
+      .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
       Image($r('app.media.ic_play_all'))
         .width(22)
@@ -143,10 +144,10 @@ export struct FolderBrowse {
     }
     .width('100%')
     .height(76)
-    .padding({ left: 12, right: 14 })
+    .padding({ left: SPACE_SM.cozy, right: 14 })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ left: 8, right: 8, bottom: 8 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
     .onClick(() => {
       this.selectedFolder = f.name;
     })
@@ -177,24 +178,24 @@ export struct FolderBrowse {
               })
 
             Text(this.selectedFolder)
-              .fontSize(20)
+              .fontSize(TYPE_SM.title2.size)
               .fontWeight(FontWeight.Bold)
               .fontColor(this.getThemeColors().primaryText)
-              .margin({ left: 12 })
+              .margin({ left: SPACE_SM.cozy })
               .layoutWeight(1)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
           } else {
             Text('文件夹')
-              .fontSize(20)
+              .fontSize(TYPE_SM.title2.size)
               .fontWeight(FontWeight.Bold)
               .fontColor(this.getThemeColors().primaryText)
-              .margin({ left: 16 })
+              .margin({ left: SPACE_SM.base })
               .layoutWeight(1)
           }
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.base })
 
         if (this.selectedFolder === '') {
           if (this.folders.length === 0) {
@@ -204,9 +205,9 @@ export struct FolderBrowse {
                 .height(72)
                 .fillColor(this.getThemeColors().secondaryText)
                 .opacity(0.5)
-                .margin({ bottom: 16 })
+                .margin({ bottom: SPACE_SM.base })
               Text('还没有可浏览的文件夹')
-                .fontSize(16)
+                .fontSize(TYPE_SM.headline.size)
                 .fontColor(this.getThemeColors().secondaryText)
                 .fontWeight(FontWeight.Medium)
             }

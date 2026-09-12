@@ -20,6 +20,7 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 import { SettingsStore } from '../utils/SettingsStore';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 /**
  * 长按菜单项（数据驱动，规避 @BuilderParam 无法捕获 per-row song 的限制）。
@@ -92,7 +93,7 @@ export struct SongRow {
   private rowInner() {
     if (this.showIndex) {
       Text(`${this.index + 1}`)
-        .fontSize(13)
+        .fontSize(TYPE_SM.footnote.size)
         .fontColor(this.playing ? this.playingColor : this.getThemeColors().secondaryText)
         .width(28)
         .textAlign(TextAlign.Center)
@@ -138,17 +139,17 @@ export struct SongRow {
         }
       }
       .alignItems(VerticalAlign.Center)
-      .margin({ bottom: 4 })
+      .margin({ bottom: SPACE_SM.tight })
 
       Text(this.song.singer)
-        .fontSize(13)
+        .fontSize(TYPE_SM.footnote.size)
         .fontColor(this.getThemeColors().secondaryText)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .layoutWeight(1)
     .alignItems(HorizontalAlign.Start)
-    .padding({ left: 12 })
+    .padding({ left: SPACE_SM.cozy })
 
     if (this.showHeart && this.favorite) {
       Image($r('app.media.ic_favorite'))
@@ -175,10 +176,10 @@ export struct SongRow {
     }
     .width('100%')
     .height(this.rowHeight)
-    .padding({ left: this.leftPadding, right: 16 })
+    .padding({ left: this.leftPadding, right: SPACE_SM.base })
     .backgroundColor(this.playing ? this.playingBg : this.getThemeColors().cardBg)
     .borderRadius(12)
-    .margin({ left: 8, right: 8, bottom: 8 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
     .scale({ x: this.pressedScale, y: this.pressedScale })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
     .animation({ duration: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? 300 : 0, curve: LumioTheme.curve(SpringKind.Crisp), delay: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? this.entryDelayMs : 0 })
@@ -206,10 +207,10 @@ export struct SongRow {
     }
     .width('100%')
     .height(this.rowHeight)
-    .padding({ left: this.leftPadding, right: 16 })
+    .padding({ left: this.leftPadding, right: SPACE_SM.base })
     .backgroundColor(this.playing ? this.playingBg : this.getThemeColors().cardBg)
     .borderRadius(12)
-    .margin({ left: 8, right: 8, bottom: 8 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
     .scale({ x: this.pressedScale, y: this.pressedScale })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
     .animation({ duration: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? 300 : 0, curve: LumioTheme.curve(SpringKind.Crisp), delay: (!SettingsStore.getInstance().getReduceMotion() && this.animateEntry) ? this.entryDelayMs : 0 })
@@ -231,31 +232,12 @@ export struct SongRow {
 
   @Builder
   private menuContent() {
-    Column() {
+    Menu() {
       ForEach(this.menuItems, (item: SongMenuEntry, i: number) => {
-        Row() {
-          if (item.icon !== undefined) {
-            Image(item.icon)
-              .width(18)
-              .fillColor(this.getThemeColors().primaryText)
-              .margin({ right: 12 })
-          }
-          Text(item.text)
-            .fontSize(14)
-            .fontColor(this.getThemeColors().primaryText)
-        }
-        .width('100%')
-        .height(44)
-        .padding({ left: 16, right: 16 })
-        .onClick(() => {
-          item.action();
-        })
-
-        if (i < this.menuItems.length - 1) {
-          Divider()
-            .color(this.getThemeColors().separator)
-            .strokeWidth(0.5)
-        }
+        MenuItem({ content: item.text, startIcon: item.icon })
+          .onClick(() => {
+            item.action();
+          })
       }, (item: SongMenuEntry, i: number): string => `${item.text}_${i}`)
     }
   }

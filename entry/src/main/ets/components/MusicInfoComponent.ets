@@ -38,6 +38,7 @@ import { ControlAreaComponent } from './ControlAreaComponent';
 import { ContainerReader } from '@kit.ArkUI';
 import { LengthMetrics } from '@ohos.arkui.node';
 import { ApiCompat } from '../common/utils/ApiCompat';
+import { SPACE_SM } from '../tokens/LumioScale';
 
 /**
  * 容器真实尺寸（vp）。作为 ContainerReader 断点分析的参考尺寸，
@@ -173,7 +174,7 @@ export struct MusicInfoComponent {
 
       if (this.showQualityBadge()) {
         QualityBadge({ quality: this.currentSong()!.getQuality() })
-          .margin({ top: 10, left: 2 })
+          .margin({ top: 10, left: SPACE_SM.hair })
       }
     }
     .alignItems(HorizontalAlign.Start)

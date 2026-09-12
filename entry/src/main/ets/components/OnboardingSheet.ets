@@ -17,6 +17,7 @@
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf, LUMIO_PALETTE } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 interface OnboardFeature {
   icon: ResourceStr;
@@ -78,11 +79,11 @@ export struct OnboardingSheet {
 
       Column() {
         Text(f.title)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontWeight(FontWeight.Medium)
           .fontColor(this.getThemeColors().primaryText)
         Text(f.desc)
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontColor(this.getThemeColors().secondaryText)
           .margin({ top: 3 })
           .maxLines(2)
@@ -90,10 +91,10 @@ export struct OnboardingSheet {
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .padding({ left: 14, right: 8 })
+      .padding({ left: 14, right: SPACE_SM.compact })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 12, bottom: 12 })
+    .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy, top: SPACE_SM.cozy, bottom: SPACE_SM.cozy })
     .opacity(this.itemOpacities[index])
     .scale({ x: this.itemScales[index], y: this.itemScales[index] })
     .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
@@ -106,15 +107,15 @@ export struct OnboardingSheet {
           .width(72)
           .height(72)
           .borderRadius(18)
-          .margin({ top: 8, bottom: 12 })
+          .margin({ top: SPACE_SM.compact, bottom: SPACE_SM.cozy })
         Text('欢迎使用 Lumio Music')
           .fontSize(22)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
         Text('本地音乐，纯粹聆听')
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 6, bottom: 16 })
+          .margin({ top: 6, bottom: SPACE_SM.base })
       }
       .width('100%')
       .alignItems(HorizontalAlign.Center)
@@ -125,12 +126,12 @@ export struct OnboardingSheet {
         }, (f: OnboardFeature, index: number) => index.toString())
       }
       .width('100%')
-      .margin({ top: 8, bottom: 16 })
+      .margin({ top: SPACE_SM.compact, bottom: SPACE_SM.base })
 
       Button('开始体验')
         .width('86%')
         .height(48)
-        .fontSize(16)
+        .fontSize(TYPE_SM.headline.size)
         .fontColor(semanticOf(this.isDark).onAccent)
         .backgroundColor(this.getThemeColors().accent)
         .borderRadius(24)
@@ -140,7 +141,7 @@ export struct OnboardingSheet {
     }
     .width('100%')
     .height('100%')
-    .padding({ top: 24, bottom: 32 })
+    .padding({ top: SPACE_SM.loose, bottom: SPACE_SM.section })
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.getThemeColors().bg)
   }

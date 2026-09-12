@@ -20,6 +20,7 @@ import { curves } from '@kit.ArkUI';
 import { PrivacyPolicyBody } from '../components/SettingsSubPageBodies';
 import { semanticOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 @Builder
 export function AboutBuilder() {
@@ -115,14 +116,14 @@ export struct About {
             .fillColor(this.getThemeColors().primaryText)
             .onClick(() => this.goBackFromSubPage())
           Text('隐私政策')
-            .fontSize(20)
+            .fontSize(TYPE_SM.title2.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
+            .margin({ left: SPACE_SM.cozy })
             .layoutWeight(1)
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 12 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.cozy })
       }
 
       if (this.subPage === 'main') {
@@ -166,13 +167,13 @@ export struct About {
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ top: 20, bottom: 6 })
+            .margin({ top: SPACE_SM.roomy, bottom: 6 })
             .opacity(this.titleOpacity)
             .transition(TransitionEffect.translate({ y: 10 }))
             .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
 
           Text('本地音乐播放器')
-            .fontSize(15)
+            .fontSize(TYPE_SM.body.size)
             .fontColor(this.getThemeColors().secondaryText)
             .opacity(this.subtitleOpacity)
             .transition(TransitionEffect.translate({ y: 10 }))
@@ -184,20 +185,20 @@ export struct About {
 
         // Features section
         Text('功能特色')
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
           .width('100%')
-          .padding({ left: 20, bottom: 12 })
+          .padding({ left: SPACE_SM.roomy, bottom: SPACE_SM.cozy })
 
         Row() {
           Column() {
             Image($r('app.media.ic_hm_library'))
               .width(30)
               .height(30)
-              .margin({ bottom: 8 })
+              .margin({ bottom: SPACE_SM.compact })
               .fillColor(this.getThemeColors().primaryText)
             Text('本地播放')
-              .fontSize(13)
+              .fontSize(TYPE_SM.footnote.size)
               .fontWeight(FontWeight.Medium)
               .fontColor(this.getThemeColors().primaryText)
           }
@@ -210,10 +211,10 @@ export struct About {
             Image($r('app.media.ic_hm_search'))
               .width(30)
               .height(30)
-              .margin({ bottom: 8 })
+              .margin({ bottom: SPACE_SM.compact })
               .fillColor(this.getThemeColors().primaryText)
             Text('文件扫描')
-              .fontSize(13)
+              .fontSize(TYPE_SM.footnote.size)
               .fontWeight(FontWeight.Medium)
               .fontColor(this.getThemeColors().primaryText)
           }
@@ -226,10 +227,10 @@ export struct About {
             Image($r('app.media.ic_hm_list'))
               .width(30)
               .height(30)
-              .margin({ bottom: 8 })
+              .margin({ bottom: SPACE_SM.compact })
               .fillColor(this.getThemeColors().primaryText)
             Text('歌词显示')
-              .fontSize(13)
+              .fontSize(TYPE_SM.footnote.size)
               .fontWeight(FontWeight.Medium)
               .fontColor(this.getThemeColors().primaryText)
           }
@@ -239,15 +240,15 @@ export struct About {
           .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
         }
         .width('100%')
-        .padding({ left: 24, right: 24, top: 12, bottom: 24 })
+        .padding({ left: SPACE_SM.loose, right: SPACE_SM.loose, top: SPACE_SM.cozy, bottom: SPACE_SM.loose })
         .justifyContent(FlexAlign.SpaceAround)
 
         // Info section
         Text('应用信息')
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
           .width('100%')
-          .padding({ left: 20, bottom: 12 })
+          .padding({ left: SPACE_SM.roomy, bottom: SPACE_SM.cozy })
 
         Column() {
           this.buildAboutItem('应用版本', this.appVersion, 0)
@@ -258,7 +259,7 @@ export struct About {
           // 重新查看新手引导：关闭本 Sheet 并触发 Layout 的引导半蒙面展示
           Row() {
             Text('新手引导')
-              .fontSize(15)
+              .fontSize(TYPE_SM.body.size)
               .fontColor(this.getThemeColors().primaryText)
               .layoutWeight(1)
               .textAlign(TextAlign.Start)
@@ -269,10 +270,10 @@ export struct About {
           }
           .width('100%')
           .height(56)
-          .padding({ left: 16, right: 16 })
+          .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
           .backgroundColor(this.getThemeColors().cardBg)
           .borderRadius(16)
-          .margin({ bottom: 2 })
+          .margin({ bottom: SPACE_SM.hair })
           .scale({ x: this.itemScales[4] ?? 1.0, y: this.itemScales[4] ?? 1.0 })
           .animation({ duration: 300, curve: LumioTheme.curve(SpringKind.Crisp), delay: 820 })
           .onClick(() => {
@@ -283,7 +284,7 @@ export struct About {
           // 隐私政策：以 sheet 内嵌子页形式呈现，不再走主导航栈
           Row() {
             Text('隐私政策')
-              .fontSize(15)
+              .fontSize(TYPE_SM.body.size)
               .fontColor(this.getThemeColors().primaryText)
               .layoutWeight(1)
               .textAlign(TextAlign.Start)
@@ -294,10 +295,10 @@ export struct About {
           }
           .width('100%')
           .height(56)
-          .padding({ left: 16, right: 16 })
+          .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
           .backgroundColor(this.getThemeColors().cardBg)
           .borderRadius(16)
-          .margin({ bottom: 2 })
+          .margin({ bottom: SPACE_SM.hair })
           .scale({ x: this.itemScales[5] ?? 1.0, y: this.itemScales[5] ?? 1.0 })
           .animation({ duration: 300, curve: LumioTheme.curve(SpringKind.Crisp), delay: 900 })
           .onClick(() => {
@@ -305,14 +306,14 @@ export struct About {
           })
         }
         .width('100%')
-        .padding({ left: 16, right: 16 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
 
         Text('一款简洁的本地音乐播放器，支持导入本地音频、播放控制、歌词显示等功能。')
-          .fontSize(14)
+          .fontSize(TYPE_SM.subhead.size)
           .fontColor(this.getThemeColors().secondaryText)
           .textAlign(TextAlign.Center)
           .width('100%')
-          .margin({ top: 32, bottom: 40 })
+          .margin({ top: SPACE_SM.section, bottom: SPACE_SM.block })
           .padding({ left: 30, right: 30 })
           .transition(TransitionEffect.OPACITY)
           .animation({ duration: 500, curve: LumioTheme.curve(SpringKind.Crisp), delay: 800 })
@@ -329,22 +330,22 @@ export struct About {
   buildAboutItem(label: string, value: string, index: number) {
     Row() {
       Text(label)
-        .fontSize(15)
+        .fontSize(TYPE_SM.body.size)
         .fontColor(this.getThemeColors().secondaryText)
         .layoutWeight(1)
         .textAlign(TextAlign.Start)
 
       Text(value)
-        .fontSize(15)
+        .fontSize(TYPE_SM.body.size)
         .fontColor(this.getThemeColors().primaryText)
         .fontWeight(FontWeight.Medium)
     }
     .width('100%')
     .height(56)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ bottom: 2 })
+    .margin({ bottom: SPACE_SM.hair })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 20 })))
     .animation({ duration: 300, curve: LumioTheme.curve(SpringKind.Crisp), delay: 500 + index * 80 })

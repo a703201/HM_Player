@@ -27,6 +27,7 @@ import { SettingsStore } from '../utils/SettingsStore';
 import { semanticOf } from '../tokens/LumioColor';
 import { SongRow, SongMenuEntry } from '../components/SongRow';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const TAG: string = 'PlaylistDetail';
 
@@ -243,11 +244,11 @@ struct PlaylistDetail {
           .layoutWeight(1)
 
         Text(`已选 ${this.selectedIds.length}`)
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 16, bottom: 12 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: SPACE_SM.base, bottom: SPACE_SM.cozy })
 
       List() {
         ForEach(this.candidates, (song: SongItem) => {
@@ -257,21 +258,21 @@ struct PlaylistDetail {
 
               Column() {
                 Text(song.title)
-                  .fontSize(15)
+                  .fontSize(TYPE_SM.body.size)
                   .fontColor(this.getThemeColors().primaryText)
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
 
                 Text(song.singer)
-                  .fontSize(12)
+                  .fontSize(TYPE_SM.caption1.size)
                   .fontColor(this.getThemeColors().secondaryText)
-                  .margin({ top: 2 })
+                  .margin({ top: SPACE_SM.hair })
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
               }
               .layoutWeight(1)
               .alignItems(HorizontalAlign.Start)
-              .padding({ left: 12, right: 8 })
+              .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
               Checkbox()
                 .select(this.selectedIds.includes(song.id))
@@ -280,7 +281,7 @@ struct PlaylistDetail {
             }
             .width('100%')
             .height(60)
-            .padding({ left: 16, right: 16 })
+            .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
             .onClick(() => {
               this.toggleSelect(song.id);
             })
@@ -294,7 +295,7 @@ struct PlaylistDetail {
         Button('取消')
           .layoutWeight(1)
           .height(42)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(this.getThemeColors().secondaryText)
           .backgroundColor(this.getThemeColors().secondaryBg)
           .borderRadius(21)
@@ -305,17 +306,17 @@ struct PlaylistDetail {
         Button('添加')
           .layoutWeight(1)
           .height(42)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(semanticOf(this.isDark).onAccent)
           .backgroundColor(this.getThemeColors().accent)
           .borderRadius(21)
-          .margin({ left: 12 })
+          .margin({ left: SPACE_SM.cozy })
           .onClick(() => {
             this.commitAdd();
           })
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 20 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: SPACE_SM.cozy, bottom: SPACE_SM.roomy })
     }
     .width('100%')
     .height('100%')
@@ -347,23 +348,23 @@ struct PlaylistDetail {
             })
 
           Text(this.playlistName.length > 0 ? this.playlistName : '歌单')
-            .fontSize(20)
+            .fontSize(TYPE_SM.title2.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
+            .margin({ left: SPACE_SM.cozy })
             .layoutWeight(1)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
 
           Text(`${this.songs.length} 首`)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().accent)
             .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+            .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 12 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.cozy })
 
         // 操作区：播放全部 / 添加歌曲
         Row() {
@@ -373,7 +374,7 @@ struct PlaylistDetail {
               .height(18)
               .fillColor(semanticOf(this.isDark).onAccent)
             Text('播放全部')
-              .fontSize(14)
+              .fontSize(TYPE_SM.subhead.size)
               .fontColor(semanticOf(this.isDark).onAccent)
               .margin({ left: 6 })
           }
@@ -397,10 +398,10 @@ struct PlaylistDetail {
 
           Row() {
             Text('+')
-              .fontSize(18)
+              .fontSize(TYPE_SM.title3.size)
               .fontColor(this.getThemeColors().primaryText)
             Text('添加歌曲')
-              .fontSize(14)
+              .fontSize(TYPE_SM.subhead.size)
               .fontColor(this.getThemeColors().primaryText)
               .margin({ left: 6 })
           }
@@ -409,19 +410,19 @@ struct PlaylistDetail {
           .justifyContent(FlexAlign.Center)
           .backgroundColor(this.getThemeColors().cardBg)
           .borderRadius(24)
-          .margin({ left: 12 })
+          .margin({ left: SPACE_SM.cozy })
           .onClick(() => {
             this.openPicker();
           })
         }
         .width('100%')
-        .padding({ left: 16, right: 16, bottom: 12 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.cozy })
 
         if (this.songs.length > 0) {
           Text('长按歌曲可拖动排序')
-            .fontSize(12)
+            .fontSize(TYPE_SM.caption1.size)
             .fontColor(this.getThemeColors().secondaryText)
-            .margin({ left: 16, bottom: 4 })
+            .margin({ left: SPACE_SM.base, bottom: SPACE_SM.tight })
         }
 
         if (this.songs.length === 0) {
@@ -430,17 +431,17 @@ struct PlaylistDetail {
               .width(64)
               .height(64)
               .fillColor(this.getThemeColors().secondaryText)
-              .margin({ bottom: 16 })
+              .margin({ bottom: SPACE_SM.base })
 
             Text('歌单还没有歌曲')
-              .fontSize(16)
+              .fontSize(TYPE_SM.headline.size)
               .fontColor(this.getThemeColors().secondaryText)
               .fontWeight(FontWeight.Medium)
 
             Text('点击「添加歌曲」从本地库挑选')
-              .fontSize(13)
+              .fontSize(TYPE_SM.footnote.size)
               .fontColor(semanticOf(this.isDark).labelSecondary)
-              .margin({ top: 8 })
+              .margin({ top: SPACE_SM.compact })
           }
           .layoutWeight(1)
           .justifyContent(FlexAlign.Center)

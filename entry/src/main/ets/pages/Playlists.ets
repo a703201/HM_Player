@@ -24,6 +24,7 @@ import { SettingsStore } from '../utils/SettingsStore';
 import { SmartPlaylistService, SmartPlaylist } from '../services/SmartPlaylistService';
 import { semanticOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const TAG: string = 'Playlists';
 
@@ -217,64 +218,22 @@ struct Playlists {
   }
 
   @Builder
-  buildPlaylistMenu(playlist: Playlist) {
-    Column() {
-      Row() {
-        Image($r('app.media.ic_hos_play'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('播放')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.playPlaylist(playlist);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_rename'))
-          .width(18)
-          .fillColor(this.getThemeColors().primaryText)
-          .margin({ right: 12 })
-        Text('重命名')
-          .fontSize(14)
-          .fontColor(this.getThemeColors().primaryText)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.openRenameDialog(playlist);
-      })
-
-      Divider().color(this.getThemeColors().separator).strokeWidth(0.5)
-
-      Row() {
-        Image($r('app.media.ic_hos_delete'))
-          .width(18)
-          .fillColor(semanticOf(this.isDark).accent)
-          .margin({ right: 12 })
-        Text('删除歌单')
-          .fontSize(14)
-          .fontColor(semanticOf(this.isDark).accent)
-      }
-      .width('100%')
-      .height(44)
-      .padding({ left: 16, right: 16 })
-      .onClick(() => {
-        this.confirmDelete(playlist);
-      })
-    }
-    .width(160)
-    .backgroundColor(this.getThemeColors().bg)
-    .borderRadius(12)
-    .shadow({ radius: 8, color: this.getThemeColors().separator, offsetX: 0, offsetY: 2 })
+  buildPlaylistMenu(playlist: Playlist) {
+    Menu() {
+      MenuItem({ content: '播放', startIcon: $r('app.media.ic_hos_play') })
+        .onClick(() => {
+          this.playPlaylist(playlist);
+        })
+      MenuItem({ content: '重命名', startIcon: $r('app.media.ic_hos_rename') })
+        .onClick(() => {
+          this.openRenameDialog(playlist);
+        })
+      MenuItem({ content: '删除歌单', startIcon: $r('app.media.ic_hos_delete') })
+        .contentFontColor(semanticOf(this.isDark).accent)
+        .onClick(() => {
+          this.confirmDelete(playlist);
+        })
+    }
   }
 
   @Builder
@@ -309,20 +268,20 @@ struct Playlists {
 
       Column() {
         Text(playlist.name)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(`${playlist.songIds.length} 首歌曲`)
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 4 })
+          .margin({ top: SPACE_SM.tight })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12, right: 8 })
+      .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
       Image($r('app.media.ic_hos_play'))
         .width(22)
@@ -335,10 +294,10 @@ struct Playlists {
     }
     .width('100%')
     .height(76)
-    .padding({ left: 12, right: 14 })
+    .padding({ left: SPACE_SM.cozy, right: 14 })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ left: 8, right: 8, bottom: 8 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
     .scale({ x: this.itemScales[index] ?? 1.0, y: this.itemScales[index] ?? 1.0 })
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 30 })))
     .animation({ duration: 300, curve: LumioTheme.curve(SpringKind.Crisp), delay: this.entryDelay(index) })
@@ -375,19 +334,19 @@ struct Playlists {
 
       Column() {
         Text(pl.name)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
         Text(`${pl.songs.length} 首`)
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 4 })
+          .margin({ top: SPACE_SM.tight })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12, right: 8 })
+      .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
       Image($r('app.media.ic_hos_play'))
         .width(22)
@@ -400,10 +359,10 @@ struct Playlists {
     }
     .width('100%')
     .height(76)
-    .padding({ left: 12, right: 14 })
+    .padding({ left: SPACE_SM.cozy, right: 14 })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ left: 8, right: 8, bottom: 8 })
+    .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
     .onClick(() => {
       this.playSmart(pl);
     })
@@ -426,18 +385,18 @@ struct Playlists {
   buildSmartGroupHeader() {
     Row() {
       Text('智能歌单')
-        .fontSize(13)
+        .fontSize(TYPE_SM.footnote.size)
         .fontColor(this.getThemeColors().secondaryText)
         .fontWeight(FontWeight.Medium)
         .layoutWeight(1)
-        .margin({ left: 16, top: 12, bottom: 8 })
+        .margin({ left: SPACE_SM.base, top: SPACE_SM.cozy, bottom: SPACE_SM.compact })
 
       Image($r('app.media.ic_hos_chevron'))
         .width(18)
         .height(18)
         .objectFit(ImageFit.Contain)
         .fillColor(this.getThemeColors().secondaryText)
-        .margin({ right: 16, top: 6, bottom: 6 })
+        .margin({ right: SPACE_SM.base, top: 6, bottom: 6 })
         .rotate({ angle: this.smartCollapsed ? 180 : 0 })
         .animation({ duration: 200, curve: LumioTheme.curve(SpringKind.Crisp) })
     }
@@ -456,10 +415,10 @@ struct Playlists {
   buildCustomGroupHeader() {
     Row() {
       Text('我的歌单')
-        .fontSize(13)
+        .fontSize(TYPE_SM.footnote.size)
         .fontColor(this.getThemeColors().secondaryText)
         .fontWeight(FontWeight.Medium)
-        .margin({ left: 16, top: 16, bottom: 8 })
+        .margin({ left: SPACE_SM.base, top: SPACE_SM.base, bottom: SPACE_SM.compact })
     }
     .width('100%')
     .backgroundColor(this.getThemeColors().bg)
@@ -488,19 +447,19 @@ struct Playlists {
             })
 
           Text('我的歌单')
-            .fontSize(20)
+            .fontSize(TYPE_SM.title2.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
+            .margin({ left: SPACE_SM.cozy })
             .layoutWeight(1)
 
           Text(`${this.playlists.length} 个`)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(semanticOf(this.isDark).accent)
             .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-            .margin({ right: 12 })
+            .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+            .margin({ right: SPACE_SM.cozy })
 
           Stack() {
             Text('+')
@@ -526,7 +485,7 @@ struct Playlists {
           })
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.base })
 
         // 整页合并为单个可滚动 List：智能歌单（可折叠分组，默认展开）+ 自定义歌单
         List() {
@@ -548,33 +507,33 @@ struct Playlists {
                     .width(72)
                     .height(72)
                     .fillColor(this.getThemeColors().secondaryText)
-                    .margin({ bottom: 16 })
+                    .margin({ bottom: SPACE_SM.base })
                     // scale 由 startBreathing() 的 animateTo 显式驱动，此处不得再叠加 .animation()
                     .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
 
                   Text('还没有自建歌单')
-                    .fontSize(16)
+                    .fontSize(TYPE_SM.headline.size)
                     .fontColor(this.getThemeColors().secondaryText)
                     .fontWeight(FontWeight.Medium)
 
                   Text('点击右上角「+」创建第一个歌单')
-                    .fontSize(13)
+                    .fontSize(TYPE_SM.footnote.size)
                     .fontColor(semanticOf(this.isDark).labelSecondary)
-                    .margin({ top: 8 })
+                    .margin({ top: SPACE_SM.compact })
 
                   Button('新建歌单')
-                    .fontSize(14)
+                    .fontSize(TYPE_SM.subhead.size)
                     .fontColor(semanticOf(this.isDark).onAccent)
                     .backgroundColor(semanticOf(this.isDark).accent)
                     .borderRadius(24)
                     .height(36)
-                    .margin({ top: 20 })
+                    .margin({ top: SPACE_SM.roomy })
                     .onClick(() => {
                       this.openCreateDialog();
                     })
                 }
                 .width('100%')
-                .padding({ top: 40, bottom: 40 })
+                .padding({ top: SPACE_SM.block, bottom: SPACE_SM.block })
               }
             } else {
               ForEach(this.playlists, (playlist: Playlist, index: number) => {
@@ -634,10 +593,10 @@ struct PlaylistNameDialog {
   build() {
     Column() {
       Text(this.title)
-        .fontSize(18)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: 20, bottom: 16 })
+        .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.base })
 
       TextInput({ text: this.inputName, placeholder: '请输入歌单名称' })
         .width('86%')
@@ -654,7 +613,7 @@ struct PlaylistNameDialog {
         Button('取消')
           .layoutWeight(1)
           .height(40)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(this.getThemeColors().secondaryText)
           .backgroundColor(this.getThemeColors().secondaryBg)
           .borderRadius(24)
@@ -665,17 +624,17 @@ struct PlaylistNameDialog {
         Button('确定')
           .layoutWeight(1)
           .height(40)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(semanticOf(this.isDark).onAccent)
           .backgroundColor(semanticOf(this.isDark).accent)
           .borderRadius(24)
-          .margin({ left: 12 })
+          .margin({ left: SPACE_SM.cozy })
           .onClick(() => {
             this.onConfirm(this.inputName);
           })
       }
       .width('86%')
-      .margin({ top: 20, bottom: 20 })
+      .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.roomy })
     }
     .width('100%')
     .backgroundColor(this.getThemeColors().cardBg)

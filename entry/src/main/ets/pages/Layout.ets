@@ -30,6 +30,7 @@ import { OnboardingSheet } from '../components/OnboardingSheet';
 import type uiMaterial from '@ohos.arkui.uiMaterial';
 import { semanticOf, onMediaOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const PLAYER_COVER_ID: string = 'player_cover';
 
@@ -219,7 +220,7 @@ struct Layout {
         .animation({ duration: 160, curve: LumioTheme.curve(SpringKind.Crisp) })
 
       Text(item.title)
-        .fontSize(11)
+        .fontSize(TYPE_SM.caption2.size)
         .fontColor(index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
         .fontWeight(index === this.currentIndex ? FontWeight.Medium : FontWeight.Regular)
         .animation({ duration: 160, curve: LumioTheme.curve(SpringKind.Crisp) })
@@ -336,7 +337,7 @@ struct Layout {
       this.playerButton()
     }
     .width('100%')
-    .padding({ left: 8, right: 8 })
+    .padding({ left: SPACE_SM.compact, right: SPACE_SM.compact })
   }
 
   /**

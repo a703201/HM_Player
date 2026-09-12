@@ -25,6 +25,7 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf } from '../tokens/LumioColor';
 import { Logger } from '../utils/Logger';
 import { CoverImageView } from './CoverImageView';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 const TAG: string = 'AddToPlaylistSheet';
 
@@ -101,10 +102,10 @@ export struct AddToPlaylistSheet {
   nameDialogBuilder() {
     Column() {
       Text('新建歌单')
-        .fontSize(18)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: 20, bottom: 16 })
+        .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.base })
 
       TextInput({ text: this.newName, placeholder: '请输入歌单名称' })
         .width('86%')
@@ -121,7 +122,7 @@ export struct AddToPlaylistSheet {
         Button('取消')
           .layoutWeight(1)
           .height(40)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(this.getThemeColors().secondaryText)
           .backgroundColor(this.getThemeColors().secondaryBg)
           .borderRadius(24)
@@ -132,17 +133,17 @@ export struct AddToPlaylistSheet {
         Button('确定')
           .layoutWeight(1)
           .height(40)
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(semanticOf(this.isDark).onAccent)
           .backgroundColor(this.getThemeColors().accent)
           .borderRadius(24)
-          .margin({ left: 12 })
+          .margin({ left: SPACE_SM.cozy })
           .onClick(() => {
             this.onNewConfirm(this.newName);
           })
       }
       .width('86%')
-      .margin({ top: 20, bottom: 20 })
+      .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.roomy })
     }
     .width('100%')
     .backgroundColor(this.getThemeColors().cardBg)
@@ -152,18 +153,18 @@ export struct AddToPlaylistSheet {
   build() {
     Column() {
       Text('添加到歌单')
-        .fontSize(18)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: 20, bottom: 12 })
+        .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.cozy })
         .width('100%')
         .textAlign(TextAlign.Center)
 
       if (this.playlists.length === 0) {
         Text('还没有歌单，点击下方新建')
-          .fontSize(13)
+          .fontSize(TYPE_SM.footnote.size)
           .fontColor(this.getThemeColors().secondaryText)
-          .margin({ top: 20, bottom: 20 })
+          .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.roomy })
       } else {
         List() {
           ForEach(this.playlists, (playlist: Playlist) => {
@@ -173,23 +174,23 @@ export struct AddToPlaylistSheet {
 
                 Column() {
                   Text(playlist.name)
-                    .fontSize(15)
+                    .fontSize(TYPE_SM.body.size)
                     .fontColor(this.getThemeColors().primaryText)
                     .maxLines(1)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
 
                   Text(`${playlist.songIds.length} 首`)
-                    .fontSize(12)
+                    .fontSize(TYPE_SM.caption1.size)
                     .fontColor(this.getThemeColors().secondaryText)
-                    .margin({ top: 2 })
+                    .margin({ top: SPACE_SM.hair })
                 }
                 .layoutWeight(1)
                 .alignItems(HorizontalAlign.Start)
-                .padding({ left: 12, right: 8 })
+                .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
               }
               .width('100%')
               .height(56)
-              .padding({ left: 16, right: 16 })
+              .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
               .onClick(() => {
                 this.addTo(playlist);
               })
@@ -206,13 +207,13 @@ export struct AddToPlaylistSheet {
           .height(18)
           .fillColor(this.getThemeColors().accent)
         Text('新建歌单')
-          .fontSize(15)
+          .fontSize(TYPE_SM.body.size)
           .fontColor(this.getThemeColors().accent)
-          .margin({ left: 8 })
+          .margin({ left: SPACE_SM.compact })
       }
       .width('100%')
       .height(48)
-      .padding({ left: 16 })
+      .padding({ left: SPACE_SM.base })
       .onClick(() => {
         this.newName = '';
         this.nameDialogController.open();

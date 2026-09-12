@@ -26,6 +26,7 @@ import { MusicStore } from '../services/MusicStore';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import type uiMaterial from '@ohos.arkui.uiMaterial';
 import { ApiCompat } from '../common/utils/ApiCompat';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 function getFileName(src: string): string {
   try {
@@ -102,12 +103,12 @@ export struct SongDetailSheet {
   private infoRow(label: string, value: string) {
     Row() {
       Text(label)
-        .fontSize(14)
+        .fontSize(TYPE_SM.subhead.size)
         .fontColor(this.getThemeColors().secondaryText)
         .width(80)
 
       Text(value)
-        .fontSize(14)
+        .fontSize(TYPE_SM.subhead.size)
         .fontColor(this.getThemeColors().primaryText)
         .layoutWeight(1)
         .maxLines(2)
@@ -125,7 +126,7 @@ export struct SongDetailSheet {
         this.SheetBody()
       }
       .width('100%')
-      .padding({ left: 20, right: 20, bottom: 24 })
+      .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy, bottom: SPACE_SM.loose })
       .systemMaterial(this.material)
     } else {
       // API 24 降级：uiMaterial 模块/方法均不存在，用主题卡片背景色模拟毛玻璃兜底，保证面板可用。
@@ -133,7 +134,7 @@ export struct SongDetailSheet {
         this.SheetBody()
       }
       .width('100%')
-      .padding({ left: 20, right: 20, bottom: 24 })
+      .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy, bottom: SPACE_SM.loose })
       .backgroundColor(this.getThemeColors().cardBg)
     }
   }
@@ -141,16 +142,16 @@ export struct SongDetailSheet {
   @Builder
   private SheetBody() {
     Text('歌曲信息')
-      .fontSize(18)
+      .fontSize(TYPE_SM.title3.size)
       .fontWeight(FontWeight.Bold)
       .fontColor(this.getThemeColors().primaryText)
-      .margin({ top: 20, bottom: 16 })
+      .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.base })
 
     if (this.getSong()) {
       this.songContent(this.getSong()!)
     } else {
       Text('未选择歌曲')
-        .fontSize(14)
+        .fontSize(TYPE_SM.subhead.size)
         .fontColor(this.getThemeColors().secondaryText)
     }
   }

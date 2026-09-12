@@ -21,6 +21,7 @@ import { MusicStore } from '../services/MusicStore';
 import { SettingsStore, ThemeMode, RepeatModeSetting } from '../utils/SettingsStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { fileIo as fs } from '@kit.CoreFileKit';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 interface SettingsCategoryParam {
   category: string;
@@ -256,10 +257,10 @@ export struct SettingsCategoryDetail {
   @Builder
   buildSectionLabel(text: string) {
     Text(text)
-      .fontSize(13)
+      .fontSize(TYPE_SM.footnote.size)
       .fontColor(this.getThemeColors().secondaryText)
       .width('100%')
-      .padding({ left: 4, top: 16, bottom: 10 })
+      .padding({ left: SPACE_SM.tight, top: SPACE_SM.base, bottom: 10 })
   }
 
   @Builder
@@ -270,17 +271,17 @@ export struct SettingsCategoryDetail {
         .width(24)
         .height(24)
         .fillColor(iconColor)
-        .margin({ right: 16 })
+        .margin({ right: SPACE_SM.base })
 
       Column() {
         Text(title)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
           .margin({ bottom: subtitle ? 4 : 0 })
         if (subtitle) {
           Text(subtitle)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
         }
       }
@@ -295,10 +296,10 @@ export struct SettingsCategoryDetail {
     }
     .width('100%')
     .height(60)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ bottom: 2 })
+    .margin({ bottom: SPACE_SM.hair })
   }
 
   @Builder
@@ -309,11 +310,11 @@ export struct SettingsCategoryDetail {
         .width(24)
         .height(24)
         .fillColor(iconColor)
-        .margin({ right: 16 })
+        .margin({ right: SPACE_SM.base })
 
       Column() {
         Text(title)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
       }
@@ -338,10 +339,10 @@ export struct SettingsCategoryDetail {
     }
     .width('100%')
     .height(60)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ bottom: 2 })
+    .margin({ bottom: SPACE_SM.hair })
   }
 
   @Builder
@@ -352,17 +353,17 @@ export struct SettingsCategoryDetail {
         .width(24)
         .height(24)
         .fillColor(iconColor)
-        .margin({ right: 16 })
+        .margin({ right: SPACE_SM.base })
 
       Column() {
         Text(title)
-          .fontSize(16)
+          .fontSize(TYPE_SM.headline.size)
           .fontColor(this.getThemeColors().primaryText)
           .fontWeight(FontWeight.Medium)
           .margin({ bottom: subtitle ? 4 : 0 })
         if (subtitle) {
           Text(subtitle)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
         }
       }
@@ -375,10 +376,10 @@ export struct SettingsCategoryDetail {
     }
     .width('100%')
     .height(60)
-    .padding({ left: 16, right: 16 })
+    .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
-    .margin({ bottom: 2 })
+    .margin({ bottom: SPACE_SM.hair })
     .onClick(() => {
       onClick();
     })
@@ -406,7 +407,7 @@ export struct SettingsCategoryDetail {
         (v: boolean) => { this.gapless = v; this.settings.setGapless(v); }
       )
     }
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
   }
 
   @Builder
@@ -422,7 +423,7 @@ export struct SettingsCategoryDetail {
         }
       )
     }
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
   }
 
   @Builder
@@ -434,7 +435,7 @@ export struct SettingsCategoryDetail {
         (v: boolean) => { this.reduceMotion = v; this.settings.setReduceMotion(v); }
       )
     }
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
   }
 
   @Builder
@@ -461,7 +462,7 @@ export struct SettingsCategoryDetail {
         () => { this.onNavigate('DuplicateSongs'); }
       )
     }
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
   }
 
   @Builder
@@ -473,7 +474,7 @@ export struct SettingsCategoryDetail {
         (v: boolean) => { this.notificationLockScreen = v; this.settings.setNotificationLockScreen(v); }
       )
     }
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
   }
 
   @Builder
@@ -493,7 +494,7 @@ export struct SettingsCategoryDetail {
         () => { this.showClearStatsDialog(); }
       )
     }
-    .margin({ bottom: 8 })
+    .margin({ bottom: SPACE_SM.compact })
   }
 
   build() {
@@ -513,14 +514,14 @@ export struct SettingsCategoryDetail {
         this.buildPrivacyGroup();
       } else {
           Text('请选择设置分类')
-            .fontSize(14)
+            .fontSize(TYPE_SM.subhead.size)
             .fontColor(this.getThemeColors().secondaryText)
             .width('100%')
-            .padding({ left: 4, top: 16 })
+            .padding({ left: SPACE_SM.tight, top: SPACE_SM.base })
         }
       }
       .width('100%')
-      .padding({ left: 16, right: 16, bottom: 40 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.block })
     }
     .layoutWeight(1)
     .scrollBar(BarState.Off)

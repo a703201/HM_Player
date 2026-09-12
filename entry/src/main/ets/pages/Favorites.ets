@@ -27,6 +27,7 @@ import { Logger } from '../utils/Logger';
 import { semanticOf } from '../tokens/LumioColor';
 import { SongRow, SongMenuEntry } from '../components/SongRow';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 @Builder
 export function FavoritesBuilder() {
@@ -145,22 +146,22 @@ struct Favorites {
             })
 
           Text('我的收藏')
-            .fontSize(20)
+            .fontSize(TYPE_SM.title2.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ left: 12 })
+            .margin({ left: SPACE_SM.cozy })
             .layoutWeight(1)
 
           // Count badge
           Text(`${this.favoriteSongs.length} 首`)
-            .fontSize(13)
+            .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().accent)
             .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+            .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: this.topHeight + 12, bottom: 16 })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.base })
 
         if (this.favoriteSongs.length === 0) {
           Column() {
@@ -168,19 +169,19 @@ struct Favorites {
               .width(72)
               .height(72)
               .fillColor(this.getThemeColors().secondaryText)
-              .margin({ bottom: 16 })
+              .margin({ bottom: SPACE_SM.base })
               .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
               .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
 
             Text('暂无收藏歌曲')
-              .fontSize(16)
+              .fontSize(TYPE_SM.headline.size)
               .fontColor(this.getThemeColors().secondaryText)
               .fontWeight(FontWeight.Medium)
 
             Text('在播放页面点击收藏按钮添加')
-              .fontSize(13)
+              .fontSize(TYPE_SM.footnote.size)
               .fontColor(semanticOf(this.isDark).labelSecondary)
-              .margin({ top: 8 })
+              .margin({ top: SPACE_SM.compact })
           }
           .layoutWeight(1)
           .justifyContent(FlexAlign.Center)

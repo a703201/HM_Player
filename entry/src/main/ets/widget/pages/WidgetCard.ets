@@ -42,6 +42,7 @@
  * isDark 由 FormAbility.onAddForm 写入，并随主应用主题切换经 pushFormUpdate() 自愈重推（缺陷 1 已修复）。
  */
 import { semanticOf, CARD_CONTROL_BG_LIGHT, CARD_CONTROL_BG_DARK } from '../../tokens/LumioColor';
+import { TYPE_SM, SPACE_SM } from '../../tokens/LumioScale';
 
 interface CardColors {
   cardBg: string;
@@ -106,37 +107,37 @@ struct WidgetCard {
           .width(44)
           .height(44)
           .borderRadius(8)
-          .margin({ right: 12 })
+          .margin({ right: SPACE_SM.cozy })
         Column() {
           Text(this.title)
-            .fontSize(16)
+            .fontSize(TYPE_SM.headline.size)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getCardColors().titleText)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
           Text(this.artist)
-            .fontSize(12)
+            .fontSize(TYPE_SM.caption1.size)
             .fontColor(this.getCardColors().artistText)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
-            .margin({ top: 2 })
+            .margin({ top: SPACE_SM.hair })
           if (this.album.length > 0) {
             Text(this.album)
-              .fontSize(11)
+              .fontSize(TYPE_SM.caption2.size)
               .fontColor(this.getCardColors().artistText)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
               .width('100%')
-              .margin({ top: 2 })
+              .margin({ top: SPACE_SM.hair })
           }
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
-      .margin({ top: 16, left: 16, right: 16 })
+      .margin({ top: SPACE_SM.base, left: SPACE_SM.base, right: SPACE_SM.base })
 
       // 进度条 + 时间（D4 实时化）：position 由主应用每秒经 formProvider 推送
       Column() {
@@ -152,10 +153,10 @@ struct WidgetCard {
           .borderRadius(2)
         Row() {
           Text(this.formatDuration(this.curPosition > this.duration ? this.duration : this.curPosition))
-            .fontSize(11)
+            .fontSize(TYPE_SM.caption2.size)
             .fontColor(this.getCardColors().artistText)
           Text(this.formatDuration(this.duration))
-            .fontSize(11)
+            .fontSize(TYPE_SM.caption2.size)
             .fontColor(this.getCardColors().artistText)
         }
         .width('100%')
@@ -163,17 +164,17 @@ struct WidgetCard {
         .margin({ top: 6 })
       }
       .width('100%')
-      .margin({ top: 12, left: 16, right: 16 })
+      .margin({ top: SPACE_SM.cozy, left: SPACE_SM.base, right: SPACE_SM.base })
 
       // 当前歌词行（D4 实时化）：由主应用推送当前播放行，无歌词时隐藏
       if (this.lyric.length > 0) {
         Text(this.lyric)
-          .fontSize(12)
+          .fontSize(TYPE_SM.caption1.size)
           .fontColor(this.getCardColors().titleText)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .width('100%')
-          .margin({ top: 4, left: 16, right: 16 })
+          .margin({ top: SPACE_SM.tight, left: SPACE_SM.base, right: SPACE_SM.base })
       }
 
       Row() {
@@ -200,7 +201,7 @@ struct WidgetCard {
         .width(56)
         .height(56)
         .backgroundColor(this.getCardColors().playBtnBg) // 品牌粉红（替代 Material 蓝）
-        .margin({ left: 16, right: 16 })
+        .margin({ left: SPACE_SM.base, right: SPACE_SM.base })
         .accessibilityText(this.isPlaying ? '暂停' : '播放')
         .onClick(() => {
           postCardAction(this, { action: 'router', abilityName: 'EntryAbility', params: { control: this.isPlaying ? 'pause' : 'play' } });
@@ -222,7 +223,7 @@ struct WidgetCard {
       }
       .width('100%')
       .justifyContent(FlexAlign.Center)
-      .margin({ top: 12 })
+      .margin({ top: SPACE_SM.cozy })
     }
     .width('100%')
     .height('100%')
