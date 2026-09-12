@@ -42,15 +42,21 @@ export struct OnboardingSheet {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
   }
 
-  private features: OnboardFeature[] = [
-    { icon: $r('app.media.ic_hm_library'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先', color: semanticOf(this.isDark).accent },
-    { icon: $r('app.media.ic_hm_favorite'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现', color: semanticOf(this.isDark).warning },
-    { icon: $r('app.media.ic_hm_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合', color: LUMIO_PALETTE.purple },
-    { icon: $r('app.media.ic_hm_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: semanticOf(this.isDark).success }
-  ];
+  /**
+   * 特性列表。用方法而非字段：颜色依赖 @StorageProp('isDark')，
+   * 字段初始化只在构造时求值一次，切主题不会重算（warning/success 深浅值不同 → 会滞留）。
+   */
+  private features(): OnboardFeature[] {
+    return [
+      { icon: $r('app.media.ic_hm_library'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先', color: semanticOf(this.isDark).accent },
+      { icon: $r('app.media.ic_hm_favorite'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现', color: semanticOf(this.isDark).warning },
+      { icon: $r('app.media.ic_hm_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合', color: LUMIO_PALETTE.purple },
+      { icon: $r('app.media.ic_hm_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: semanticOf(this.isDark).success }
+    ];
+  }
 
   aboutToAppear(): void {
-    for (let i = 0; i < this.features.length; i++) {
+    for (let i = 0; i < this.features().length; i++) {
       setTimeout(() => {
         const op = [...this.itemOpacities];
         const sc = [...this.itemScales];
@@ -121,7 +127,7 @@ export struct OnboardingSheet {
       .alignItems(HorizontalAlign.Center)
 
       Column() {
-        ForEach(this.features, (f: OnboardFeature, index: number) => {
+        ForEach(this.features(), (f: OnboardFeature, index: number) => {
           this.featureItem(f, index)
         }, (f: OnboardFeature, index: number) => index.toString())
       }
