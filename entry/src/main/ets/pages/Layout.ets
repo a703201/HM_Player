@@ -349,71 +349,6 @@ struct Layout {
     .padding({ left: SPACE_SM.compact, right: SPACE_SM.compact })
   }
 
-  /**
-   * 底部导航液态玻璃层（苹果风悬浮胶囊 · 液态玻璃）。
-   *
-   * 关键：AppleUI 必须**紧跟在内容层（Tabs）之后**作为它的「后一个兄弟」——组件以
-   * 「前一个兄弟节点」作为截帧目标，因此透镜折射的正是后方滚动的真实内容（滚动时
-   * 玻璃内画面实时跟随），而不是自身。透镜尺寸＝导航胶囊实测尺寸，底部锚定。
-   *
-   * 回落：AppleUI 只带 arm64-v8a 原生库，ABI 不匹配时改渲染 cardBg 胶囊（同尺寸同位），
-   * 保证底栏在任意设备都可用、可读。
-   */
-  @Builder
-  private navGlass() {
-    if (this.glassSupported) {
-      AppleUI({
-        Width: this.navW,
-        Height: NAV_H,
-        Circle: '100%',
-        Blur: 8,
-        NeoStrength: 0.34,
-        ProUI: false
-      })
-        .width(this.navW)
-        .height(NAV_H)
-        .margin({ bottom: this.bottomHeight + NAV_GAP })
-    } else {
-      Row()
-        .width(this.navW)
-        .height(NAV_H)
-        .backgroundColor(this.getThemeColors().cardBg)
-        .borderRadius(NAV_H / 2)
-        .shadow({
-          radius: 22,
-          color: this.getThemeColors().separator,
-          offsetX: 0,
-          offsetY: 8
-        })
-        .border({
-          width: this.isDark ? 0.5 : 0,
-          color: semanticOf(this.isDark).borderSubtle
-        })
-        .margin({ bottom: this.bottomHeight + NAV_GAP })
-    }
-  }
-
-  /** 导航内容层：叠在玻璃之上（自身透明），几何与玻璃一致（同宽高同底部间距）。 */
-  @Builder
-  private navItems() {
-    Row() {
-      this.miniBarInner()
-    }
-    .width('92%')
-    .constraintSize({ maxWidth: 520 })
-    .height(NAV_H)
-    .borderRadius(NAV_H / 2)
-    .clip(true)
-    .margin({ bottom: this.bottomHeight + NAV_GAP })
-    .onAreaChange((_oldArea: Area, newArea: Area) => {
-      // 实测胶囊宽度并回填给 AppleUI 透镜（其 Width 必须为数值 vp）。
-      const w: number = typeof newArea.width === 'number' ? newArea.width as number : 0;
-      if (w > 0 && Math.abs(w - this.navW) > 0.5) {
-        this.navW = w;
-      }
-    })
-  }
-
   build() {
     NavDestination() {
       Stack({ alignContent: Alignment.Bottom }) {
@@ -437,8 +372,56 @@ struct Layout {
         // 列表可滚动至系统导航条区域，浮动底栏覆盖其上方而非预留整块空白。
         .padding({ bottom: this.bottomHeight + 16 })
 
-        this.navGlass()
-        this.navItems()
+        // 液态玻璃导航：AppleUI 必须「直接紧接」内容层(Tabs)之后——组件以「前一个兄弟」
+        // 为截帧目标，只有与 Tabs 成为直接相邻兄弟，透镜才折射真实内容。
+        // （此前经 @Builder 包装会导致前一个兄弟解析错位 → 截到导航条自身 → region 越界 401）
+        if (this.glassSupported) {
+          AppleUI({
+            Width: this.navW,
+            Height: NAV_H,
+            Circle: '100%',
+            Blur: 8,
+            NeoStrength: 0.34,
+            ProUI: false
+          })
+            .width(this.navW)
+            .height(NAV_H)
+            .margin({ bottom: this.bottomHeight + NAV_GAP })
+        } else {
+          Row()
+            .width(this.navW)
+            .height(NAV_H)
+            .backgroundColor(this.getThemeColors().cardBg)
+            .borderRadius(NAV_H / 2)
+            .shadow({
+              radius: 22,
+              color: this.getThemeColors().separator,
+              offsetX: 0,
+              offsetY: 8
+            })
+            .border({
+              width: this.isDark ? 0.5 : 0,
+              color: semanticOf(this.isDark).borderSubtle
+            })
+            .margin({ bottom: this.bottomHeight + NAV_GAP })
+        }
+
+        // 导航内容层：叠在玻璃之上（透明），并实测胶囊宽度回填 navW
+        Row() {
+          this.miniBarInner()
+        }
+        .width('92%')
+        .constraintSize({ maxWidth: 520 })
+        .height(NAV_H)
+        .borderRadius(NAV_H / 2)
+        .clip(true)
+        .margin({ bottom: this.bottomHeight + NAV_GAP })
+        .onAreaChange((_oldArea: Area, newArea: Area) => {
+          const w: number = typeof newArea.width === 'number' ? newArea.width as number : 0;
+          if (w > 0 && Math.abs(w - this.navW) > 0.5) {
+            this.navW = w;
+          }
+        })
       }
       .width('100%')
       .height('100%')
