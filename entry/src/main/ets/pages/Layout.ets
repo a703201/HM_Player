@@ -391,26 +391,31 @@ struct Layout {
         // 只剩 Tabs —— 这样它的「前一个兄弟」必然是内容层，截帧目标正确（此前独立放一个
         // 导航内容层会与之同高同宽，被误选为目标 → region 越界 → snapshot fail 401）。
         if (this.glassSupported) {
-          // 尺寸/间距挂在外层 Column 上：AppleUI 的尾随闭包之后不能再链式追加属性。
-          Column() {
-            AppleUI({
-              Width: this.navW,
-              Height: NAV_H,
-              Circle: '100%',
-              Blur: 8,
-              NeoStrength: 0.34,
-              ProUI: false
-            }) {
-              Row() {
-                this.miniBarInner()
-              }
-              .width('100%')
-              .height(NAV_H)
-            }
+          // 导航内容层：声明在 AppleUI 之前。
+          Row() {
+            this.miniBarInner()
           }
-          .width(this.navW)
+          .width('92%')
+          .constraintSize({ maxWidth: 520 })
           .height(NAV_H)
+          .borderRadius(NAV_H / 2)
+          .clip(true)
           .margin({ bottom: this.bottomHeight + NAV_GAP })
+
+          // AppleUI 作为 Stack 的「最后一个子节点」：按实测的兄弟语义它没有前一个兄弟，
+          // 于是回退到父容器 = 整个全屏 Stack —— 该节点包含内容层、且不含本组件自身的
+          // XComponent（componentSnapshot 不截 surface），因此截帧目标正确。
+          AppleUI({
+            Width: this.navW,
+            Height: NAV_H,
+            Circle: '100%',
+            Blur: 8,
+            NeoStrength: 0.34,
+            ProUI: false
+          })
+            .width(this.navW)
+            .height(NAV_H)
+            .margin({ bottom: this.bottomHeight + NAV_GAP })
         } else {
           Row() {
             this.miniBarInner()
