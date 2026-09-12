@@ -133,7 +133,7 @@ export struct FolderBrowse {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
-      Image($r('app.media.ic_public_play_norm'))
+      Image($r('app.media.ic_public_play'))
         .width(24)
         .height(24)
         .fillColor(this.getThemeColors().accent)

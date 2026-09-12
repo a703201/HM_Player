@@ -281,7 +281,7 @@ export struct ControlAreaComponent {
               this.prevScale = 1.0;
             }
           })
-        Image(this.isPlay ? $r('app.media.ic_public_play_norm') : $r('app.media.ic_public_pause_norm'))
+        Image(this.isPlay ? $r('app.media.ic_public_pause') : $r('app.media.ic_public_play'))
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.image_play_width'),

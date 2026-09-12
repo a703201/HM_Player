@@ -173,7 +173,7 @@ struct PlaylistDetail {
 
     private buildMenuItems(song: SongItem, index: number): SongMenuEntry[] {
     return [
-      { text: '播放', icon: $r('app.media.ic_public_play_norm'), action: () => { this.playAt(index); } },
+      { text: '播放', icon: $r('app.media.ic_public_play'), action: () => { this.playAt(index); } },
       { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_public_collect'), action: () => { this.toggleFavoriteSong(song); } },
       { text: '添加到歌单', icon: $r('app.media.ic_public_add'), action: () => { this.openAddToPlaylist(song); } },
       { text: '详细', icon: $r('app.media.ic_public_detail'), action: () => { this.openSongDetail(song); } }
@@ -369,7 +369,7 @@ struct PlaylistDetail {
         // 操作区：播放全部 / 添加歌曲
         Row() {
           Row() {
-            Image($r('app.media.ic_public_play_norm'))
+            Image($r('app.media.ic_public_play'))
               .width(20)
               .height(20)
               .fillColor(semanticOf(this.isDark).onAccent)

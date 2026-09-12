@@ -220,7 +220,7 @@ struct Playlists {
   @Builder
   buildPlaylistMenu(playlist: Playlist) {
     Menu() {
-      MenuItem({ content: '播放', startIcon: $r('app.media.ic_public_play_norm') })
+      MenuItem({ content: '播放', startIcon: $r('app.media.ic_public_play') })
         .onClick(() => {
           this.playPlaylist(playlist);
         })
@@ -283,7 +283,7 @@ struct Playlists {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
-      Image($r('app.media.ic_public_play_norm'))
+      Image($r('app.media.ic_public_play'))
         .width(24)
         .height(24)
         .fillColor(semanticOf(this.isDark).accent)
@@ -348,7 +348,7 @@ struct Playlists {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
-      Image($r('app.media.ic_public_play_norm'))
+      Image($r('app.media.ic_public_play'))
         .width(24)
         .height(24)
         .fillColor(semanticOf(this.isDark).accent)

@@ -86,8 +86,8 @@ struct Layout {
   @State navW: number = 336;
 
   private tabs: TabItem[] = [
-    { title: '音乐库', icon: $r('app.media.ic_public_albums'), iconActive: $r('app.media.ic_public_albums_filled') },
-    { title: '我的', icon: $r('app.media.ic_public_face'), iconActive: $r('app.media.ic_public_face_filled') }
+    { title: '音乐库', icon: $r('app.media.ic_public_albums'), iconActive: $r('app.media.ic_public_albums') },
+    { title: '我的', icon: $r('app.media.ic_public_face'), iconActive: $r('app.media.ic_public_face') }
   ];
 
   aboutToAppear(): void {
@@ -107,7 +107,7 @@ struct Layout {
     // 不满足时回落 cardBg 胶囊，保证底栏在任何设备都可用。
     try {
       const abis: string = deviceInfo.abiList;
-      this.glassSupported = abis !== undefined && abis.indexOf('arm64-v8a') >= 0;
+      this.glassSupported = abis !== undefined && abis.indexOf('arm64') >= 0;
     } catch (err) {
       this.glassSupported = false;
     }
@@ -278,12 +278,12 @@ struct Layout {
         // 注意：AppStorage('isPlay') 在本入口的运行时绑定与播放态相反（与播放页主按钮一致），
         // 故采用反相映射——实际播放中显示「开始/播放」三角(ic_hm_play)，停止时显示「暂停」双竖条(ic_hm_pause)。
         if (this.isPlaying) {
-          this.playStateOverlay($r('app.media.ic_public_pause_norm'))
+          this.playStateOverlay($r('app.media.ic_public_pause'))
         } else {
-          this.playStateOverlay($r('app.media.ic_public_play_norm'))
+          this.playStateOverlay($r('app.media.ic_public_play'))
         }
       } else {
-        Image($r('app.media.ic_public_play_norm'))
+        Image($r('app.media.ic_public_play'))
           .width(24)
           .height(24)
           .fillColor(semanticOf(this.isDark).onAccent)
@@ -386,8 +386,8 @@ struct Layout {
         Width: this.navW,
         Height: NAV_H,
         Circle: '100%',
-        Blur: 0,
-        NeoStrength: 0.26,
+        Blur: 8,
+        NeoStrength: 0.34,
         ProUI: false
       })
         .width(this.navW)
