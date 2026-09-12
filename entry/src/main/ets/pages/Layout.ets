@@ -352,6 +352,20 @@ struct Layout {
   build() {
     NavDestination() {
       Stack({ alignContent: Alignment.Bottom }) {
+        // 隐形探针：实测导航胶囊宽度（92%/max520），供 AppleUI 透镜数值尺寸。
+        Row()
+          .width('92%')
+          .constraintSize({ maxWidth: 520 })
+          .height(1)
+          .opacity(0)
+          .hitTestBehavior(HitTestMode.None)
+          .onAreaChange((_oldArea: Area, newArea: Area) => {
+            const w: number = typeof newArea.width === 'number' ? newArea.width as number : 0;
+            if (w > 0 && Math.abs(w - this.navW) > 0.5) {
+              this.navW = w;
+            }
+          })
+
         Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
           TabContent() {
             LocalLibrary()
@@ -372,56 +386,52 @@ struct Layout {
         // 列表可滚动至系统导航条区域，浮动底栏覆盖其上方而非预留整块空白。
         .padding({ bottom: this.bottomHeight + 16 })
 
-        // 液态玻璃导航：AppleUI 必须「直接紧接」内容层(Tabs)之后——组件以「前一个兄弟」
-        // 为截帧目标，只有与 Tabs 成为直接相邻兄弟，透镜才折射真实内容。
-        // （此前经 @Builder 包装会导致前一个兄弟解析错位 → 截到导航条自身 → region 越界 401）
+        // 液态玻璃导航。
+        // 关键：导航项放进 AppleUI 的「媒体插槽」（尾随闭包），使 Stack 中与透镜相关的兄弟
+        // 只剩 Tabs —— 这样它的「前一个兄弟」必然是内容层，截帧目标正确（此前独立放一个
+        // 导航内容层会与之同高同宽，被误选为目标 → region 越界 → snapshot fail 401）。
         if (this.glassSupported) {
-          AppleUI({
-            Width: this.navW,
-            Height: NAV_H,
-            Circle: '100%',
-            Blur: 8,
-            NeoStrength: 0.34,
-            ProUI: false
-          })
-            .width(this.navW)
-            .height(NAV_H)
-            .margin({ bottom: this.bottomHeight + NAV_GAP })
-        } else {
-          Row()
-            .width(this.navW)
-            .height(NAV_H)
-            .backgroundColor(this.getThemeColors().cardBg)
-            .borderRadius(NAV_H / 2)
-            .shadow({
-              radius: 22,
-              color: this.getThemeColors().separator,
-              offsetX: 0,
-              offsetY: 8
-            })
-            .border({
-              width: this.isDark ? 0.5 : 0,
-              color: semanticOf(this.isDark).borderSubtle
-            })
-            .margin({ bottom: this.bottomHeight + NAV_GAP })
-        }
-
-        // 导航内容层：叠在玻璃之上（透明），并实测胶囊宽度回填 navW
-        Row() {
-          this.miniBarInner()
-        }
-        .width('92%')
-        .constraintSize({ maxWidth: 520 })
-        .height(NAV_H)
-        .borderRadius(NAV_H / 2)
-        .clip(true)
-        .margin({ bottom: this.bottomHeight + NAV_GAP })
-        .onAreaChange((_oldArea: Area, newArea: Area) => {
-          const w: number = typeof newArea.width === 'number' ? newArea.width as number : 0;
-          if (w > 0 && Math.abs(w - this.navW) > 0.5) {
-            this.navW = w;
+          // 尺寸/间距挂在外层 Column 上：AppleUI 的尾随闭包之后不能再链式追加属性。
+          Column() {
+            AppleUI({
+              Width: this.navW,
+              Height: NAV_H,
+              Circle: '100%',
+              Blur: 8,
+              NeoStrength: 0.34,
+              ProUI: false
+            }) {
+              Row() {
+                this.miniBarInner()
+              }
+              .width('100%')
+              .height(NAV_H)
+            }
           }
-        })
+          .width(this.navW)
+          .height(NAV_H)
+          .margin({ bottom: this.bottomHeight + NAV_GAP })
+        } else {
+          Row() {
+            this.miniBarInner()
+          }
+          .width('92%')
+          .constraintSize({ maxWidth: 520 })
+          .height(NAV_H)
+          .backgroundColor(this.getThemeColors().cardBg)
+          .borderRadius(NAV_H / 2)
+          .shadow({
+            radius: 22,
+            color: this.getThemeColors().separator,
+            offsetX: 0,
+            offsetY: 8
+          })
+          .border({
+            width: this.isDark ? 0.5 : 0,
+            color: semanticOf(this.isDark).borderSubtle
+          })
+          .margin({ bottom: this.bottomHeight + NAV_GAP })
+        }
       }
       .width('100%')
       .height('100%')
