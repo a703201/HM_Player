@@ -284,7 +284,7 @@ export struct LyricsComponent {
 
       Row() {
         Image(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
-        $r('app.media.ic_lyrics_button_lg') : $r('app.media.ic_lyrics_button'))
+        $r('app.media.ic_public_text') : $r('app.media.ic_public_text'))
           .width(new BreakpointType({
             sm: $r('app.float.lyrics_width_sm'),
             md: $r('app.float.lyrics_width_md'),

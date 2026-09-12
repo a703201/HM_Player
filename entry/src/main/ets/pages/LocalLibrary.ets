@@ -369,11 +369,11 @@ export struct LocalLibrary {
 
     private buildMenuItems(song: SongItem): SongMenuEntry[] {
     return [
-      { text: '播放', icon: $r('app.media.ic_hos_play'), action: () => { this.playSong(song); } },
-      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_hos_collect'), action: () => { this.toggleFavoriteSong(song); } },
-      { text: '添加到歌单', icon: $r('app.media.ic_hos_add'), action: () => { this.openAddToPlaylist(song); } },
-      { text: '详细', icon: $r('app.media.ic_hos_detail'), action: () => { this.openSongDetail(song); } },
-      { text: '删除', icon: $r('app.media.ic_hos_delete'), action: () => { this.deleteSong(song); } }
+      { text: '播放', icon: $r('app.media.ic_public_play_norm'), action: () => { this.playSong(song); } },
+      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_public_collect'), action: () => { this.toggleFavoriteSong(song); } },
+      { text: '添加到歌单', icon: $r('app.media.ic_public_add'), action: () => { this.openAddToPlaylist(song); } },
+      { text: '详细', icon: $r('app.media.ic_public_detail'), action: () => { this.openSongDetail(song); } },
+      { text: '删除', icon: $r('app.media.ic_public_delete'), action: () => { this.deleteSong(song); } }
     ];
   }
 
@@ -404,7 +404,7 @@ export struct LocalLibrary {
           .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 8, bottom: SPACE_SM.cozy })
 
         Row({ space: 4 }) {
-          Image($r('app.media.ic_hm_download'))
+          Image($r('app.media.ic_public_download'))
             .width(16)
             .height(16)
             .fillColor(this.getThemeColors().accent)
@@ -434,7 +434,7 @@ export struct LocalLibrary {
 
       // Search bar
       Row() {
-        Image($r('app.media.ic_hm_search'))
+        Image($r('app.media.ic_public_search'))
           .width(18)
           .height(18)
           .fillColor(this.getThemeColors().secondaryText)
@@ -487,7 +487,7 @@ export struct LocalLibrary {
         .justifyContent(FlexAlign.Center)
       } else if (this.errorMessage !== '') {
         Column() {
-          Image($r('app.media.ic_hm_library'))
+          Image($r('app.media.ic_public_albums'))
             .width(72)
             .height(72)
             .fillColor(this.getThemeColors().secondaryText)
@@ -517,7 +517,7 @@ export struct LocalLibrary {
         .justifyContent(FlexAlign.Center)
       } else if (this.filteredSongs.length === 0) {
         Column() {
-          Image($r('app.media.ic_hm_library'))
+          Image($r('app.media.ic_public_albums'))
             .width(72)
             .height(72)
             .fillColor(this.getThemeColors().secondaryText)

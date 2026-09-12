@@ -114,7 +114,7 @@ export struct SongRow {
             .fill(semanticOf(this.isDark).fillAccentMuted)
             .scale({ x: this.pressedScale, y: this.pressedScale })
 
-          Image($r('app.media.ic_playing'))
+          Image($r('app.media.ic_public_sound'))
             .width(16)
             .height(16)
         }
@@ -152,14 +152,14 @@ export struct SongRow {
     .padding({ left: SPACE_SM.cozy })
 
     if (this.showHeart && this.favorite) {
-      Image($r('app.media.ic_favorite'))
+      Image($r('app.media.ic_public_favor_filled'))
         .width(22)
         .height(22)
         .fillColor(this.getThemeColors().accent)
         .scale({ x: this.heartPulse, y: this.heartPulse })
         .animation({ duration: 200, curve: LumioTheme.curve(SpringKind.Crisp) })
     } else if (this.showRemove) {
-      Image($r('app.media.ic_close'))
+      Image($r('app.media.ic_public_close'))
         .width(18)
         .height(18)
         .fillColor(this.getThemeColors().secondaryText)

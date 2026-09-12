@@ -106,7 +106,7 @@ export struct FolderBrowse {
   private folderItem(f: FolderGroup) {
     Row() {
       Stack() {
-        Image($r('app.media.ic_hm_folder'))
+        Image($r('app.media.ic_public_folder'))
           .width(26)
           .height(26)
           .fillColor(this.getThemeColors().accent)
@@ -133,7 +133,7 @@ export struct FolderBrowse {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
-      Image($r('app.media.ic_play_all'))
+      Image($r('app.media.ic_public_play_norm'))
         .width(22)
         .height(22)
         .fillColor(this.getThemeColors().accent)
@@ -160,7 +160,7 @@ export struct FolderBrowse {
       Column() {
         Row() {
           if (this.selectedFolder !== '') {
-            Image($r('app.media.ic_back'))
+            Image($r('app.media.ic_public_arrow_left'))
               .width(24)
               .height(24)
               .fillColor(this.getThemeColors().primaryText)
@@ -200,7 +200,7 @@ export struct FolderBrowse {
         if (this.selectedFolder === '') {
           if (this.folders.length === 0) {
             Column() {
-              Image($r('app.media.ic_hm_folder'))
+              Image($r('app.media.ic_public_folder'))
                 .width(72)
                 .height(72)
                 .fillColor(this.getThemeColors().secondaryText)

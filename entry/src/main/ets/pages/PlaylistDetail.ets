@@ -173,10 +173,10 @@ struct PlaylistDetail {
 
     private buildMenuItems(song: SongItem, index: number): SongMenuEntry[] {
     return [
-      { text: '播放', icon: $r('app.media.ic_hos_play'), action: () => { this.playAt(index); } },
-      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_hos_collect'), action: () => { this.toggleFavoriteSong(song); } },
-      { text: '添加到歌单', icon: $r('app.media.ic_hos_add'), action: () => { this.openAddToPlaylist(song); } },
-      { text: '详细', icon: $r('app.media.ic_hos_detail'), action: () => { this.openSongDetail(song); } }
+      { text: '播放', icon: $r('app.media.ic_public_play_norm'), action: () => { this.playAt(index); } },
+      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_public_collect'), action: () => { this.toggleFavoriteSong(song); } },
+      { text: '添加到歌单', icon: $r('app.media.ic_public_add'), action: () => { this.openAddToPlaylist(song); } },
+      { text: '详细', icon: $r('app.media.ic_public_detail'), action: () => { this.openSongDetail(song); } }
     ];
   }
 
@@ -330,7 +330,7 @@ struct PlaylistDetail {
       Column() {
         // Header
         Row() {
-          Image($r('app.media.ic_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -369,7 +369,7 @@ struct PlaylistDetail {
         // 操作区：播放全部 / 添加歌曲
         Row() {
           Row() {
-            Image($r('app.media.ic_play_all'))
+            Image($r('app.media.ic_public_play_norm'))
               .width(18)
               .height(18)
               .fillColor(semanticOf(this.isDark).onAccent)
@@ -427,7 +427,7 @@ struct PlaylistDetail {
 
         if (this.songs.length === 0) {
           Column() {
-            Image($r('app.media.ic_song_list'))
+            Image($r('app.media.ic_public_view_list'))
               .width(64)
               .height(64)
               .fillColor(this.getThemeColors().secondaryText)

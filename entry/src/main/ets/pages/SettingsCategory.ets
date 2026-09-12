@@ -370,7 +370,7 @@ export struct SettingsCategoryDetail {
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      Image($r('app.media.ic_hm_more'))
+      Image($r('app.media.ic_public_more'))
         .width(16)
         .fillColor(this.getThemeColors().separator)
     }
@@ -391,11 +391,11 @@ export struct SettingsCategoryDetail {
     this.buildSectionLabel('播放')
     Column() {
       this.buildToggleItem(
-        $r('app.media.ic_auto'), '自动下一首', '', 0, this.getThemeColors().secondaryText, this.autoNext,
+        $r('app.media.ic_public_quickstart'), '自动下一首', '', 0, this.getThemeColors().secondaryText, this.autoNext,
         (v: boolean) => { this.autoNext = v; this.settings.setAutoNext(v); }
       )
       this.buildSelectItem(
-        $r('app.media.ic_repeat'), '播放模式', this.repeatOptions(), this.repeatIndex(), 1, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_list_cycle'), '播放模式', this.repeatOptions(), this.repeatIndex(), 1, this.getThemeColors().secondaryText,
         (i: number) => {
           const order: RepeatModeSetting[] = ['list', 'single', 'random'];
           this.repeatMode = order[i];
@@ -403,7 +403,7 @@ export struct SettingsCategoryDetail {
         }
       )
       this.buildToggleItem(
-        $r('app.media.ic_sequence'), '无缝播放 (Gapless)', '减少曲间停顿', 2, this.getThemeColors().secondaryText, this.gapless,
+        $r('app.media.ic_public_order_play'), '无缝播放 (Gapless)', '减少曲间停顿', 2, this.getThemeColors().secondaryText, this.gapless,
         (v: boolean) => { this.gapless = v; this.settings.setGapless(v); }
       )
     }
@@ -415,7 +415,7 @@ export struct SettingsCategoryDetail {
     this.buildSectionLabel('用户界面')
     Column() {
       this.buildSelectItem(
-        $r('app.media.ic_hm_moon'), '深色模式', this.themeOptions(), this.themeIndex(), 0, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_themes'), '深色模式', this.themeOptions(), this.themeIndex(), 0, this.getThemeColors().secondaryText,
         (i: number) => {
           const order: ThemeMode[] = ['system', 'light', 'dark'];
           this.themeMode = order[i];
@@ -431,7 +431,7 @@ export struct SettingsCategoryDetail {
     this.buildSectionLabel('无障碍')
     Column() {
       this.buildToggleItem(
-        $r('app.media.ic_hm_profile'), '降低动态效果', '减少歌词流光等动画', 0, this.getThemeColors().secondaryText, this.reduceMotion,
+        $r('app.media.ic_public_face'), '降低动态效果', '减少歌词流光等动画', 0, this.getThemeColors().secondaryText, this.reduceMotion,
         (v: boolean) => { this.reduceMotion = v; this.settings.setReduceMotion(v); }
       )
     }
@@ -443,22 +443,22 @@ export struct SettingsCategoryDetail {
     this.buildSectionLabel('存储')
     Column() {
       this.buildNavItem(
-        $r('app.media.ic_hm_trash'), '清除缓存', this.cacheSizeText, 0, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_delete'), '清除缓存', this.cacheSizeText, 0, this.getThemeColors().secondaryText,
         () => { this.showClearCacheDialog(); }
       )
       this.buildNavItem(
-        $r('app.media.ic_hm_list'), '清空播放历史', `共 ${this.store.recentlyPlayed.length} 首`, 1, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_view_list'), '清空播放历史', `共 ${this.store.recentlyPlayed.length} 首`, 1, this.getThemeColors().secondaryText,
         () => {
           this.store.clearRecentlyPlayed();
           this.toast('已清空播放历史');
         }
       )
       this.buildNavItem(
-        $r('app.media.ic_hm_folder'), '本地歌曲管理', '', 2, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_folder'), '本地歌曲管理', '', 2, this.getThemeColors().secondaryText,
         () => { this.onNavigate('ManageSongs'); }
       )
       this.buildNavItem(
-        $r('app.media.ic_music_list'), '重复歌曲清理', '', 3, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_view_list'), '重复歌曲清理', '', 3, this.getThemeColors().secondaryText,
         () => { this.onNavigate('DuplicateSongs'); }
       )
     }
@@ -470,7 +470,7 @@ export struct SettingsCategoryDetail {
     this.buildSectionLabel('通知')
     Column() {
       this.buildToggleItem(
-        $r('app.media.ic_bells_o'), '锁屏/状态栏控制', '', 0, this.getThemeColors().secondaryText, this.notificationLockScreen,
+        $r('app.media.ic_public_donotdisturb'), '锁屏/状态栏控制', '', 0, this.getThemeColors().secondaryText, this.notificationLockScreen,
         (v: boolean) => { this.notificationLockScreen = v; this.settings.setNotificationLockScreen(v); }
       )
     }
@@ -482,15 +482,15 @@ export struct SettingsCategoryDetail {
     this.buildSectionLabel('隐私')
     Column() {
       this.buildToggleItem(
-        $r('app.media.ic_favorite'), '启用听歌统计', '', 0, this.getThemeColors().secondaryText, this.privacyStats,
+        $r('app.media.ic_public_favor_filled'), '启用听歌统计', '', 0, this.getThemeColors().secondaryText, this.privacyStats,
         (v: boolean) => { this.privacyStats = v; this.settings.setPrivacyStats(v); }
       )
       this.buildNavItem(
-        $r('app.media.ic_music'), '我的听歌报告', '', 1, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_music_public_filled'), '我的听歌报告', '', 1, this.getThemeColors().secondaryText,
         () => { this.onNavigate('Wrapped'); }
       )
       this.buildNavItem(
-        $r('app.media.ic_hm_trash'), '清除统计数据', '', 2, this.getThemeColors().secondaryText,
+        $r('app.media.ic_public_delete'), '清除统计数据', '', 2, this.getThemeColors().secondaryText,
         () => { this.showClearStatsDialog(); }
       )
     }

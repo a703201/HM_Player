@@ -202,7 +202,7 @@ export struct AddToPlaylistSheet {
       }
 
       Row() {
-        Image($r('app.media.ic_hm_folder'))
+        Image($r('app.media.ic_public_folder'))
           .width(18)
           .height(18)
           .fillColor(this.getThemeColors().accent)

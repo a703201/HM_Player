@@ -179,7 +179,7 @@ struct WidgetCard {
 
       Row() {
         Button({ type: ButtonType.Circle }) {
-          Image($r('app.media.ic_prev'))
+          Image($r('app.media.ic_public_play_last'))
             .width(22)
             .height(22)
             .fillColor(this.getCardColors().iconColor)
@@ -193,7 +193,7 @@ struct WidgetCard {
         })
 
         Button({ type: ButtonType.Circle }) {
-          Image(this.isPlaying ? $r('app.media.ic_pause') : $r('app.media.ic_play'))
+          Image(this.isPlaying ? $r('app.media.ic_public_pause_norm') : $r('app.media.ic_public_play_norm'))
             .width(28)
             .height(28)
             .fillColor(this.getCardColors().playIconColor)
@@ -208,7 +208,7 @@ struct WidgetCard {
         })
 
         Button({ type: ButtonType.Circle }) {
-          Image($r('app.media.ic_next'))
+          Image($r('app.media.ic_public_play_next'))
             .width(22)
             .height(22)
             .fillColor(this.getCardColors().iconColor)

@@ -50,7 +50,7 @@ export struct SubPageHeader {
 
   build() {
     Row() {
-      Image($r('app.media.ic_hm_back'))
+      Image($r('app.media.ic_public_arrow_left'))
         .width(24)
         .height(24)
         .fillColor(this.getThemeColors().primaryText)
@@ -163,7 +163,7 @@ export struct ManageSongsBody {
 
       if (this.songs.length === 0) {
         Column() {
-          Image($r('app.media.ic_hm_library'))
+          Image($r('app.media.ic_public_albums'))
             .width(72)
             .height(72)
             .fillColor(this.getThemeColors().secondaryText)
@@ -345,7 +345,7 @@ export struct DuplicateSongsBody {
     Column() {
       if (this.showHeader) {
         Row() {
-          Image($r('app.media.ic_hm_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -372,7 +372,7 @@ export struct DuplicateSongsBody {
 
       if (this.groups.length === 0) {
         Column() {
-          Image($r('app.media.ic_music_list'))
+          Image($r('app.media.ic_public_view_list'))
             .width(64)
             .height(64)
             .fillColor(this.getThemeColors().secondaryText)
@@ -632,7 +632,7 @@ export struct WrappedBody {
 
       if (!this.hasData) {
         Column() {
-          Image($r('app.media.ic_music'))
+          Image($r('app.media.ic_public_music_public_filled'))
             .width(64)
             .height(64)
             .fillColor(this.getThemeColors().secondaryText)

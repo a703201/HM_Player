@@ -113,10 +113,10 @@ struct Favorites {
 
     private buildMenuItems(song: SongItem): SongMenuEntry[] {
     return [
-      { text: '播放', icon: $r('app.media.ic_hos_play'), action: () => { this.playSong(song); } },
-      { text: '取消收藏', icon: $r('app.media.ic_hos_collect'), action: () => { this.toggleFavoriteSong(song); } },
-      { text: '添加到歌单', icon: $r('app.media.ic_hos_add'), action: () => { this.openAddToPlaylist(song); } },
-      { text: '详细', icon: $r('app.media.ic_hos_detail'), action: () => { this.openSongDetail(song); } }
+      { text: '播放', icon: $r('app.media.ic_public_play_norm'), action: () => { this.playSong(song); } },
+      { text: '取消收藏', icon: $r('app.media.ic_public_collect'), action: () => { this.toggleFavoriteSong(song); } },
+      { text: '添加到歌单', icon: $r('app.media.ic_public_add'), action: () => { this.openAddToPlaylist(song); } },
+      { text: '详细', icon: $r('app.media.ic_public_detail'), action: () => { this.openSongDetail(song); } }
     ];
   }
 
@@ -128,7 +128,7 @@ struct Favorites {
       Column() {
         // Header
         Row() {
-          Image($r('app.media.ic_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -165,7 +165,7 @@ struct Favorites {
 
         if (this.favoriteSongs.length === 0) {
           Column() {
-            Image($r('app.media.ic_favorite'))
+            Image($r('app.media.ic_public_favor_filled'))
               .width(72)
               .height(72)
               .fillColor(this.getThemeColors().secondaryText)

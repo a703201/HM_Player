@@ -40,7 +40,10 @@ const NAV_GAP: number = 12;
 
 interface TabItem {
   title: string;
+  /** 未选中：Linear 线型图标 */
   icon: Resource;
+  /** 选中：Filled 填充图标（iOS 选中态） */
+  iconActive: Resource;
 }
 
 @Builder
@@ -83,8 +86,8 @@ struct Layout {
   @State navW: number = 336;
 
   private tabs: TabItem[] = [
-    { title: '音乐库', icon: $r('sys.symbol.music_square_stack_fill') },
-    { title: '我的', icon: $r('sys.symbol.person') }
+    { title: '音乐库', icon: $r('app.media.ic_public_albums'), iconActive: $r('app.media.ic_public_albums_filled') },
+    { title: '我的', icon: $r('app.media.ic_public_face'), iconActive: $r('app.media.ic_public_face_filled') }
   ];
 
   aboutToAppear(): void {
@@ -218,9 +221,11 @@ struct Layout {
   @Builder
   private capsuleTabItem(item: TabItem, index: number) {
     Column({ space: 4 }) {
-      SymbolGlyph(item.icon)
-        .fontSize(TYPE_SM.title1.size)
-        .fontColor([index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText])
+      // 选中用 Filled、未选中用 Linear（iOS 导航习惯），并沿用 accent 着色
+      Image(index === this.currentIndex ? item.iconActive : item.icon)
+        .width(26)
+        .height(26)
+        .fillColor(index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText)
         .animation({ duration: 160, curve: LumioTheme.curve(SpringKind.Crisp) })
 
       Text(item.title)
@@ -273,12 +278,12 @@ struct Layout {
         // 注意：AppStorage('isPlay') 在本入口的运行时绑定与播放态相反（与播放页主按钮一致），
         // 故采用反相映射——实际播放中显示「开始/播放」三角(ic_hm_play)，停止时显示「暂停」双竖条(ic_hm_pause)。
         if (this.isPlaying) {
-          this.playStateOverlay($r('app.media.ic_hm_pause'))
+          this.playStateOverlay($r('app.media.ic_public_pause_norm'))
         } else {
-          this.playStateOverlay($r('app.media.ic_hm_play'))
+          this.playStateOverlay($r('app.media.ic_public_play_norm'))
         }
       } else {
-        Image($r('app.media.ic_hm_play'))
+        Image($r('app.media.ic_public_play_norm'))
           .width(24)
           .height(24)
           .fillColor(semanticOf(this.isDark).onAccent)

@@ -110,8 +110,8 @@ export struct ControlAreaComponent {
   build() {
     Column() {
       Row() {
-        Image(this.playMode === MusicPlayMode.ORDER ? $r('app.media.order_play') :
-          this.playMode === MusicPlayMode.RANDOM ? $r('app.media.shuffle') : $r('app.media.repeat_1'))
+        Image(this.playMode === MusicPlayMode.ORDER ? $r('app.media.ic_public_order_play') :
+          this.playMode === MusicPlayMode.RANDOM ? $r('app.media.ic_public_shuffle') : $r('app.media.ic_public_single_cycle'))
           .fillColor(onMediaOf(true).primary)
           .controlImageBuilder()
           .width(new BreakpointType({
@@ -122,7 +122,7 @@ export struct ControlAreaComponent {
           .onClick(() => {
             this.switchPlayMode()
           })
-        Image($r('app.media.ic_music_list'))
+        Image($r('app.media.ic_public_view_list'))
           .fillColor(onMediaOf(true).primary)
           .controlImageBuilder()
           .width(new BreakpointType({
@@ -145,7 +145,7 @@ export struct ControlAreaComponent {
               this.scroller.scrollToIndex(this.currentIndex, false, ScrollAlign.CENTER);
             }
           })
-        Image(this.isSilentMode ? $r('app.media.silence') : $r('app.media.ic_ring'))
+        Image(this.isSilentMode ? $r('app.media.ic_public_ring_off') : $r('app.media.ic_public_ring'))
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.twenty_four'),
@@ -156,7 +156,7 @@ export struct ControlAreaComponent {
             this.isSilentMode = !this.isSilentMode;
             AudioRendererController.getInstance().setSilentModeAndMixWithOthers(this.isSilentMode)
           })
-        Image(this.isFavorite ? $r('app.media.heart_fill') : $r('app.media.heart'))
+        Image(this.isFavorite ? $r('app.media.ic_public_favor_filled') : $r('app.media.ic_public_favor'))
           .fillColor(this.isFavorite ? semanticOf(this.isDark).accent : onMediaOf(true).primary)
           .controlImageBuilder()
           .animation({
@@ -194,7 +194,7 @@ export struct ControlAreaComponent {
             backgroundColor: this.getThemeColors().cardBg
           })
 
-        Image($r('app.media.ic_sleep'))
+        Image($r('app.media.ic_public_timer'))
           .fillColor(onMediaOf(true).primary)
           .controlImageBuilder()
           .width(24)
@@ -264,7 +264,7 @@ export struct ControlAreaComponent {
       })
 
       Row() {
-        Image($r('app.media.ic_public_forward'))
+        Image($r('app.media.ic_public_play_last'))
           .controlImageBuilder()
           .width(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
           $r('app.float.control_width_lg') : $r('app.float.control_width'))
@@ -281,7 +281,7 @@ export struct ControlAreaComponent {
               this.prevScale = 1.0;
             }
           })
-        Image(this.isPlay ? $r('app.media.ic_public_play') : $r('app.media.ic_public_pause'))
+        Image(this.isPlay ? $r('app.media.ic_public_play_norm') : $r('app.media.ic_public_pause_norm'))
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.image_play_width'),
@@ -309,7 +309,7 @@ export struct ControlAreaComponent {
               this.playBtnScale = 1.0;
             }
           })
-        Image($r('app.media.ic_public_next'))
+        Image($r('app.media.ic_public_play_next'))
           .controlImageBuilder()
           .width(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
           $r('app.float.control_width_lg') : $r('app.float.control_width'))
@@ -571,7 +571,7 @@ export struct ControlAreaComponent {
   @Builder
   playListTitle() {
     Row() {
-      Image($r('app.media.ic_sort_list'))
+      Image($r('app.media.ic_public_sift'))
         .height($r('app.float.play_all_icon_size'))
         .width($r('app.float.play_all_icon_size'))
       Text($r('app.string.play_list', this.songList.length))

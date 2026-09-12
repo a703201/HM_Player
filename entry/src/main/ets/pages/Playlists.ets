@@ -220,15 +220,15 @@ struct Playlists {
   @Builder
   buildPlaylistMenu(playlist: Playlist) {
     Menu() {
-      MenuItem({ content: '播放', startIcon: $r('app.media.ic_hos_play') })
+      MenuItem({ content: '播放', startIcon: $r('app.media.ic_public_play_norm') })
         .onClick(() => {
           this.playPlaylist(playlist);
         })
-      MenuItem({ content: '重命名', startIcon: $r('app.media.ic_hos_rename') })
+      MenuItem({ content: '重命名', startIcon: $r('app.media.ic_public_edit') })
         .onClick(() => {
           this.openRenameDialog(playlist);
         })
-      MenuItem({ content: '删除歌单', startIcon: $r('app.media.ic_hos_delete') })
+      MenuItem({ content: '删除歌单', startIcon: $r('app.media.ic_public_delete') })
         .contentFontColor(semanticOf(this.isDark).accent)
         .onClick(() => {
           this.confirmDelete(playlist);
@@ -256,7 +256,7 @@ struct Playlists {
 
         // 空歌单在封面上叠一层列表图标做区分
         if (playlist.songIds.length === 0) {
-          Image($r('app.media.ic_song_list'))
+          Image($r('app.media.ic_public_view_list'))
             .width(22)
             .height(22)
             .fillColor(semanticOf(this.isDark).onAccent)
@@ -283,7 +283,7 @@ struct Playlists {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
-      Image($r('app.media.ic_hos_play'))
+      Image($r('app.media.ic_public_play_norm'))
         .width(22)
         .height(22)
         .fillColor(semanticOf(this.isDark).accent)
@@ -322,7 +322,7 @@ struct Playlists {
   buildSmartItem(pl: SmartPlaylist) {
     Row() {
       Stack() {
-        Image($r('app.media.ic_music_list'))
+        Image($r('app.media.ic_public_view_list'))
           .width(26)
           .height(26)
           .fillColor(semanticOf(this.isDark).accent)
@@ -348,7 +348,7 @@ struct Playlists {
       .alignItems(HorizontalAlign.Start)
       .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
 
-      Image($r('app.media.ic_hos_play'))
+      Image($r('app.media.ic_public_play_norm'))
         .width(22)
         .height(22)
         .fillColor(semanticOf(this.isDark).accent)
@@ -391,7 +391,7 @@ struct Playlists {
         .layoutWeight(1)
         .margin({ left: SPACE_SM.base, top: SPACE_SM.cozy, bottom: SPACE_SM.compact })
 
-      Image($r('app.media.ic_hos_chevron'))
+      Image($r('app.media.ic_public_arrow_right'))
         .width(18)
         .height(18)
         .objectFit(ImageFit.Contain)
@@ -429,7 +429,7 @@ struct Playlists {
       Column() {
         // Header
         Row() {
-          Image($r('app.media.ic_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -503,7 +503,7 @@ struct Playlists {
             if (this.playlists.length === 0) {
               ListItem() {
                 Column() {
-                  Image($r('app.media.ic_song_list'))
+                  Image($r('app.media.ic_public_view_list'))
                     .width(72)
                     .height(72)
                     .fillColor(this.getThemeColors().secondaryText)

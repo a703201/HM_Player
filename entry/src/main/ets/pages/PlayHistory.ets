@@ -106,10 +106,10 @@ struct PlayHistory {
 
     private buildMenuItems(song: SongItem): SongMenuEntry[] {
     return [
-      { text: '播放', icon: $r('app.media.ic_hos_play'), action: () => { this.playSong(song); } },
-      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_hos_collect'), action: () => { this.toggleFavoriteSong(song); } },
-      { text: '添加到歌单', icon: $r('app.media.ic_hos_add'), action: () => { this.openAddToPlaylist(song); } },
-      { text: '详细', icon: $r('app.media.ic_hos_detail'), action: () => { this.openSongDetail(song); } }
+      { text: '播放', icon: $r('app.media.ic_public_play_norm'), action: () => { this.playSong(song); } },
+      { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_public_collect'), action: () => { this.toggleFavoriteSong(song); } },
+      { text: '添加到歌单', icon: $r('app.media.ic_public_add'), action: () => { this.openAddToPlaylist(song); } },
+      { text: '详细', icon: $r('app.media.ic_public_detail'), action: () => { this.openSongDetail(song); } }
     ];
   }
 
@@ -121,7 +121,7 @@ struct PlayHistory {
       Column() {
         // Header
         Row() {
-          Image($r('app.media.ic_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -158,7 +158,7 @@ struct PlayHistory {
 
         if (this.recentSongs.length === 0) {
           Column() {
-            Image($r('app.media.ic_list'))
+            Image($r('app.media.ic_public_view_list'))
               .width(72)
               .height(72)
               .fillColor(this.getThemeColors().secondaryText)

@@ -110,7 +110,7 @@ export struct About {
       // 顶部头部：subPage=privacy 时显示返回；其它与旧逻辑一致（无头部，标题区在内部）
       if (this.subPage === 'privacy') {
         Row() {
-          Image($r('app.media.ic_hm_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -192,7 +192,7 @@ export struct About {
 
         Row() {
           Column() {
-            Image($r('app.media.ic_hm_library'))
+            Image($r('app.media.ic_public_albums'))
               .width(30)
               .height(30)
               .margin({ bottom: SPACE_SM.compact })
@@ -208,7 +208,7 @@ export struct About {
           .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
 
           Column() {
-            Image($r('app.media.ic_hm_search'))
+            Image($r('app.media.ic_public_search'))
               .width(30)
               .height(30)
               .margin({ bottom: SPACE_SM.compact })
@@ -224,7 +224,7 @@ export struct About {
           .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
 
           Column() {
-            Image($r('app.media.ic_hm_list'))
+            Image($r('app.media.ic_public_view_list'))
               .width(30)
               .height(30)
               .margin({ bottom: SPACE_SM.compact })
@@ -263,7 +263,7 @@ export struct About {
               .fontColor(this.getThemeColors().primaryText)
               .layoutWeight(1)
               .textAlign(TextAlign.Start)
-            Image($r('app.media.ic_hm_more'))
+            Image($r('app.media.ic_public_more'))
               .width(16)
               .height(16)
               .fillColor(this.getThemeColors().secondaryText)
@@ -288,7 +288,7 @@ export struct About {
               .fontColor(this.getThemeColors().primaryText)
               .layoutWeight(1)
               .textAlign(TextAlign.Start)
-            Image($r('app.media.ic_hm_more'))
+            Image($r('app.media.ic_public_more'))
               .width(16)
               .height(16)
               .fillColor(this.getThemeColors().secondaryText)

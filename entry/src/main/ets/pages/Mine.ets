@@ -101,7 +101,7 @@ export struct Mine {
       .layoutWeight(1)
 
       if (showArrow) {
-        Image($r('app.media.ic_hos_arrow_right'))
+        Image($r('app.media.ic_public_arrow_right'))
           .width(16)
           .height(16)
           .fillColor(this.getThemeColors().secondaryText)
@@ -154,7 +154,7 @@ export struct Mine {
         // 菜单区
         Column() {
           this.buildMenuItem(
-            $r('app.media.ic_collect'),
+            $r('app.media.ic_public_collect'),
             '我的收藏',
             `${this.favCount} 首歌曲`,
             true,
@@ -166,7 +166,7 @@ export struct Mine {
           )
 
           this.buildMenuItem(
-            $r('app.media.ic_song_list'),
+            $r('app.media.ic_public_view_list'),
             '我的歌单',
             `${this.playlistCount} 个歌单`,
             true,
@@ -178,7 +178,7 @@ export struct Mine {
           )
 
           this.buildMenuItem(
-            $r('app.media.ic_hm_list'),
+            $r('app.media.ic_public_view_list'),
             '播放历史',
             `${this.histCount} 首歌曲`,
             true,
@@ -190,7 +190,7 @@ export struct Mine {
           )
 
           this.buildMenuItem(
-            $r('app.media.ic_hm_folder'),
+            $r('app.media.ic_public_folder'),
             '文件夹浏览',
             '按来源目录整理',
             true,
@@ -214,7 +214,7 @@ export struct Mine {
 
         Column() {
           this.buildMenuItem(
-            $r('app.media.ic_hm_settings'),
+            $r('app.media.ic_public_settings'),
             '设置',
             '',
             true,

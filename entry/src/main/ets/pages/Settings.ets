@@ -70,12 +70,12 @@ export struct Settings {
    */
   private categories(): Array<CategoryItem> {
     return [
-      { id: 'playback', title: '播放', subtitle: '自动下一首 · 播放模式', icon: $r('app.media.ic_repeat'), iconColor: this.getThemeColors().secondaryText },
-      { id: 'appearance', title: '用户界面', subtitle: '深色模式 · 主题', icon: $r('app.media.ic_hm_moon'), iconColor: this.getThemeColors().secondaryText },
-      { id: 'accessibility', title: '无障碍', subtitle: '降低动态效果', icon: $r('app.media.ic_hm_profile'), iconColor: this.getThemeColors().secondaryText },
-      { id: 'storage', title: '存储', subtitle: '缓存 · 播放历史 · 本地管理', icon: $r('app.media.ic_hm_trash'), iconColor: this.getThemeColors().secondaryText },
-      { id: 'notification', title: '通知', subtitle: '锁屏/状态栏控制', icon: $r('app.media.ic_bells_o'), iconColor: this.getThemeColors().secondaryText },
-      { id: 'privacy', title: '隐私', subtitle: '听歌统计', icon: $r('app.media.ic_favorite'), iconColor: this.getThemeColors().secondaryText }
+      { id: 'playback', title: '播放', subtitle: '自动下一首 · 播放模式', icon: $r('app.media.ic_public_list_cycle'), iconColor: this.getThemeColors().secondaryText },
+      { id: 'appearance', title: '用户界面', subtitle: '深色模式 · 主题', icon: $r('app.media.ic_public_themes'), iconColor: this.getThemeColors().secondaryText },
+      { id: 'accessibility', title: '无障碍', subtitle: '降低动态效果', icon: $r('app.media.ic_public_face'), iconColor: this.getThemeColors().secondaryText },
+      { id: 'storage', title: '存储', subtitle: '缓存 · 播放历史 · 本地管理', icon: $r('app.media.ic_public_delete'), iconColor: this.getThemeColors().secondaryText },
+      { id: 'notification', title: '通知', subtitle: '锁屏/状态栏控制', icon: $r('app.media.ic_public_donotdisturb'), iconColor: this.getThemeColors().secondaryText },
+      { id: 'privacy', title: '隐私', subtitle: '听歌统计', icon: $r('app.media.ic_public_favor_filled'), iconColor: this.getThemeColors().secondaryText }
     ];
   }
 
@@ -146,7 +146,7 @@ export struct Settings {
       // 头部：返回箭头在二级页显示，标题随状态切换
       Row() {
         if (this.subPage !== '' || this.selectedCategory !== '') {
-          Image($r('app.media.ic_hm_back'))
+          Image($r('app.media.ic_public_arrow_left'))
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
@@ -255,7 +255,7 @@ export struct Settings {
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      Image($r('app.media.ic_hm_more'))
+      Image($r('app.media.ic_public_more'))
         .width(16)
         .fillColor(this.getThemeColors().separator)
     }
