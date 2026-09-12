@@ -215,7 +215,7 @@ struct Layout {
   private capsuleTabItem(item: TabItem, index: number) {
     Column({ space: 4 }) {
       SymbolGlyph(item.icon)
-        .fontSize(22)
+        .fontSize(TYPE_SM.title1.size)
         .fontColor([index === this.currentIndex ? this.getThemeColors().accent : this.getThemeColors().secondaryText])
         .animation({ duration: 160, curve: LumioTheme.curve(SpringKind.Crisp) })
 

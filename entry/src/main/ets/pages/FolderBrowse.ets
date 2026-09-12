@@ -137,14 +137,14 @@ export struct FolderBrowse {
         .width(22)
         .height(22)
         .fillColor(this.getThemeColors().accent)
-        .margin({ right: 14 })
+        .margin({ right: SPACE_SM.base })
         .onClick(() => {
           this.playFolder(f.name);
         })
     }
     .width('100%')
     .height(76)
-    .padding({ left: SPACE_SM.cozy, right: 14 })
+    .padding({ left: SPACE_SM.cozy, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
     .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })

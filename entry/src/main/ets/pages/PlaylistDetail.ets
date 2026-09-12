@@ -238,7 +238,7 @@ struct PlaylistDetail {
     Column() {
       Row() {
         Text('添加歌曲')
-          .fontSize(17)
+          .fontSize(TYPE_SM.title3.size)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
           .layoutWeight(1)
@@ -361,7 +361,7 @@ struct PlaylistDetail {
             .fontColor(this.getThemeColors().accent)
             .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
-            .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+            .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
         }
         .width('100%')
         .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.cozy })
@@ -376,7 +376,7 @@ struct PlaylistDetail {
             Text('播放全部')
               .fontSize(TYPE_SM.subhead.size)
               .fontColor(semanticOf(this.isDark).onAccent)
-              .margin({ left: 6 })
+              .margin({ left: SPACE_SM.compact })
           }
           .layoutWeight(1)
           .height(40)
@@ -403,7 +403,7 @@ struct PlaylistDetail {
             Text('添加歌曲')
               .fontSize(TYPE_SM.subhead.size)
               .fontColor(this.getThemeColors().primaryText)
-              .margin({ left: 6 })
+              .margin({ left: SPACE_SM.compact })
           }
           .layoutWeight(1)
           .height(40)

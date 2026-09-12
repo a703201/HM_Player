@@ -16,6 +16,7 @@
 
 import { AudioQuality } from '../models/music';
 import { semanticOf } from '../tokens/LumioColor';
+import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
 
 /**
  * 音质徽标：仅对无损(flac/wav/alac)与 Hi-Res(位深≥24 或 采样率≥96k)显示，
@@ -29,12 +30,12 @@ export struct QualityBadge {
   build() {
     if (this.quality === 'lossless' || this.quality === 'hires') {
       Text(this.quality === 'hires' ? 'Hi-Res' : '无损')
-        .fontSize(10)
+        .fontSize(TYPE_SM.caption2.size)
         .fontWeight(FontWeight.Medium)
         .fontColor(semanticOf(this.isDark).accent)
         .border({ width: 1, color: semanticOf(this.isDark).borderAccent })
         .borderRadius(4)
-        .padding({ left: 5, right: 5, top: 1, bottom: 1 })
+        .padding({ left: SPACE_SM.tight, right: SPACE_SM.tight, top: SPACE_SM.hair, bottom: SPACE_SM.hair })
     } else {
       Row() {
       }

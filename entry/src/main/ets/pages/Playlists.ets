@@ -287,14 +287,14 @@ struct Playlists {
         .width(22)
         .height(22)
         .fillColor(semanticOf(this.isDark).accent)
-        .margin({ right: 14 })
+        .margin({ right: SPACE_SM.base })
         .onClick(() => {
           this.playPlaylist(playlist);
         })
     }
     .width('100%')
     .height(76)
-    .padding({ left: SPACE_SM.cozy, right: 14 })
+    .padding({ left: SPACE_SM.cozy, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
     .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
@@ -352,14 +352,14 @@ struct Playlists {
         .width(22)
         .height(22)
         .fillColor(semanticOf(this.isDark).accent)
-        .margin({ right: 14 })
+        .margin({ right: SPACE_SM.base })
         .onClick(() => {
           this.playSmart(pl);
         })
     }
     .width('100%')
     .height(76)
-    .padding({ left: SPACE_SM.cozy, right: 14 })
+    .padding({ left: SPACE_SM.cozy, right: SPACE_SM.base })
     .backgroundColor(this.getThemeColors().cardBg)
     .borderRadius(16)
     .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
@@ -396,7 +396,7 @@ struct Playlists {
         .height(18)
         .objectFit(ImageFit.Contain)
         .fillColor(this.getThemeColors().secondaryText)
-        .margin({ right: SPACE_SM.base, top: 6, bottom: 6 })
+        .margin({ right: SPACE_SM.base, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
         .rotate({ angle: this.smartCollapsed ? 180 : 0 })
         .animation({ duration: 200, curve: LumioTheme.curve(SpringKind.Crisp) })
     }
@@ -458,12 +458,12 @@ struct Playlists {
             .fontColor(semanticOf(this.isDark).accent)
             .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
-            .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+            .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
             .margin({ right: SPACE_SM.cozy })
 
           Stack() {
             Text('+')
-              .fontSize(22)
+              .fontSize(TYPE_SM.title1.size)
               .fontWeight(FontWeight.Medium)
               .fontColor(semanticOf(this.isDark).onAccent)
           }

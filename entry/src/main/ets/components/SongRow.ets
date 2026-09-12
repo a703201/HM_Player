@@ -135,7 +135,7 @@ export struct SongRow {
 
         if (this.showQuality) {
           QualityBadge({ quality: this.song.getQuality() })
-            .margin({ left: 6 })
+            .margin({ left: SPACE_SM.compact })
         }
       }
       .alignItems(VerticalAlign.Center)

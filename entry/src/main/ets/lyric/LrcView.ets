@@ -390,17 +390,6 @@ export default struct shiLrcView {
     }
   }
 
-  drawMiddle() {
-    this.context.translate(0, -this.curCanvasOffsetY);
-    this.context.beginPath();
-    this.context.strokeStyle = Color.Red;
-    this.context.moveTo(0, this.viewHeight / 2);
-    this.context.lineTo(this.viewWidth, this.viewHeight / 2);
-    this.context.stroke();
-    this.context.closePath();
-    this.context.translate(0, this.curCanvasOffsetY);
-  }
-
   private getLineHeight(text: string, isCurrent?: boolean, translation?: string): number {
     let lineHeight = 0;
     if (isCurrent) {

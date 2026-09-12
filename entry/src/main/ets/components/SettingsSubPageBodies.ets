@@ -157,7 +157,7 @@ export struct ManageSongsBody {
         .fontColor(this.getThemeColors().accent)
         .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
         .borderRadius(12)
-        .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+        .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
         .margin({ left: SPACE_SM.base, bottom: SPACE_SM.cozy })
         .visibility(this.songs.length > 0 ? Visibility.Visible : Visibility.Hidden)
 
@@ -288,10 +288,10 @@ export struct DuplicateSongsBody {
           .fontColor(this.getThemeColors().accent)
           .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
           .borderRadius(12)
-          .padding({ left: SPACE_SM.compact, right: SPACE_SM.compact, top: 3, bottom: 3 })
+          .padding({ left: SPACE_SM.compact, right: SPACE_SM.compact, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
       }
       .width('100%')
-      .padding({ left: 14, right: 14, top: SPACE_SM.cozy, bottom: SPACE_SM.compact })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: SPACE_SM.cozy, bottom: SPACE_SM.compact })
 
       ForEach(group.songs, (song: SongItem, i: number) => {
         Row() {
@@ -313,14 +313,14 @@ export struct DuplicateSongsBody {
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
-          .padding({ left: 10 })
+          .padding({ left: SPACE_SM.cozy })
           if (i === 0) {
             Text('保留')
               .fontSize(TYPE_SM.caption1.size)
               .fontColor(this.getThemeColors().secondaryText)
               .backgroundColor(this.getThemeColors().secondaryBg)
               .borderRadius(12)
-              .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+              .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
           } else {
             Text('移除')
               .fontSize(TYPE_SM.footnote.size)
@@ -332,7 +332,7 @@ export struct DuplicateSongsBody {
           }
         }
         .width('100%')
-        .padding({ left: 14, right: 14, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
+        .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
       }, (song: SongItem) => 'dup_' + song.id.toString())
     }
     .width('100%')
@@ -491,7 +491,7 @@ export struct WrappedBody {
         .fontColor(this.getThemeColors().accent)
         .fontWeight(FontWeight.Medium)
         .letterSpacing(1)
-        .margin({ bottom: 10 })
+        .margin({ bottom: SPACE_SM.cozy })
       Text(`${this.totalPlays}`)
         .fontSize(56)
         .fontWeight(FontWeight.Bold)
@@ -499,7 +499,7 @@ export struct WrappedBody {
       Text('次播放')
         .fontSize(TYPE_SM.body.size)
         .fontColor(this.getThemeColors().secondaryText)
-        .margin({ top: SPACE_SM.hair, bottom: 18 })
+        .margin({ top: SPACE_SM.hair, bottom: SPACE_SM.roomy })
       Row() {
         Column() {
           Text('总收听时长')
@@ -541,7 +541,7 @@ export struct WrappedBody {
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .width('100%')
-        .padding({ left: SPACE_SM.cozy, bottom: 10 })
+        .padding({ left: SPACE_SM.cozy, bottom: SPACE_SM.cozy })
       ForEach(this.topSongs, (song: SongItem, index: number) => {
         Row() {
           Text(`${index + 1}`)
@@ -568,17 +568,17 @@ export struct WrappedBody {
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
-          .padding({ left: 10 })
+          .padding({ left: SPACE_SM.cozy })
           Text(`${this.store.getPlayCount(song.id)} 次`)
             .fontSize(TYPE_SM.footnote.size)
             .fontColor(this.getThemeColors().secondaryText)
         }
         .width('100%')
         .height(58)
-        .padding({ left: SPACE_SM.cozy, right: 14 })
+        .padding({ left: SPACE_SM.cozy, right: SPACE_SM.base })
         .backgroundColor(this.getThemeColors().cardBg)
         .borderRadius(12)
-        .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: 6 })
+        .margin({ left: SPACE_SM.compact, right: SPACE_SM.compact, bottom: SPACE_SM.compact })
       }, (song: SongItem) => 'top_' + song.id.toString())
     }
     .margin({ bottom: SPACE_SM.base })
@@ -614,7 +614,7 @@ export struct WrappedBody {
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
-        .margin({ bottom: 10 })
+        .margin({ bottom: SPACE_SM.cozy })
       }, (y: YearStat) => 'year_' + y.year)
     }
     .width('100%')
@@ -694,7 +694,7 @@ export struct PrivacyPolicyBody {
   buildSection(title: string, body: string) {
     Column() {
       Text(title)
-        .fontSize(17)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .width('100%')

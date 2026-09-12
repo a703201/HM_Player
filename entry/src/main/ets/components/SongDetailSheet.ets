@@ -115,7 +115,7 @@ export struct SongDetailSheet {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding({ top: 10, bottom: 10 })
+    .padding({ top: SPACE_SM.cozy, bottom: SPACE_SM.cozy })
   }
 
   build() {

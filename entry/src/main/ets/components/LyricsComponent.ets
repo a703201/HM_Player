@@ -42,6 +42,7 @@ import { ControlAreaComponent } from './ControlAreaComponent';
 import { PlayerConstants } from '../common/constants/PlayerConstants';
 import { Logger } from '../utils/Logger';
 import { AudioRendererController } from '../utils/AudioRendererController';
+import { onMediaOf } from '../tokens/LumioColor';
 
 const TAG: string = 'LyricsComponent';
 
@@ -172,7 +173,7 @@ export struct LyricsComponent {
                 md: $r('app.float.title_font_md'),
                 lg: $r('app.float.title_font_lg')
               }).getValue(this.currentBreakpoint))
-              .fontColor(Color.White)
+              .fontColor(onMediaOf(this.lyricBgDark).primary)
               .fontWeight(PlayerConstants.FONT_WEIGHT_700)
               .fontFamily(PlayerConstants.FONT_FAMILY_BOLD)
             Text(this.songList[this.selectIndex].singer)
@@ -221,7 +222,7 @@ export struct LyricsComponent {
                         md: $r('app.float.title_font_md'),
                         lg: $r('app.float.title_font_lg')
                       }).getValue(this.currentBreakpoint))
-                      .fontColor(Color.White)
+                      .fontColor(onMediaOf(this.lyricBgDark).primary)
                       .fontWeight(PlayerConstants.FONT_WEIGHT_700)
                       .fontFamily(PlayerConstants.FONT_FAMILY_BOLD)
                     Text(this.songList[this.selectIndex].singer)

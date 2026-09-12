@@ -348,9 +348,9 @@ export struct LocalLibrary {
         ForEach([0, 1, 2, 5, 3, 4], (mode: number) => {
           Text(this.librarySortLabel(mode))
             .fontSize(TYPE_SM.footnote.size)
-            .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
+            .fontColor(this.sortMode === mode ? semanticOf(this.isDark).onAccent : this.getThemeColors().secondaryText)
             .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
-            .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+            .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
             .borderRadius(16)
             .onClick(() => {
               this.applyLibrarySort(mode);
@@ -362,7 +362,7 @@ export struct LocalLibrary {
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
     .width('100%')
-    .margin({ bottom: 10 })
+    .margin({ bottom: SPACE_SM.cozy })
   }
 
   
@@ -413,7 +413,7 @@ export struct LocalLibrary {
             .fontColor(this.getThemeColors().accent)
             .fontWeight(FontWeight.Medium)
         }
-        .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: 6, bottom: 6 })
+        .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
         .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
         .borderRadius(16)
         .margin({ right: SPACE_SM.base, top: this.topHeight + 8 })
@@ -452,7 +452,7 @@ export struct LocalLibrary {
       }
       .width('100%')
       .height(44)
-      .padding({ left: 14, right: 14 })
+      .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
       .backgroundColor(this.getThemeColors().cardBg)
       .borderRadius(22)
       .margin({ left: SPACE_SM.base, right: SPACE_SM.base, bottom: SPACE_SM.cozy })
@@ -505,7 +505,7 @@ export struct LocalLibrary {
 
           Button('重试')
             .fontSize(TYPE_SM.subhead.size)
-            .fontColor(Color.White)
+            .fontColor(semanticOf(this.isDark).onAccent)
             .backgroundColor(this.getThemeColors().accent)
             .borderRadius(24)
             .padding({ left: SPACE_SM.loose, right: SPACE_SM.loose, top: SPACE_SM.compact, bottom: SPACE_SM.compact })

@@ -34,6 +34,7 @@ import { AVCastPicker } from '@kit.AVSessionKit';
 import { SongItem } from '../songdatacontroller/SongData';
 import { StyleConstants } from '../common/constants/StyleConstants';
 import { BreakpointType } from '../common/utils/BreakpointSystem';
+import { onMediaOf } from '../tokens/LumioColor';
 
 @Component
 export struct TopAreaComponent {
@@ -41,12 +42,12 @@ export struct TopAreaComponent {
   @StorageLink('songList') songList: SongItem[] = [];
   @StorageProp('selectIndex') @Watch('getIsDark') selectIndex: number = 0;
   @State isDark: boolean = true;
-  @State color: Color = Color.White
+  @State color: string = '#FFFFFF'
 
   getIsDark() {
     const song = this.songList.length > 0 ? this.songList[this.selectIndex] : undefined;
     this.isDark = song ? song.isDarkBackground : true;
-    this.color = this.isDark ? Color.White : Color.Black;
+    this.color = onMediaOf(this.isDark).primary;
   }
 
   build() {

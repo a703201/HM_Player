@@ -158,7 +158,7 @@ struct Favorites {
             .fontColor(this.getThemeColors().accent)
             .backgroundColor(semanticOf(this.isDark).fillAccentSoft)
             .borderRadius(12)
-            .padding({ left: 10, right: 10, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
+            .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
         }
         .width('100%')
         .padding({ left: SPACE_SM.base, right: SPACE_SM.base, top: this.topHeight + 12, bottom: SPACE_SM.base })

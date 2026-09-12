@@ -260,7 +260,7 @@ export struct SettingsCategoryDetail {
       .fontSize(TYPE_SM.footnote.size)
       .fontColor(this.getThemeColors().secondaryText)
       .width('100%')
-      .padding({ left: SPACE_SM.tight, top: SPACE_SM.base, bottom: 10 })
+      .padding({ left: SPACE_SM.tight, top: SPACE_SM.base, bottom: SPACE_SM.cozy })
   }
 
   @Builder

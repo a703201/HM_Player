@@ -39,6 +39,7 @@ import { ContainerReader } from '@kit.ArkUI';
 import { LengthMetrics } from '@ohos.arkui.node';
 import { ApiCompat } from '../common/utils/ApiCompat';
 import { SPACE_SM } from '../tokens/LumioScale';
+import { onMediaOf } from '../tokens/LumioColor';
 
 /**
  * 容器真实尺寸（vp）。作为 ContainerReader 断点分析的参考尺寸，
@@ -174,7 +175,7 @@ export struct MusicInfoComponent {
 
       if (this.showQualityBadge()) {
         QualityBadge({ quality: this.currentSong()!.getQuality() })
-          .margin({ top: 10, left: SPACE_SM.hair })
+          .margin({ top: SPACE_SM.cozy, left: SPACE_SM.hair })
       }
     }
     .alignItems(HorizontalAlign.Start)
@@ -211,7 +212,7 @@ export struct MusicInfoComponent {
         styledValue: new TextStyle({
           fontWeight: FontWeight.Bold,
           fontSize: LengthMetrics.fp(titleSize),
-          fontColor: Color.White
+          fontColor: onMediaOf(true).primary
         })
       },
       {

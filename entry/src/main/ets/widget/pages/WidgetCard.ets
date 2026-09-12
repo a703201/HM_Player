@@ -161,7 +161,7 @@ struct WidgetCard {
         }
         .width('100%')
         .justifyContent(FlexAlign.SpaceBetween)
-        .margin({ top: 6 })
+        .margin({ top: SPACE_SM.compact })
       }
       .width('100%')
       .margin({ top: SPACE_SM.cozy, left: SPACE_SM.base, right: SPACE_SM.base })

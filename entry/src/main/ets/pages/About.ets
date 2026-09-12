@@ -167,7 +167,7 @@ export struct About {
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getThemeColors().primaryText)
-            .margin({ top: SPACE_SM.roomy, bottom: 6 })
+            .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.compact })
             .opacity(this.titleOpacity)
             .transition(TransitionEffect.translate({ y: 10 }))
             .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
@@ -180,7 +180,7 @@ export struct About {
             .animation({ duration: 400, curve: LumioTheme.curve(SpringKind.Crisp) })
         }
         .width('100%')
-        .padding({ top: this.topHeight + 48, bottom: 36 })
+        .padding({ top: this.topHeight + 48, bottom: SPACE_SM.section })
         .backgroundColor(this.getThemeColors().secondaryBg)
 
         // Features section
@@ -314,7 +314,7 @@ export struct About {
           .textAlign(TextAlign.Center)
           .width('100%')
           .margin({ top: SPACE_SM.section, bottom: SPACE_SM.block })
-          .padding({ left: 30, right: 30 })
+          .padding({ left: SPACE_SM.section, right: SPACE_SM.section })
           .transition(TransitionEffect.OPACITY)
           .animation({ duration: 500, curve: LumioTheme.curve(SpringKind.Crisp), delay: 800 })
       }

@@ -43,7 +43,7 @@ import { ResourceConversion } from '../common/utils/ResourceConversion';
 import { MusicStore } from '../services/MusicStore';
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { sortSongs } from '../common/utils/SortUtil';
-import { onMediaOf } from '../tokens/LumioColor';
+import { onMediaOf, semanticOf } from '../tokens/LumioColor';
 import { Motion, springSnappy } from '../common/utils/DesignSystem';
 import { SleepTimer } from '../utils/SleepTimer';
 import { SettingsStore } from '../utils/SettingsStore';
@@ -109,7 +109,7 @@ export struct ControlAreaComponent {
       Row() {
         Image(this.playMode === MusicPlayMode.ORDER ? $r('app.media.order_play') :
           this.playMode === MusicPlayMode.RANDOM ? $r('app.media.shuffle') : $r('app.media.repeat_1'))
-          .fillColor(Color.White)
+          .fillColor(onMediaOf(this.isDark).primary)
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.twenty_four'),
@@ -120,7 +120,7 @@ export struct ControlAreaComponent {
             this.switchPlayMode()
           })
         Image($r('app.media.ic_music_list'))
-          .fillColor(Color.White)
+          .fillColor(onMediaOf(this.isDark).primary)
           .controlImageBuilder()
           .width(new BreakpointType({
             sm: $r('app.float.twenty_four'),
@@ -154,7 +154,7 @@ export struct ControlAreaComponent {
             AudioRendererController.getInstance().setSilentModeAndMixWithOthers(this.isSilentMode)
           })
         Image(this.isFavorite ? $r('app.media.heart_fill') : $r('app.media.heart'))
-          .fillColor(this.isFavorite ? Color.Red : Color.White)
+          .fillColor(this.isFavorite ? semanticOf(this.isDark).accent : onMediaOf(this.isDark).primary)
           .controlImageBuilder()
           .animation({
             duration: Motion.fade,
@@ -176,8 +176,8 @@ export struct ControlAreaComponent {
         Text(this.speedLabel())
           .fontSize(TYPE_SM.caption1.size)
           .fontWeight(FontWeight.Medium)
-          .fontColor(Color.White)
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .fontColor(onMediaOf(this.isDark).primary)
+          .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
           .backgroundColor(onMediaOf(this.isDark).controlBg)
           .borderRadius(12)
           .onClick(() => {
@@ -192,7 +192,7 @@ export struct ControlAreaComponent {
           })
 
         Image($r('app.media.ic_sleep'))
-          .fillColor(Color.White)
+          .fillColor(onMediaOf(this.isDark).primary)
           .controlImageBuilder()
           .width(24)
           .onClick(() => {
@@ -361,7 +361,7 @@ export struct ControlAreaComponent {
   speedSheet() {
     Column() {
       Text('播放速度')
-        .fontSize(17)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
@@ -391,7 +391,7 @@ export struct ControlAreaComponent {
   sleepSheet() {
     Column() {
       Text('睡眠定时')
-        .fontSize(17)
+        .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.getThemeColors().primaryText)
         .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
@@ -530,9 +530,9 @@ export struct ControlAreaComponent {
       ForEach([0, 1, 2, 3, 4], (mode: number) => {
         Text(this.sortLabel(mode))
           .fontSize(TYPE_SM.footnote.size)
-          .fontColor(this.sortMode === mode ? Color.White : this.getThemeColors().secondaryText)
+          .fontColor(this.sortMode === mode ? semanticOf(this.isDark).onAccent : this.getThemeColors().secondaryText)
           .backgroundColor(this.sortMode === mode ? this.getThemeColors().accent : this.getThemeColors().secondaryBg)
-          .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: 6, bottom: 6 })
+          .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.compact, bottom: SPACE_SM.compact })
           .borderRadius(16)
           .margin({ right: SPACE_SM.compact })
           .onClick(() => {
