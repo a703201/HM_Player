@@ -285,6 +285,7 @@ export struct LyricsComponent {
       Row() {
         Image(this.currentBreakpoint === BreakpointConstants.BREAKPOINT_LG ?
         $r('app.media.ic_public_text') : $r('app.media.ic_public_text'))
+          .fillColor(onMediaOf(this.lyricBgDark).primary)
           .width(new BreakpointType({
             sm: $r('app.float.lyrics_width_sm'),
             md: $r('app.float.lyrics_width_md'),

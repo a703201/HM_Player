@@ -607,6 +607,7 @@ function controlImageBuilder() {
   .aspectRatio(1)
   .opacity(0.86)
   .objectFit(ImageFit.Contain)
+  .fillColor(onMediaOf(true).primary)
 }
 
 @Reusable
