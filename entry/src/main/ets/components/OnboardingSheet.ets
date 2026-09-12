@@ -51,7 +51,7 @@ export struct OnboardingSheet {
       { icon: $r('app.media.ic_public_albums'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先', color: semanticOf(this.isDark).accent },
       { icon: $r('app.media.ic_public_favor'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现', color: semanticOf(this.isDark).warning },
       { icon: $r('app.media.ic_public_view_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合', color: LUMIO_PALETTE.purple },
-      { icon: $r('app.media.ic_public_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: semanticOf(this.isDark).success }
+      { icon: $r('app.media.ic_lib_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: semanticOf(this.isDark).success }
     ];
   }
 

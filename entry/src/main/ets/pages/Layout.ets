@@ -278,12 +278,12 @@ struct Layout {
         // 注意：AppStorage('isPlay') 在本入口的运行时绑定与播放态相反（与播放页主按钮一致），
         // 故采用反相映射——实际播放中显示「开始/播放」三角(ic_hm_play)，停止时显示「暂停」双竖条(ic_hm_pause)。
         if (this.isPlaying) {
-          this.playStateOverlay($r('app.media.ic_public_pause'))
+          this.playStateOverlay($r('app.media.ic_lib_pause'))
         } else {
-          this.playStateOverlay($r('app.media.ic_public_play'))
+          this.playStateOverlay($r('app.media.ic_lib_play'))
         }
       } else {
-        Image($r('app.media.ic_public_play'))
+        Image($r('app.media.ic_lib_play'))
           .width(24)
           .height(24)
           .fillColor(semanticOf(this.isDark).onAccent)
@@ -350,26 +350,6 @@ struct Layout {
   }
 
   /**
-   * 导航胶囊宽度探针（隐形，1vp 高）：实测 `92% / max 520` 的可用宽度，
-   * 供 AppleUI 透镜与导航内容层定尺寸（AppleUI 的 Width/Height 必须是数值 vp）。
-   */
-  @Builder
-  private navWidthProbe() {
-    Row()
-      .width('92%')
-      .constraintSize({ maxWidth: 520 })
-      .height(1)
-      .opacity(0)
-      .hitTestBehavior(HitTestMode.None)
-      .onAreaChange((_oldArea: Area, newArea: Area) => {
-        const w: number = typeof newArea.width === 'number' ? newArea.width as number : 0;
-        if (w > 0 && Math.abs(w - this.navW) > 0.5) {
-          this.navW = w;
-        }
-      })
-  }
-
-  /**
    * 底部导航液态玻璃层（苹果风悬浮胶囊 · 液态玻璃）。
    *
    * 关键：AppleUI 必须**紧跟在内容层（Tabs）之后**作为它的「后一个兄弟」——组件以
@@ -419,18 +399,24 @@ struct Layout {
     Row() {
       this.miniBarInner()
     }
-    .width(this.navW)
+    .width('92%')
+    .constraintSize({ maxWidth: 520 })
     .height(NAV_H)
     .borderRadius(NAV_H / 2)
     .clip(true)
     .margin({ bottom: this.bottomHeight + NAV_GAP })
+    .onAreaChange((_oldArea: Area, newArea: Area) => {
+      // 实测胶囊宽度并回填给 AppleUI 透镜（其 Width 必须为数值 vp）。
+      const w: number = typeof newArea.width === 'number' ? newArea.width as number : 0;
+      if (w > 0 && Math.abs(w - this.navW) > 0.5) {
+        this.navW = w;
+      }
+    })
   }
 
   build() {
     NavDestination() {
       Stack({ alignContent: Alignment.Bottom }) {
-        this.navWidthProbe()
-
         Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
           TabContent() {
             LocalLibrary()

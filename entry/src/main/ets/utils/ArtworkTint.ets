@@ -84,10 +84,28 @@ function toHex(r: number, g: number, b: number): string {
 
 /** 解析 'rgba(r, g, b, a)' 为数值结构。 */
 function parseRgba(s: string): Rgba4 {
+  // 兼容 '#RRGGBB' / '#AARRGGBB'（令牌不透明色用 hex）与 'rgba(r,g,b,a)'。
+  // 否则对 hex 解析会越界取到 undefined，调用 .trim() 直接崩溃。
+  if (s.charAt(0) === '#') {
+    const hx: string = s.substring(1);
+    if (hx.length >= 6) {
+      const rr: number = parseInt(hx.substring(0, 2), 16);
+      const gg: number = parseInt(hx.substring(2, 4), 16);
+      const bb: number = parseInt(hx.substring(4, 6), 16);
+      const aa: number = hx.length >= 8 ? parseInt(hx.substring(6, 8), 16) / 255 : 1;
+      return { r: rr, g: gg, b: bb, a: aa };
+    }
+    return { r: 0, g: 0, b: 0, a: 1 };
+  }
   const start: number = s.indexOf('(');
   const end: number = s.indexOf(')');
-  const inner: string = s.substring(start + 1, end);
-  const parts: Array<string> = inner.split(',');
+  if (start < 0 || end <= start) {
+    return { r: 0, g: 0, b: 0, a: 1 };
+  }
+  const parts: Array<string> = s.substring(start + 1, end).split(',');
+  if (parts.length < 4) {
+    return { r: 0, g: 0, b: 0, a: 1 };
+  }
   return {
     r: Number(parts[0].trim()),
     g: Number(parts[1].trim()),

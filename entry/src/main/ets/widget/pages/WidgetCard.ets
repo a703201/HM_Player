@@ -193,7 +193,7 @@ struct WidgetCard {
         })
 
         Button({ type: ButtonType.Circle }) {
-          Image(this.isPlaying ? $r('app.media.ic_public_pause') : $r('app.media.ic_public_play'))
+          Image(this.isPlaying ? $r('app.media.ic_lib_pause') : $r('app.media.ic_lib_play'))
             .width(28)
             .height(28)
             .fillColor(this.getCardColors().playIconColor)

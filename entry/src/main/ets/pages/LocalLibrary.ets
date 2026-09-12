@@ -369,7 +369,7 @@ export struct LocalLibrary {
 
     private buildMenuItems(song: SongItem): SongMenuEntry[] {
     return [
-      { text: '播放', icon: $r('app.media.ic_public_play'), action: () => { this.playSong(song); } },
+      { text: '播放', icon: $r('app.media.ic_lib_play'), action: () => { this.playSong(song); } },
       { text: this.store.isFavorite(song.id) ? '取消收藏' : '收藏', icon: $r('app.media.ic_public_collect'), action: () => { this.toggleFavoriteSong(song); } },
       { text: '添加到歌单', icon: $r('app.media.ic_public_add'), action: () => { this.openAddToPlaylist(song); } },
       { text: '详细', icon: $r('app.media.ic_public_detail'), action: () => { this.openSongDetail(song); } },
