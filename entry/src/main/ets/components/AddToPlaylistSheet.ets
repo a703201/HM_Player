@@ -128,7 +128,7 @@ export struct AddToPlaylistSheet {
           .borderRadius(24)
           .onClick(() => {
             this.nameDialogController.close();
-          })
+          }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
 
         Button('确定')
           .layoutWeight(1)
@@ -140,7 +140,7 @@ export struct AddToPlaylistSheet {
           .margin({ left: SPACE_SM.cozy })
           .onClick(() => {
             this.onNewConfirm(this.newName);
-          })
+          }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
       }
       .width('86%')
       .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.roomy })
@@ -193,7 +193,7 @@ export struct AddToPlaylistSheet {
               .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
               .onClick(() => {
                 this.addTo(playlist);
-              })
+              }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
             }
           }, (playlist: Playlist): string => playlist.id)
         }
@@ -217,7 +217,7 @@ export struct AddToPlaylistSheet {
       .onClick(() => {
         this.newName = '';
         this.nameDialogController.open();
-      })
+      }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
 
       Blank()
         .height(12)

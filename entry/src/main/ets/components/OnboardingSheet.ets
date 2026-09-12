@@ -143,7 +143,7 @@ export struct OnboardingSheet {
         .borderRadius(24)
         .onClick(() => {
           this.onClose();
-        })
+        }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
     }
     .width('100%')
     .height('100%')

@@ -382,7 +382,7 @@ export struct SettingsCategoryDetail {
     .margin({ bottom: SPACE_SM.hair })
     .onClick(() => {
       onClick();
-    })
+    }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
   }
 
   // ===== 各分类内容 =====

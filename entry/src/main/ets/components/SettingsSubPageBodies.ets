@@ -54,7 +54,7 @@ export struct SubPageHeader {
         .width(24)
         .height(24)
         .fillColor(this.getThemeColors().primaryText)
-        .onClick(() => this.onBack())
+        .onClick(() => this.onBack()).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
       Text(this.title)
         .fontSize(TYPE_SM.title2.size)
         .fontWeight(FontWeight.Bold)
@@ -328,7 +328,7 @@ export struct DuplicateSongsBody {
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
                 this.removeOne(song);
-              })
+              }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
           }
         }
         .width('100%')
@@ -349,7 +349,7 @@ export struct DuplicateSongsBody {
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
-            .onClick(() => this.onBack())
+            .onClick(() => this.onBack()).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
           Text('重复歌曲')
             .fontSize(TYPE_SM.title2.size)
             .fontWeight(FontWeight.Bold)
@@ -363,7 +363,7 @@ export struct DuplicateSongsBody {
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
                 this.removeAllDuplicates();
-              })
+              }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
           }
         }
         .width('100%')

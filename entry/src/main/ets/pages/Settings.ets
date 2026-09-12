@@ -150,7 +150,7 @@ export struct Settings {
             .width(24)
             .height(24)
             .fillColor(this.getThemeColors().primaryText)
-            .onClick(() => this.goBackInSheet())
+            .onClick(() => this.goBackInSheet()).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
         }
         Text(this.currentTitle())
           .fontSize(TYPE_SM.title2.size)
@@ -272,6 +272,6 @@ export struct Settings {
           this.selectedCategory = cat.id;
         }
       );
-    })
+    }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
   }
 }
