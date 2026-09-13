@@ -28,6 +28,8 @@ import { semanticOf } from '../tokens/LumioColor';
 import { SongRow, SongMenuEntry } from '../components/SongRow';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { acquireSheetMaterial, SheetScaffold } from '../common/utils/SheetMaterial';
 
 const TAG: string = 'PlaylistDetail';
 
@@ -59,6 +61,8 @@ struct PlaylistDetail {
   @State selectedSong: SongItem | undefined = undefined;
   @State sheetOpen: boolean = false;
   @State sheetKind: 'detail' | 'add' | 'picker' = 'detail';
+  /** 系统材质实例：API 26 经动态 import 注入；API 24 恒为 undefined（SheetScaffold 走纯色兜底）。 */
+  @State material: uiMaterial.Material | undefined = undefined;
 
   // 添加歌曲面板
   @State candidates: SongItem[] = [];
@@ -66,6 +70,12 @@ struct PlaylistDetail {
 
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
+  }
+
+  aboutToAppear(): void {
+    acquireSheetMaterial().then((m: uiMaterial.Material | undefined): void => {
+      this.material = m;
+    });
   }
 
   onCoverRefreshed(): void {
@@ -235,9 +245,10 @@ struct PlaylistDetail {
 
   @Builder
   songPickerBuilder() {
-    Column() {
-      Row() {
-        Text('添加歌曲')
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
+      Column() {
+        Row() {
+          Text('添加歌曲')
           .fontSize(TYPE_SM.title3.size)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getThemeColors().primaryText)
@@ -320,7 +331,7 @@ struct PlaylistDetail {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(this.getThemeColors().bg)
+    }
   }
 
   
@@ -489,7 +500,7 @@ struct PlaylistDetail {
         detents: [SheetSize.MEDIUM, SheetSize.LARGE],
         dragBar: true,
         showClose: true,
-        backgroundColor: this.getThemeColors().bg,
+        backgroundColor: this.getThemeColors().surfaceOverlay,
         preferType: SheetType.BOTTOM
       })
     }

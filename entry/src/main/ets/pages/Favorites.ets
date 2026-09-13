@@ -171,7 +171,7 @@ struct Favorites {
               .fillColor(this.getThemeColors().secondaryText)
               .margin({ bottom: SPACE_SM.base })
               .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-              .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
+              .animation({ duration: LumioTheme.duration(700), curve: LumioTheme.curve(SpringKind.Crisp) })
 
             Text('暂无收藏歌曲')
               .fontSize(TYPE_SM.headline.size)
@@ -233,7 +233,7 @@ struct Favorites {
         detents: [SheetSize.MEDIUM, SheetSize.LARGE],
         dragBar: true,
         showClose: true,
-        backgroundColor: this.getThemeColors().bg,
+        backgroundColor: this.getThemeColors().surfaceOverlay,
         preferType: SheetType.BOTTOM
       })
     }

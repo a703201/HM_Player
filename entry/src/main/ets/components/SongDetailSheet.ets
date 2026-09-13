@@ -27,6 +27,7 @@ import { fileIo as fs } from '@kit.CoreFileKit';
 import type uiMaterial from '@ohos.arkui.uiMaterial';
 import { ApiCompat } from '../common/utils/ApiCompat';
 import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
+import { GroupedSheetContainer, GroupedSheetHairline } from '../common/components/GroupedSheet';
 
 function getFileName(src: string): string {
   try {
@@ -104,18 +105,22 @@ export struct SongDetailSheet {
     Row() {
       Text(label)
         .fontSize(TYPE_SM.subhead.size)
+        .lineHeight(TYPE_SM.subhead.lineHeight)
+        .letterSpacing(TYPE_SM.subhead.tracking)
         .fontColor(this.getThemeColors().secondaryText)
         .width(80)
 
       Text(value)
         .fontSize(TYPE_SM.subhead.size)
+        .lineHeight(TYPE_SM.subhead.lineHeight)
+        .letterSpacing(TYPE_SM.subhead.tracking)
         .fontColor(this.getThemeColors().primaryText)
         .layoutWeight(1)
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding({ top: SPACE_SM.cozy, bottom: SPACE_SM.cozy })
+    .padding({ top: SPACE_SM.compact, bottom: SPACE_SM.compact })
   }
 
   build() {
@@ -144,6 +149,8 @@ export struct SongDetailSheet {
     Text('歌曲信息')
       .fontSize(TYPE_SM.title3.size)
       .fontWeight(FontWeight.Bold)
+      .lineHeight(TYPE_SM.title3.lineHeight)
+      .letterSpacing(TYPE_SM.title3.tracking)
       .fontColor(this.getThemeColors().primaryText)
       .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.base })
 
@@ -158,12 +165,20 @@ export struct SongDetailSheet {
 
   @Builder
   private songContent(song: SongItem) {
-    this.infoRow('文件名', getFileName(song.src))
-    this.infoRow('标题', song.title.length > 0 ? song.title : '未知')
-    this.infoRow('歌手', song.singer.length > 0 ? song.singer : '未知')
-    this.infoRow('作曲家', song.author.length > 0 ? song.author : '未知')
-    this.infoRow('合集', song.album.length > 0 ? song.album : '未知')
-    this.infoRow('年代', song.year.length > 0 ? song.year : '未知')
-    this.infoRow('添加时间', getFileModifiedTime(song.src))
+    GroupedSheetContainer() {
+      this.infoRow('文件名', getFileName(song.src))
+      GroupedSheetHairline(this.getThemeColors().separator)
+      this.infoRow('标题', song.title.length > 0 ? song.title : '未知')
+      GroupedSheetHairline(this.getThemeColors().separator)
+      this.infoRow('歌手', song.singer.length > 0 ? song.singer : '未知')
+      GroupedSheetHairline(this.getThemeColors().separator)
+      this.infoRow('作曲家', song.author.length > 0 ? song.author : '未知')
+      GroupedSheetHairline(this.getThemeColors().separator)
+      this.infoRow('合集', song.album.length > 0 ? song.album : '未知')
+      GroupedSheetHairline(this.getThemeColors().separator)
+      this.infoRow('年代', song.year.length > 0 ? song.year : '未知')
+      GroupedSheetHairline(this.getThemeColors().separator)
+      this.infoRow('添加时间', getFileModifiedTime(song.src))
+    }
   }
 }

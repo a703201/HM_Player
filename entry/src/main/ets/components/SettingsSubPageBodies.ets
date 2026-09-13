@@ -169,7 +169,7 @@ export struct ManageSongsBody {
             .fillColor(this.getThemeColors().secondaryText)
             .margin({ bottom: SPACE_SM.base })
             .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-            .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
+            .animation({ duration: LumioTheme.duration(700), curve: LumioTheme.curve(SpringKind.Crisp) })
           Text('暂无本地歌曲')
             .fontSize(TYPE_SM.headline.size)
             .fontColor(this.getThemeColors().secondaryText)

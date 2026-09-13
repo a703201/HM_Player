@@ -36,6 +36,7 @@ export interface ColorTokens {
   bg: string;            // 页面背景
   secondaryBg: string;   // 分组头/带状背景
   cardBg: string;        // 卡片背景
+  surfaceOverlay: string;// 覆盖表面（sheet/弹层/毛玻璃兜底），值同 cardBg(#FFF/#1C1C1E)，仅命名不同
   primaryText: string;   // 主文字
   secondaryText: string; // 次文字/副标题
   separator: string;     // 分隔线
@@ -51,6 +52,7 @@ const LIGHT_TOKENS: ColorTokens = {
   bg: LIGHT_SEMANTIC.surfaceGrouped,
   secondaryBg: LIGHT_SEMANTIC.backgroundSecondary,
   cardBg: LIGHT_SEMANTIC.surfaceGroupedContent,
+  surfaceOverlay: LIGHT_SEMANTIC.surfaceOverlay,
   primaryText: LIGHT_SEMANTIC.label,
   secondaryText: LIGHT_SEMANTIC.labelSecondary,
   separator: LIGHT_SEMANTIC.separator,
@@ -61,6 +63,7 @@ const DARK_TOKENS: ColorTokens = {
   bg: DARK_SEMANTIC.surfaceGrouped,
   secondaryBg: DARK_SEMANTIC.backgroundSecondary,
   cardBg: DARK_SEMANTIC.surfaceGroupedContent,
+  surfaceOverlay: DARK_SEMANTIC.surfaceOverlay,
   primaryText: DARK_SEMANTIC.label,
   secondaryText: DARK_SEMANTIC.labelSecondary,
   separator: DARK_SEMANTIC.separator,

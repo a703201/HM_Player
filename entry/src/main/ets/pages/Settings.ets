@@ -26,6 +26,8 @@ import {
   PrivacyPolicyBody
 } from '../components/SettingsSubPageBodies';
 import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { acquireSheetMaterial, SheetScaffold } from '../common/utils/SheetMaterial';
 
 interface SettingsCategoryParam {
   category: string;
@@ -59,10 +61,18 @@ export struct Settings {
   settings: SettingsStore = SettingsStore.getInstance();
   @StorageProp('topHeight') topHeight: number = 0;
   @StorageProp('isDark') isDark: boolean = false;
+  /** 系统材质实例：API 26 经动态 import 注入；API 24 恒为 undefined（SheetScaffold 走纯色兜底）。 */
+  @State material: uiMaterial.Material | undefined = undefined;
 
   /** 主题响应式：跟随应用浅色/深色主题（sheet 内页面与全局一致，不强制灰底白字）。 */
   private getThemeColors(): ColorTokens {
     return this.isDark ? ThemeManager.darkColors : ThemeManager.lightColors;
+  }
+
+  aboutToAppear(): void {
+    acquireSheetMaterial().then((m: uiMaterial.Material | undefined): void => {
+      this.material = m;
+    });
   }
 
   /**
@@ -142,9 +152,10 @@ export struct Settings {
   }
 
   build() {
-    Column() {
-      // 头部：返回箭头在二级页显示，标题随状态切换
-      Row() {
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
+      Column() {
+        // 头部：返回箭头在二级页显示，标题随状态切换
+        Row() {
         if (this.subPage !== '' || this.selectedCategory !== '') {
           Image($r('app.media.ic_public_arrow_left'))
             .width(24)
@@ -212,8 +223,8 @@ export struct Settings {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(this.getThemeColors().bg)
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    }
   }
 
   /** 把分类页中 onNavigate 调用的目标名映射到 sheet 内 subPage。 */

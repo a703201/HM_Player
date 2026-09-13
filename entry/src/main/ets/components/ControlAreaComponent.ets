@@ -47,7 +47,10 @@ import { onMediaOf, semanticOf } from '../tokens/LumioColor';
 import { Motion, springSnappy } from '../common/utils/DesignSystem';
 import { SleepTimer } from '../utils/SleepTimer';
 import { SettingsStore } from '../utils/SettingsStore';
-import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
+import { TYPE_SM, SPACE_SM, LUMIO_RADIUS } from '../tokens/LumioScale';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { acquireSheetMaterial, SheetScaffold } from '../common/utils/SheetMaterial';
+import { GroupedSheetContainer, GroupedSheetHairline } from '../common/components/GroupedSheet';
 
 const TAG = 'ControlAreaComponent'
 
@@ -82,6 +85,14 @@ export struct ControlAreaComponent {
   @StorageProp('isDark') isDark: boolean = false;
   private scroller: Scroller = new Scroller();
   private resourceConversion: ResourceConversion = new ResourceConversion();
+  /** 系统材质实例：API 26 经动态 import 注入；API 24 恒为 undefined（SheetScaffold 走纯色兜底）。 */
+  @State material: uiMaterial.Material | undefined = undefined;
+
+  aboutToAppear(): void {
+    acquireSheetMaterial().then((m: uiMaterial.Material | undefined): void => {
+      this.material = m;
+    });
+  }
 
   switchPlayMode() {
     if (this.playModeIndex === PlayModeSwitchList.length - 1) {
@@ -133,12 +144,12 @@ export struct ControlAreaComponent {
           .onClick(() => {
             this.isShowPlayList = true;
           })
-          .bindSheet($$this.isShowPlayList, this.musicListBuilder(), {
-            detents: [SheetSize.MEDIUM],
-            dragBar: false,
-            showClose: false,
-            backgroundColor: this.getThemeColors().cardBg,
-            preferType: SheetType.CENTER,
+        .bindSheet($$this.isShowPlayList, this.musicListBuilder(), {
+          detents: [SheetSize.MEDIUM],
+          dragBar: false,
+          showClose: false,
+          backgroundColor: this.getThemeColors().surfaceOverlay,
+          preferType: SheetType.CENTER,
             onWillAppear: () => {
               Logger.info(TAG, 'musicListBuilder');
               this.refreshQueue();
@@ -182,7 +193,7 @@ export struct ControlAreaComponent {
           .fontColor(onMediaOf(true).primary)
           .padding({ left: SPACE_SM.cozy, right: SPACE_SM.cozy, top: SPACE_SM.tight, bottom: SPACE_SM.tight })
           .backgroundColor(onMediaOf(true).controlBg)
-          .borderRadius(12)
+          .borderRadius(LUMIO_RADIUS.md)
           .onClick(() => {
             this.isShowSpeed = true;
           })
@@ -362,16 +373,32 @@ export struct ControlAreaComponent {
 
   @Builder
   speedSheet() {
-    Column() {
-      Text('播放速度')
-        .fontSize(TYPE_SM.title3.size)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
-      ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], (rate: number) => {
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
+      Column() {
+        Text('播放速度')
+          .fontSize(TYPE_SM.title3.size)
+          .fontWeight(FontWeight.Bold)
+          .lineHeight(TYPE_SM.title3.lineHeight)
+          .letterSpacing(TYPE_SM.title3.tracking)
+          .fontColor(this.getThemeColors().primaryText)
+          .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
+        GroupedSheetContainer() {
+          this.speedRows()
+        }
+      }
+      .width('100%')
+    }
+  }
+
+  @Builder
+  private speedRows() {
+    ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], (rate: number, idx: number) => {
+      Column() {
         Row() {
           Text(this.rateLabel(rate))
             .fontSize(TYPE_SM.headline.size)
+            .lineHeight(TYPE_SM.headline.lineHeight)
+            .letterSpacing(TYPE_SM.headline.tracking)
             .fontColor(this.currentSpeed === rate ? this.getThemeColors().accent : this.getThemeColors().primaryText)
             .layoutWeight(1)
         }
@@ -379,29 +406,46 @@ export struct ControlAreaComponent {
         .height(52)
         .padding({ left: SPACE_SM.roomy, right: SPACE_SM.roomy })
         .backgroundColor(this.currentSpeed === rate ? this.getThemeColors().secondaryBg : Color.Transparent)
-        .borderRadius(12)
+        .borderRadius(LUMIO_RADIUS.md)
         .onClick(() => {
           AudioRendererController.getInstance().setSpeed(rate);
           this.isShowSpeed = false;
         })
-      }, (rate: number) => 'speed_' + rate.toString())
-    }
-    .width('100%')
-    .backgroundColor(this.getThemeColors().cardBg)
+        if (idx < 5) {
+          GroupedSheetHairline(this.getThemeColors().separator, SPACE_SM.roomy, SPACE_SM.roomy)
+        }
+      }
+    }, (rate: number) => 'speed_' + rate.toString())
   }
 
   @Builder
   sleepSheet() {
-    Column() {
-      Text('睡眠定时')
-        .fontSize(TYPE_SM.title3.size)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.getThemeColors().primaryText)
-        .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
-      ForEach([15, 30, 45, 60, 90], (min: number) => {
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
+      Column() {
+        Text('睡眠定时')
+          .fontSize(TYPE_SM.title3.size)
+          .fontWeight(FontWeight.Bold)
+          .lineHeight(TYPE_SM.title3.lineHeight)
+          .letterSpacing(TYPE_SM.title3.tracking)
+          .fontColor(this.getThemeColors().primaryText)
+          .margin({ top: SPACE_SM.base, bottom: SPACE_SM.compact })
+        GroupedSheetContainer() {
+          this.sleepRows()
+        }
+      }
+      .width('100%')
+    }
+  }
+
+  @Builder
+  private sleepRows() {
+    ForEach([15, 30, 45, 60, 90], (min: number) => {
+      Column() {
         Row() {
           Text(min + ' 分钟')
             .fontSize(TYPE_SM.headline.size)
+            .lineHeight(TYPE_SM.headline.lineHeight)
+            .letterSpacing(TYPE_SM.headline.tracking)
             .fontColor(this.getThemeColors().primaryText)
             .layoutWeight(1)
         }
@@ -414,11 +458,15 @@ export struct ControlAreaComponent {
           this.isShowSleep = false;
           this.toast('将在 ' + min + ' 分钟后暂停播放');
         })
-      }, (min: number) => 'sleep_' + min.toString())
-      // 播完当前曲后停止
+        GroupedSheetHairline(this.getThemeColors().separator, SPACE_SM.roomy, SPACE_SM.roomy)
+      }
+    }, (min: number) => 'sleep_' + min.toString())
+    Column() {
       Row() {
         Text('播完当前曲后停止')
           .fontSize(TYPE_SM.headline.size)
+          .lineHeight(TYPE_SM.headline.lineHeight)
+          .letterSpacing(TYPE_SM.headline.tracking)
           .fontColor(this.getThemeColors().primaryText)
           .layoutWeight(1)
       }
@@ -431,9 +479,14 @@ export struct ControlAreaComponent {
         this.isShowSleep = false;
         this.toast('将在播完当前歌曲后暂停');
       })
+      GroupedSheetHairline(this.getThemeColors().separator, SPACE_SM.roomy, SPACE_SM.roomy)
+    }
+    Column() {
       Row() {
         Text('关闭定时')
           .fontSize(TYPE_SM.headline.size)
+          .lineHeight(TYPE_SM.headline.lineHeight)
+          .letterSpacing(TYPE_SM.headline.tracking)
           .fontColor(this.getThemeColors().accent)
           .layoutWeight(1)
       }
@@ -447,8 +500,6 @@ export struct ControlAreaComponent {
         this.toast('已关闭睡眠定时');
       })
     }
-    .width('100%')
-    .backgroundColor(this.getThemeColors().cardBg)
   }
 
   private getThemeColors(): ColorTokens {
@@ -457,8 +508,9 @@ export struct ControlAreaComponent {
 
   @Builder
   musicListBuilder() {
-    Column() {
-      this.playListTitle();
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
+      Column() {
+        this.playListTitle();
       this.sortBar();
       if (this.songList.length === 0) {
         Text($r('app.string.queue_empty'))
@@ -499,7 +551,8 @@ export struct ControlAreaComponent {
       top: this.currentBreakpoint === BreakpointConstants.BREAKPOINT_SM ? 0 : $r('app.float.list_area_padding_top'),
       bottom: $r('app.float.list_area_padding_bottom')
     })
-    .backgroundColor(this.getThemeColors().cardBg)
+    .width('100%')
+    }
   }
 
   private refreshQueue(): void {

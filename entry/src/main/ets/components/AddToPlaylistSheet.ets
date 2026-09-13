@@ -25,7 +25,10 @@ import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
 import { semanticOf } from '../tokens/LumioColor';
 import { Logger } from '../utils/Logger';
 import { CoverImageView } from './CoverImageView';
-import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
+import { TYPE_SM, SPACE_SM, LUMIO_RADIUS } from '../tokens/LumioScale';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { acquireSheetMaterial, SheetScaffold } from '../common/utils/SheetMaterial';
+import { GroupedSheetContainer } from '../common/components/GroupedSheet';
 
 const TAG: string = 'AddToPlaylistSheet';
 
@@ -37,6 +40,8 @@ export struct AddToPlaylistSheet {
   store: MusicStore = MusicStore.getInstance();
   @State playlists: Playlist[] = [];
   @State newName: string = '';
+  /** 系统材质实例：API 26 经动态 import 注入；API 24 恒为 undefined（SheetScaffold 走纯色兜底）。 */
+  @State material: uiMaterial.Material | undefined = undefined;
 
   nameDialogController: CustomDialogController = new CustomDialogController({
     builder: this.nameDialogBuilder,
@@ -50,6 +55,9 @@ export struct AddToPlaylistSheet {
 
   aboutToAppear(): void {
     this.reload();
+    acquireSheetMaterial().then((m: uiMaterial.Material | undefined): void => {
+      this.material = m;
+    });
   }
 
   private reload(): void {
@@ -104,6 +112,8 @@ export struct AddToPlaylistSheet {
       Text('新建歌单')
         .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
+        .lineHeight(TYPE_SM.title3.lineHeight)
+        .letterSpacing(TYPE_SM.title3.tracking)
         .fontColor(this.getThemeColors().primaryText)
         .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.base })
 
@@ -113,7 +123,7 @@ export struct AddToPlaylistSheet {
         .maxLength(30)
         .fontColor(this.getThemeColors().primaryText)
         .backgroundColor(this.getThemeColors().secondaryBg)
-        .borderRadius(12)
+        .borderRadius(LUMIO_RADIUS.md)
         .onChange((value: string) => {
           this.newName = value;
         })
@@ -125,7 +135,7 @@ export struct AddToPlaylistSheet {
           .fontSize(TYPE_SM.body.size)
           .fontColor(this.getThemeColors().secondaryText)
           .backgroundColor(this.getThemeColors().secondaryBg)
-          .borderRadius(24)
+          .borderRadius(LUMIO_RADIUS.md)
           .onClick(() => {
             this.nameDialogController.close();
           }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
@@ -136,7 +146,7 @@ export struct AddToPlaylistSheet {
           .fontSize(TYPE_SM.body.size)
           .fontColor(semanticOf(this.isDark).onAccent)
           .backgroundColor(this.getThemeColors().accent)
-          .borderRadius(24)
+          .borderRadius(LUMIO_RADIUS.pill)
           .margin({ left: SPACE_SM.cozy })
           .onClick(() => {
             this.onNewConfirm(this.newName);
@@ -147,14 +157,17 @@ export struct AddToPlaylistSheet {
     }
     .width('100%')
     .backgroundColor(this.getThemeColors().cardBg)
-    .borderRadius(16)
+    .borderRadius(LUMIO_RADIUS.xl)
   }
 
   build() {
-    Column() {
-      Text('添加到歌单')
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
+      Column() {
+        Text('添加到歌单')
         .fontSize(TYPE_SM.title3.size)
         .fontWeight(FontWeight.Bold)
+        .lineHeight(TYPE_SM.title3.lineHeight)
+        .letterSpacing(TYPE_SM.title3.tracking)
         .fontColor(this.getThemeColors().primaryText)
         .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.cozy })
         .width('100%')
@@ -166,39 +179,47 @@ export struct AddToPlaylistSheet {
           .fontColor(this.getThemeColors().secondaryText)
           .margin({ top: SPACE_SM.roomy, bottom: SPACE_SM.roomy })
       } else {
-        List() {
-          ForEach(this.playlists, (playlist: Playlist) => {
-            ListItem() {
-              Row() {
-                CoverImageView({ src: this.getCoverSrc(playlist), coverSize: 40, coverRadius: 8 })
+        GroupedSheetContainer({ expand: true }) {
+          List() {
+            ForEach(this.playlists, (playlist: Playlist) => {
+              ListItem() {
+                Row() {
+                  CoverImageView({ src: this.getCoverSrc(playlist), coverSize: 40, coverRadius: 8 })
 
-                Column() {
-                  Text(playlist.name)
-                    .fontSize(TYPE_SM.body.size)
-                    .fontColor(this.getThemeColors().primaryText)
-                    .maxLines(1)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  Column() {
+                    Text(playlist.name)
+                      .fontSize(TYPE_SM.body.size)
+                      .fontColor(this.getThemeColors().primaryText)
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-                  Text(`${playlist.songIds.length} 首`)
-                    .fontSize(TYPE_SM.caption1.size)
-                    .fontColor(this.getThemeColors().secondaryText)
-                    .margin({ top: SPACE_SM.hair })
+                    Text(`${playlist.songIds.length} 首`)
+                      .fontSize(TYPE_SM.caption1.size)
+                      .fontColor(this.getThemeColors().secondaryText)
+                      .margin({ top: SPACE_SM.hair })
+                  }
+                  .layoutWeight(1)
+                  .alignItems(HorizontalAlign.Start)
+                  .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
                 }
-                .layoutWeight(1)
-                .alignItems(HorizontalAlign.Start)
-                .padding({ left: SPACE_SM.cozy, right: SPACE_SM.compact })
+                .width('100%')
+                .constraintSize({ minHeight: 56 })
+                .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
+                .onClick(() => {
+                  this.addTo(playlist);
+                }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
               }
-              .width('100%')
-              .height(56)
-              .padding({ left: SPACE_SM.base, right: SPACE_SM.base })
-              .onClick(() => {
-                this.addTo(playlist);
-              }).clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.96 })
-            }
-          }, (playlist: Playlist): string => playlist.id)
+            }, (playlist: Playlist): string => playlist.id)
+          }
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+          .divider({
+            strokeWidth: 0.5,
+            color: this.getThemeColors().separator,
+            startMargin: SPACE_SM.base,
+            endMargin: SPACE_SM.base
+          })
         }
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
       }
 
       Row() {
@@ -223,6 +244,7 @@ export struct AddToPlaylistSheet {
         .height(12)
     }
     .width('100%')
-    .backgroundColor(this.getThemeColors().cardBg)
+    .layoutWeight(1)
+    }
   }
 }

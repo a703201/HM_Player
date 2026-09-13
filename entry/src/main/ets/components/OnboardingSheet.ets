@@ -15,15 +15,16 @@
  */
 
 import { ThemeManager, ColorTokens } from '../utils/ThemeManager';
-import { semanticOf, LUMIO_PALETTE } from '../tokens/LumioColor';
+import { semanticOf } from '../tokens/LumioColor';
 import { LumioTheme, SpringKind } from '../tokens/LumioTheme';
 import { TYPE_SM, SPACE_SM } from '../tokens/LumioScale';
+import type uiMaterial from '@ohos.arkui.uiMaterial';
+import { acquireSheetMaterial, SheetScaffold } from '../common/utils/SheetMaterial';
 
 interface OnboardFeature {
   icon: ResourceStr;
   title: string;
   desc: string;
-  color: string;
 }
 
 /**
@@ -34,6 +35,8 @@ interface OnboardFeature {
 export struct OnboardingSheet {
   onClose: () => void = () => {};
   @StorageProp('isDark') isDark: boolean = false;
+  /** 系统材质实例：API 26 经动态 import 注入；API 24 恒为 undefined（SheetScaffold 走纯色兜底）。 */
+  @State material: uiMaterial.Material | undefined = undefined;
 
   @State itemOpacities: number[] = [0, 0, 0, 0];
   @State itemScales: number[] = [0.9, 0.9, 0.9, 0.9];
@@ -48,14 +51,17 @@ export struct OnboardingSheet {
    */
   private features(): OnboardFeature[] {
     return [
-      { icon: $r('app.media.ic_public_albums'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先', color: semanticOf(this.isDark).accent },
-      { icon: $r('app.media.ic_public_favor'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现', color: semanticOf(this.isDark).warning },
-      { icon: $r('app.media.ic_public_view_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合', color: LUMIO_PALETTE.purple },
-      { icon: $r('app.media.ic_lib_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠', color: semanticOf(this.isDark).success }
+      { icon: $r('app.media.ic_public_albums'), title: '本地音乐库', desc: '导入本地音频，纯离线播放，隐私优先' },
+      { icon: $r('app.media.ic_public_favor'), title: '无损 · Hi-Res', desc: '自动识别无损与高解析音质，徽标呈现' },
+      { icon: $r('app.media.ic_public_view_list'), title: '智能歌单', desc: '按收藏、常听、年代、艺术家自动聚合' },
+      { icon: $r('app.media.ic_lib_play'), title: '系统深度融合', desc: '锁屏播控、实况窗、卡片与倍速睡眠' }
     ];
   }
 
   aboutToAppear(): void {
+    acquireSheetMaterial().then((m: uiMaterial.Material | undefined): void => {
+      this.material = m;
+    });
     for (let i = 0; i < this.features().length; i++) {
       setTimeout(() => {
         const op = [...this.itemOpacities];
@@ -75,18 +81,20 @@ export struct OnboardingSheet {
         Image(f.icon)
           .width(24)
           .height(24)
-          .fillColor(semanticOf(this.isDark).onAccent)
+          .fillColor(semanticOf(this.isDark).accent)
       }
       .width(46)
       .height(46)
       .borderRadius(16)
-      .backgroundColor(f.color)
+      .backgroundColor(semanticOf(this.isDark).fillAccentSubtle)
       .align(Alignment.Center)
 
       Column() {
         Text(f.title)
           .fontSize(TYPE_SM.headline.size)
           .fontWeight(FontWeight.Medium)
+          .lineHeight(TYPE_SM.headline.lineHeight)
+          .letterSpacing(TYPE_SM.headline.tracking)
           .fontColor(this.getThemeColors().primaryText)
         Text(f.desc)
           .fontSize(TYPE_SM.caption1.size)
@@ -107,9 +115,10 @@ export struct OnboardingSheet {
   }
 
   build() {
-    Column() {
+    SheetScaffold({ material: this.material, fallbackColor: this.getThemeColors().surfaceOverlay }) {
       Column() {
-        Image($r('app.media.logo'))
+        Column() {
+          Image($r('app.media.logo'))
           .width(72)
           .height(72)
           .borderRadius(18)
@@ -117,6 +126,8 @@ export struct OnboardingSheet {
         Text('欢迎使用 Lumio Music')
           .fontSize(TYPE_SM.title1.size)
           .fontWeight(FontWeight.Bold)
+          .lineHeight(TYPE_SM.title1.lineHeight)
+          .letterSpacing(TYPE_SM.title1.tracking)
           .fontColor(this.getThemeColors().primaryText)
         Text('本地音乐，纯粹聆听')
           .fontSize(TYPE_SM.footnote.size)
@@ -149,6 +160,6 @@ export struct OnboardingSheet {
     .height('100%')
     .padding({ top: SPACE_SM.loose, bottom: SPACE_SM.section })
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.getThemeColors().bg)
+    }
   }
 }

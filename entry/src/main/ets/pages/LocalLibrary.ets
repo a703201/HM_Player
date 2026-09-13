@@ -523,7 +523,7 @@ export struct LocalLibrary {
             .fillColor(this.getThemeColors().secondaryText)
             .margin({ bottom: SPACE_SM.base })
             .scale({ x: this.emptyIconScale, y: this.emptyIconScale })
-            .animation({ duration: 2000, curve: LumioTheme.curve(SpringKind.Crisp) })
+            .animation({ duration: LumioTheme.duration(700), curve: LumioTheme.curve(SpringKind.Crisp) })
 
           Text('音乐库还是空的')
             .fontSize(TYPE_SM.headline.size)
@@ -615,9 +615,9 @@ export struct LocalLibrary {
     .bindSheet($$this.sheetOpen, this.sheetContent(), {
       detents: [SheetSize.MEDIUM, SheetSize.LARGE],
       dragBar: true,
-      showClose: true,
-      backgroundColor: this.getThemeColors().bg,
-      preferType: SheetType.BOTTOM
+        showClose: true,
+        backgroundColor: this.getThemeColors().surfaceOverlay,
+        preferType: SheetType.BOTTOM
     })
   }
 }
